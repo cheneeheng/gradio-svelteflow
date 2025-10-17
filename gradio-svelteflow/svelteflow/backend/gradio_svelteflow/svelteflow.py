@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
-from gradio.components.base import Component, FormComponent
+from gradio.components.base import Component
 from gradio.events import Events
 from gradio.i18n import I18nData
 
@@ -12,22 +12,20 @@ if TYPE_CHECKING:
     from gradio.components import Timer
 
 
-class Svelteflow(FormComponent):
+class SvelteFlow(Component):
     """
-    Creates a very simple textbox for user to enter string input or display string output.
+    Creates a SvelteFlow component to display and edit flow diagrams.
     """
 
     EVENTS = [
         Events.change,
-        Events.input,
-        Events.submit,
+        Events.select,
     ]
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: dict | Callable | None = None,
         *,
-        placeholder: str | None = None,
         label: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
@@ -36,12 +34,10 @@ class Svelteflow(FormComponent):
         min_width: int = 160,
         interactive: bool | None = None,
         visible: bool | Literal["hidden"] = True,
-        rtl: bool = False,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
-        preserved_by_key: list[str] | str | None = "value",
     ):
         """
         Parameters:
@@ -83,8 +79,6 @@ class Svelteflow(FormComponent):
                 in the UI (if they have been changed by the user or an event listener) instead of re-rendered
                 based on the values provided during constructor.
         """
-        self.placeholder = placeholder
-        self.rtl = rtl
         super().__init__(
             label=label,
             every=every,
@@ -99,32 +93,108 @@ class Svelteflow(FormComponent):
             value=value,
             render=render,
             key=key,
-            preserved_by_key=preserved_by_key,
         )
 
-    def preprocess(self, payload: str | None) -> str | None:
+    def preprocess(self, payload: dict | None) -> dict | None:
         """
         Parameters:
-            payload: the text entered in the textarea.
+            payload: the data from the frontend.
         Returns:
-            Passes text value as a {str} into the function.
+            Passes the data as a {dict} into the function.
         """
-        return None if payload is None else str(payload)
+        return payload
 
-    def postprocess(self, value: str | None) -> str | None:
+    def postprocess(self, value: dict | None) -> dict | None:
         """
         Parameters:
-            value: Expects a {str} returned from function and sets textarea value to it.
+            value: Expects a {dict} returned from function and sets the value of the component to it.
         Returns:
-            The value to display in the textarea.
+            The value to display in the frontend.
         """
-        return None if value is None else str(value)
+        return value
 
     def api_info(self) -> dict[str, Any]:
-        return {"type": "string"}
+        return {
+            "type": "object",
+            "properties": {
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "type": {"type": "string"},
+                            "data": {"type": "object"},
+                            "position": {
+                                "type": "object",
+                                "properties": {
+                                    "x": {"type": "number"},
+                                    "y": {"type": "number"},
+                                },
+                            },
+                        },
+                    },
+                },
+                "edges": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "source": {"type": "string"},
+                            "target": {"type": "string"},
+                        },
+                    },
+                },
+            },
+        }
 
     def example_payload(self) -> Any:
-        return "Hello!!"
+        return {
+            "nodes": [
+                {
+                    "id": "1",
+                    "type": "input",
+                    "data": {"label": "Input"},
+                    "position": {"x": 250, "y": 5},
+                },
+                {
+                    "id": "2",
+                    "type": "output",
+                    "data": {"label": "Output"},
+                    "position": {"x": 250, "y": 200},
+                },
+            ],
+            "edges": [
+                {
+                    "id": "e1-2",
+                    "source": "1",
+                    "target": "2",
+                }
+            ],
+        }
 
     def example_value(self) -> Any:
-        return "Hello!!"
+        return {
+            "nodes": [
+                {
+                    "id": "1",
+                    "type": "input",
+                    "data": {"label": "Input"},
+                    "position": {"x": 250, "y": 5},
+                },
+                {
+                    "id": "2",
+                    "type": "output",
+                    "data": {"label": "Output"},
+                    "position": {"x": 250, "y": 200},
+                },
+            ],
+            "edges": [
+                {
+                    "id": "e1-2",
+                    "source": "1",
+                    "target": "2",
+                }
+            ],
+        }
