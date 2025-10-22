@@ -1,0 +1,31 @@
+{
+  "general": {
+    "preferredEditor": "code"
+  },
+  "ui": {
+    "hideTips": true,
+    "hideBanner": true,
+    "showMemoryUsage": true,
+    "showLineNumbers": true
+  },
+  "telemetry": {
+    "enabled": false
+  },
+  "privacy": {
+    "usageStatisticsEnabled": false
+  },
+  "security": {
+    "auth": {
+      "selectedType ": "oauth-personal"
+    }
+  },
+  "ide": {
+    "hasSeenNudge": true,
+    "enabled": false
+  },
+  "mcpServers": {
+    "gradio": {
+      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/sse"
+    }
+  }
+}

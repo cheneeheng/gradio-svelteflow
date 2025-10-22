@@ -14,12 +14,7 @@ readme = "README.md"
 license = "apache-2.0"
 requires-python = ">=3.10"
 authors = [{ name = "YOUR NAME", email = "YOUREMAIL@domain.com" }]
-keywords = [
-  "gradio-custom-component",
-  "gradio-template-SimpleTextbox",
-  "svelteflow",
-  "graph",
-]
+keywords = ["gradio-custom-component", "gradio-template-SimpleTextbox", "svelteflow", "graph"]
 # Add dependencies here
 dependencies = ["gradio>=4.0,<6.0"]
 classifiers = [

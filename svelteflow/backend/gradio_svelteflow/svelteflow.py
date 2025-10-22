@@ -19,7 +19,8 @@ class SvelteFlow(Component):
 
     EVENTS = [
         Events.change,
-        Events.select,
+        Events.input,
+        Events.submit,
     ]
 
     def __init__(

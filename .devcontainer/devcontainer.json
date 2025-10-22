@@ -8,6 +8,9 @@
   "containerEnv": {
     "UV_CACHE_DIR": "/workspace/.uv-cache"
   },
+  "mounts": [
+    "source=${localEnv:USERPROFILE}/.gemini,target=/home/ubuntu/.gemini,type=bind"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [

@@ -10,3 +10,5 @@ __tmp/*
 .ruff_cache
 node_modules
 backend/**/templates/
+demo/css.css
+demo/space.py
