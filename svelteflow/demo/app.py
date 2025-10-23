@@ -5,9 +5,24 @@ from gradio_svelteflow import SvelteFlow
 example = SvelteFlow().example_value()
 
 with gr.Blocks() as app:
-    btn = gr.Button()
-    sf = SvelteFlow()
-    btn.click(lambda: example, None, sf)
+    json = gr.JSON()
+    btn = gr.Button("Example")
+    sf = SvelteFlow(
+        # info="INFO",
+        # label="LABEL",
+        # show_label=True,
+    )
+    btn.click(
+        lambda: example,
+        None,
+        sf,
+    )
+    # sf.change(
+    #     lambda x: x,
+    #     sf,
+    #     json,
+    # )
+
 
 app.launch()
 

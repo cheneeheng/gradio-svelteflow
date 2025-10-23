@@ -30,9 +30,24 @@ from gradio_svelteflow import SvelteFlow
 example = SvelteFlow().example_value()
 
 with gr.Blocks() as app:
-    btn = gr.Button()
-    sf = SvelteFlow()
-    btn.click(lambda: example, None, sf)
+    json = gr.JSON()
+    btn = gr.Button("Example")
+    sf = SvelteFlow(
+        # info="INFO",
+        # label="LABEL",
+        # show_label=True,
+    )
+    btn.click(
+        lambda: example,
+        None,
+        sf,
+    )
+    # sf.change(
+    #     lambda x: x,
+    #     sf,
+    #     json,
+    # )
+
 
 app.launch()
 
@@ -87,6 +102,19 @@ str | I18nData | None
 </td>
 <td align="left"><code>None</code></td>
 <td align="left">the label for this component, displayed above the component if `show_label` is `True` and is also</td>
+</tr>
+
+<tr>
+<td align="left"><code>info</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+str | I18nData | None
+```
+
+</td>
+<td align="left"><code>None</code></td>
+<td align="left">None</td>
 </tr>
 
 <tr>
@@ -168,6 +196,19 @@ bool | None
 </tr>
 
 <tr>
+<td align="left"><code>submit_btn</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+bool
+```
+
+</td>
+<td align="left"><code>False</code></td>
+<td align="left">None</td>
+</tr>
+
+<tr>
 <td align="left"><code>visible</code></td>
 <td align="left" style="width: 25%;">
 
@@ -241,6 +282,7 @@ int | str | tuple[int | str, ...] | None
 | `change` | Triggered when the value of the SvelteFlow changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger). See `.input()` for a listener that is only triggered by user input. |
 | `input` | This listener is triggered when the user changes the value of the SvelteFlow. |
 | `submit` | This listener is triggered when the user presses the Enter key while the SvelteFlow is focused. |
+| `select` | Event listener for when the user selects or deselects the SvelteFlow. Uses event data gradio.SelectData to carry `value` referring to the label of the SvelteFlow, and `selected` to refer to state of the SvelteFlow. See EventData documentation on how to use this event data |
 
 
 

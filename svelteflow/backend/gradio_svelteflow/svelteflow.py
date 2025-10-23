@@ -21,6 +21,7 @@ class SvelteFlow(Component):
         Events.change,
         Events.input,
         Events.submit,
+        Events.select,
     ]
 
     def __init__(
@@ -28,12 +29,14 @@ class SvelteFlow(Component):
         value: dict | Callable | None = None,
         *,
         label: str | I18nData | None = None,
+        info: str | I18nData | None = None,
         every: Timer | float | None = None,
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         show_label: bool | None = None,
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
+        submit_btn: bool = False,
         visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
@@ -80,8 +83,10 @@ class SvelteFlow(Component):
                 in the UI (if they have been changed by the user or an event listener) instead of re-rendered
                 based on the values provided during constructor.
         """
+        self.submit_btn = submit_btn
         super().__init__(
             label=label,
+            info=info,
             every=every,
             inputs=inputs,
             show_label=show_label,
