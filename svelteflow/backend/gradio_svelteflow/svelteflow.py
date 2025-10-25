@@ -159,24 +159,71 @@ class SvelteFlow(Component):
         return {
             "nodes": [
                 {
-                    "id": "1",
-                    "type": "input",
-                    "data": {"label": "Input"},
-                    "position": {"x": 250, "y": 5},
+                    "id": "node-1",
+                    "type": "dynamic",
+                    "position": {"x": 100, "y": 150},
+                    "data": {
+                        "label": "Start",
+                        "sources": [{"id": "node-1-s1"}],
+                        "targets": [{"id": "node-1-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
                 },
                 {
-                    "id": "2",
-                    "type": "output",
-                    "data": {"label": "Output"},
-                    "position": {"x": 250, "y": 200},
+                    "id": "node-2",
+                    "type": "dynamic",
+                    "position": {"x": 250, "y": 150},
+                    "data": {
+                        "label": "Process A",
+                        "sources": [{"id": "node-2-s1"}],
+                        "targets": [{"id": "node-2-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
+                },
+                {
+                    "id": "node-3",
+                    "type": "dynamic",
+                    "position": {"x": 400, "y": 150},
+                    "data": {
+                        "label": "Decision",
+                        "sources": [{"id": "node-3-s1"}],
+                        "targets": [{"id": "node-3-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
+                },
+                {
+                    "id": "node-4",
+                    "type": "dynamic",
+                    "position": {"x": 550, "y": 100},
+                    "data": {
+                        "label": "Branch A",
+                        "sources": [{"id": "node-4-s1"}],
+                        "targets": [{"id": "node-4-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
+                },
+                {
+                    "id": "node-5",
+                    "type": "dynamic",
+                    "position": {"x": 550, "y": 200},
+                    "data": {
+                        "label": "Branch B",
+                        "sources": [{"id": "node-5-s1"}],
+                        "targets": [{"id": "node-5-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
                 },
             ],
             "edges": [
-                {
-                    "id": "e1-2",
-                    "source": "1",
-                    "target": "2",
-                }
+                {"id": "e1-2", "source": "node-1-s1", "target": "node-2-t1"},
+                {"id": "e2-3", "source": "node-2-s1", "target": "node-3-t1"},
+                {"id": "e3-4", "source": "node-3-s1", "target": "node-4-t1"},
+                {"id": "e3-5", "source": "node-3-s1", "target": "node-5-t1"},
             ],
         }
 
@@ -184,23 +231,70 @@ class SvelteFlow(Component):
         return {
             "nodes": [
                 {
-                    "id": "1",
-                    "type": "input",
-                    "data": {"label": "Input"},
-                    "position": {"x": 250, "y": 5},
+                    "id": "node-1",
+                    "type": "dynamic",
+                    "position": {"x": 100, "y": 150},
+                    "data": {
+                        "label": "Start",
+                        "sources": [{"id": "node-1-s1"}],
+                        "targets": [{"id": "node-1-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
                 },
                 {
-                    "id": "2",
-                    "type": "output",
-                    "data": {"label": "Output"},
-                    "position": {"x": 250, "y": 200},
+                    "id": "node-2",
+                    "type": "dynamic",
+                    "position": {"x": 250, "y": 150},
+                    "data": {
+                        "label": "Process A",
+                        "sources": [{"id": "node-2-s1"}],
+                        "targets": [{"id": "node-2-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
+                },
+                {
+                    "id": "node-3",
+                    "type": "dynamic",
+                    "position": {"x": 400, "y": 150},
+                    "data": {
+                        "label": "Decision",
+                        "sources": [{"id": "node-3-s1"}],
+                        "targets": [{"id": "node-3-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
+                },
+                {
+                    "id": "node-4",
+                    "type": "dynamic",
+                    "position": {"x": 550, "y": 100},
+                    "data": {
+                        "label": "Branch A",
+                        "sources": [{"id": "node-4-s1"}],
+                        "targets": [{"id": "node-4-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
+                },
+                {
+                    "id": "node-5",
+                    "type": "dynamic",
+                    "position": {"x": 550, "y": 200},
+                    "data": {
+                        "label": "Branch B",
+                        "sources": [{"id": "node-5-s1"}],
+                        "targets": [{"id": "node-5-t1"}],
+                        "topOffsetPx": 0,
+                        "sideOffsetPx": 8,
+                    },
                 },
             ],
             "edges": [
-                {
-                    "id": "e1-2",
-                    "source": "1",
-                    "target": "2",
-                }
+                {"id": "e1-2", "source": "node-1-s1", "target": "node-2-t1"},
+                {"id": "e2-3", "source": "node-2-s1", "target": "node-3-t1"},
+                {"id": "e3-4", "source": "node-3-s1", "target": "node-4-t1"},
+                {"id": "e3-5", "source": "node-3-s1", "target": "node-5-t1"},
             ],
         }
