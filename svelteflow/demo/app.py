@@ -4,35 +4,26 @@ from gradio_svelteflow import SvelteFlow
 
 example = SvelteFlow().example_value()
 
-with gr.Blocks() as app:
-    json = gr.JSON()
+with gr.Blocks() as demo:
     btn = gr.Button("Example")
     sf = SvelteFlow(
-        # info="INFO",
-        # label="LABEL",
-        # show_label=True,
+        info="INFO",
+        label="LABEL",
+        show_label=True,
+        interactive=True,
+        submit_btn=True,
     )
-    btn.click(
-        lambda: example,
-        None,
-        sf,
+    json = gr.JSON()
+    txt = gr.Textbox(value="0")
+
+    btn.click(lambda: example, None, sf)
+    sf.change(
+        lambda x: str(int(x) + 1),
+        txt,
+        txt,
     )
-    # sf.change(
-    #     lambda x: x,
-    #     sf,
-    #     json,
-    # )
+    sf.submit(lambda x: x, sf, json)
 
 
-app.launch()
-
-# demo = gr.Interface(
-#     lambda x: x,
-#     SvelteFlow(),  # interactive version of your component
-#     SvelteFlow(),  # static version of your component
-#     # examples=[[example]],  # uncomment this line to view the "example version" of your component
-# )
-
-
-# if __name__ == "__main__":
-#     demo.launch()
+if __name__ == "__main__":
+    demo.launch()

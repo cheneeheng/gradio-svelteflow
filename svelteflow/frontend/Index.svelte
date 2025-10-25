@@ -16,7 +16,7 @@
   import { writable } from "svelte/store";
 
   export let gradio: Gradio<{
-    change: never;
+    change: { nodes: Node[]; edges: Edge[] };
     select: { nodes: Node[]; edges: Edge[] };
     submit: { nodes: Node[]; edges: Edge[] };
     clear_status: LoadingStatus;
@@ -27,11 +27,11 @@
   export let elem_classes: string[] = [];
   export let visible: boolean | "hidden" = true;
   export let value: { nodes: Node[]; edges: Edge[] } | null = null;
-  export let show_label: boolean;
+  export let show_label: boolean = false;
   export let scale: number | null = null;
   export let min_width: number | undefined = undefined;
   export let loading_status: LoadingStatus | undefined = undefined;
-  export let interactive: boolean;
+  export let interactive: boolean = false;
   export let submit_btn: boolean = false;
   export let show_fullscreen_button = true;
   let fullscreen = false;
@@ -39,21 +39,31 @@
   const nodes = writable<Node[]>([]);
   const edges = writable<Edge[]>([]);
 
+  // Sync from parent -> local stores
   $: if (
     value &&
     (JSON.stringify(value.nodes) !== JSON.stringify($nodes) ||
       JSON.stringify(value.edges) !== JSON.stringify($edges))
   ) {
-    // $: if (value) {
     nodes.set(value.nodes);
     edges.set(value.edges);
   }
 
+  // Sync from local stores -> parent
   $: {
     const new_value = { nodes: $nodes, edges: $edges };
-    if (JSON.stringify(new_value) !== JSON.stringify(value)) {
-      value = new_value;
-      gradio.dispatch("change");
+    if (!value || JSON.stringify(new_value) !== JSON.stringify(value)) {
+      gradio.dispatch("change", new_value);
+    }
+  }
+
+  let lastDispatched: { nodes: Node[]; edges: Edge[] } | null = null;
+
+  $: {
+    const new_value = { nodes: $nodes, edges: $edges };
+    if (!isEqual(new_value, value) && !isEqual(new_value, lastDispatched)) {
+      gradio.dispatch("change", new_value);
+      lastDispatched = new_value;
     }
   }
 
@@ -108,7 +118,7 @@
     />
   {/if}
 
-  <div style="height: 500px; width: 100%">
+  <div style="height: 500px">
     <SvelteFlow
       {nodes}
       {edges}
@@ -122,7 +132,7 @@
     </SvelteFlow>
   </div>
   {#if submit_btn}
-    <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+    <div style="display: flex; justify-content: center; margin-top: 10px;">
       <button on:click={handleSubmit}>Submit</button>
     </div>
   {/if}
