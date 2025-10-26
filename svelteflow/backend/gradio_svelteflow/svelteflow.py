@@ -130,7 +130,32 @@ class SvelteFlow(Component):
                         "properties": {
                             "id": {"type": "string"},
                             "type": {"type": "string"},
-                            "data": {"type": "object"},
+                            "data": {
+                                "type": "object",
+                                "properties": {
+                                    "label": {"type": "string"},
+                                    "sources": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                            },
+                                        },
+                                    },
+                                    "targets": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {"type": "string"},
+                                            },
+                                        },
+                                    },
+                                    "topOffsetPx": {"type": "number"},
+                                    "sideOffsetPx": {"type": "number"},
+                                },
+                            },
                             "position": {
                                 "type": "object",
                                 "properties": {
@@ -149,6 +174,9 @@ class SvelteFlow(Component):
                             "id": {"type": "string"},
                             "source": {"type": "string"},
                             "target": {"type": "string"},
+                            "sourceHandle": {"type": "string"},
+                            "targetHandle": {"type": "string"},
+                            "markerEnd": {"type": "string"},
                         },
                     },
                 },
@@ -220,10 +248,38 @@ class SvelteFlow(Component):
                 },
             ],
             "edges": [
-                {"id": "e1-2", "source": "node-1-s1", "target": "node-2-t1"},
-                {"id": "e2-3", "source": "node-2-s1", "target": "node-3-t1"},
-                {"id": "e3-4", "source": "node-3-s1", "target": "node-4-t1"},
-                {"id": "e3-5", "source": "node-3-s1", "target": "node-5-t1"},
+                {
+                    "id": "node-1:node-1-s1-->node-2:node-2-t1",
+                    "source": "node-1",
+                    "target": "node-2",
+                    "sourceHandle": "node-1-s1",
+                    "targetHandle": "node-2-t1",
+                    "markerEnd": "arrowclosed",
+                },
+                {
+                    "id": "node-2:node-2-s1-->node-3:node-3-t1",
+                    "source": "node-2",
+                    "target": "node-3",
+                    "sourceHandle": "node-2-s1",
+                    "targetHandle": "node-3-t1",
+                    "markerEnd": "arrowclosed",
+                },
+                {
+                    "id": "node-3:node-3-s1-->node-4:node-4-t1",
+                    "source": "node-3",
+                    "target": "node-4",
+                    "sourceHandle": "node-3-s1",
+                    "targetHandle": "node-4-t1",
+                    "markerEnd": "arrowclosed",
+                },
+                {
+                    "id": "node-3:node-3-s1-->node-5:node-5-t1",
+                    "source": "node-3",
+                    "target": "node-5",
+                    "sourceHandle": "node-3-s1",
+                    "targetHandle": "node-5-t1",
+                    "markerEnd": "arrowclosed",
+                },
             ],
         }
 
@@ -292,9 +348,37 @@ class SvelteFlow(Component):
                 },
             ],
             "edges": [
-                {"id": "e1-2", "source": "node-1-s1", "target": "node-2-t1"},
-                {"id": "e2-3", "source": "node-2-s1", "target": "node-3-t1"},
-                {"id": "e3-4", "source": "node-3-s1", "target": "node-4-t1"},
-                {"id": "e3-5", "source": "node-3-s1", "target": "node-5-t1"},
+                {
+                    "id": "node-1:node-1-s1-->node-2:node-2-t1",
+                    "source": "node-1",
+                    "target": "node-2",
+                    "sourceHandle": "node-1-s1",
+                    "targetHandle": "node-2-t1",
+                    "markerEnd": "arrowclosed",
+                },
+                {
+                    "id": "node-2:node-2-s1-->node-3:node-3-t1",
+                    "source": "node-2",
+                    "target": "node-3",
+                    "sourceHandle": "node-2-s1",
+                    "targetHandle": "node-3-t1",
+                    "markerEnd": "arrowclosed",
+                },
+                {
+                    "id": "node-3:node-3-s1-->node-4:node-4-t1",
+                    "source": "node-3",
+                    "target": "node-4",
+                    "sourceHandle": "node-3-s1",
+                    "targetHandle": "node-4-t1",
+                    "markerEnd": "arrowclosed",
+                },
+                {
+                    "id": "node-3:node-3-s1-->node-5:node-5-t1",
+                    "source": "node-3",
+                    "target": "node-5",
+                    "sourceHandle": "node-3-s1",
+                    "targetHandle": "node-5-t1",
+                    "markerEnd": "arrowclosed",
+                },
             ],
         }
