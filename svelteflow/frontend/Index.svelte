@@ -66,26 +66,50 @@
     // Build lookup maps
     const nodeMapB = new Map(b.nodes.map((n) => [n.id, n]));
     const edgeMapB = new Map(b.edges.map((e) => [e.id, e]));
-    // Compare nodes by id, type, and label (ignore position)
+    // Compare nodes
     for (const na of a.nodes) {
       const nb = nodeMapB.get(na.id);
+      // Compare id
       if (!nb) return false;
-      if (
-        na.type !== nb.type ||
-        (na.data?.label ?? "") !== (nb.data?.label ?? "")
-      ) {
+      // Compare type
+      if (na.type !== nb.type) return false;
+      const da = na.data ?? {};
+      const db = nb.data ?? {};
+      // Compare label
+      if ((da.label ?? "") !== (db.label ?? "")) return false;
+      // Compare sources/targets by id
+      const srcA = (da.sources ?? []).map((s) => s.id).sort();
+      const srcB = (db.sources ?? []).map((s) => s.id).sort();
+      if (srcA.length !== srcB.length || srcA.some((id, i) => id !== srcB[i])) {
         return false;
       }
+      const tgtA = (da.targets ?? []).map((t) => t.id).sort();
+      const tgtB = (db.targets ?? []).map((t) => t.id).sort();
+      if (tgtA.length !== tgtB.length || tgtA.some((id, i) => id !== tgtB[i])) {
+        return false;
+      }
+      // // Compare offsets if relevant
+      // if ((da.topOffsetPx ?? 0) !== (db.topOffsetPx ?? 0)) return false;
+      // if ((da.sideOffsetPx ?? 0) !== (db.sideOffsetPx ?? 0)) return false;
     }
+
     // Compare edges by id, source, target
     for (const ea of a.edges) {
       const eb = edgeMapB.get(ea.id);
       if (!eb) return false;
-      if (ea.source !== eb.source || ea.target !== eb.target) {
-        return false;
-      }
+      if (ea.source !== eb.source || ea.target !== eb.target) return false;
+      if ((ea.sourceHandle ?? "") !== (eb.sourceHandle ?? "")) return false;
+      if ((ea.targetHandle ?? "") !== (eb.targetHandle ?? "")) return false;
     }
+
     return true;
+  }
+
+  function addMarkerEndToEdge(edge: Edge): Edge {
+    return {
+      markerEnd: "arrowclosed", // directed edge
+      ...edge, // explicit props override
+    };
   }
 
   const nodes = writable<Node<CustomNodeData>[]>([]);
@@ -94,7 +118,7 @@
   // Sync from parent -> local stores
   $: if (value && !sameGraph(value, { nodes: $nodes, edges: $edges })) {
     nodes.set(value.nodes);
-    edges.set(value.edges);
+    edges.set(value.edges.map(addMarkerEndToEdge));
   }
 
   // Sync from local stores -> parent
@@ -110,6 +134,41 @@
   }
 
   // EVENT HANDLERS -----------------------------------------------------------
+
+  let flowInstance: any = null;
+  function handleInit(e: CustomEvent<any>) {
+    flowInstance = e.detail;
+  }
+
+  function handleAddNode() {
+    if (!flowInstance) return;
+    // Get container size
+    const bounds = flowInstance.getBoundingClientRect(); // available in 0.1.x
+    const cx = bounds.width / 2;
+    const cy = bounds.height / 2;
+    // Project screen coords to flow coords
+    const { x, y } = flowInstance.project({ x: cx, y: cy });
+    const id = crypto.randomUUID();
+    const jitter = Math.random() * 40 - 20; // -20..+20 px
+    const newNode: Node<CustomNodeData> = {
+      id,
+      type: "dynamic",
+      position: { x: x + jitter, y: y + jitter },
+      data: {
+        label: `Node ${Date.now()}`,
+        sources: [{ id: `${id}-s1` }],
+        targets: [{ id: `${id}-t1` }],
+      },
+    };
+    nodes.update((n) => [...n, newNode]);
+  }
+
+  // NOTE: Not used now, but maybe in the future
+  let viewport = { x: 0, y: 0, zoom: 1 };
+  function handleMove(e: CustomEvent<{ transform: [number, number, number] }>) {
+    const [x, y, zoom] = e.detail.transform;
+    viewport = { x, y, zoom };
+  }
 
   function handleNodeClick(
     e: CustomEvent<{
@@ -132,68 +191,48 @@
     }
   }
 
-  function handleSubmit() {
-    gradio.dispatch("submit", { nodes: $nodes, edges: $edges });
-  }
-
-  // function handleAddNode() {
-  //   const id = crypto.randomUUID();
-  //   nodes.update((n) => [
-  //     ...n,
-  //     {
-  //       id,
-  //       type: "default",
-  //       data: { label: `Node ${n.length + 1}` },
-  //       position: { x: 100 + n.length * 50, y: 100 },
-  //     },
-  //   ]);
-  // }
-
-  function handleAddNode() {
-    const id = crypto.randomUUID();
-    // one source and one target handle
-    const newNode: Node<CustomNodeData> = {
-      id,
-      type: "dynamic", // must match nodeTypes key
-      position: { x: 100, y: 100 },
-      data: {
-        label: "New Node",
-        sources: [{ id: `${id}-s1` }],
-        targets: [{ id: `${id}-t1` }],
-      },
-    };
-    nodes.update((n) => [...n, newNode]);
-  }
-
   function handleConnect(
     e: CustomEvent<{
-      source: string;
-      target: string;
-      sourceHandle?: string;
-      targetHandle?: string;
+      source: string; // node id
+      target: string; // node id
+      sourceHandle?: string; // handle id
+      targetHandle?: string; // handle id
     }>
   ) {
     const { source, target, sourceHandle, targetHandle } = e.detail;
-    const edgeId = `${source}${sourceHandle ? `:${sourceHandle}` : ""}-->${target}${targetHandle ? `:${targetHandle}` : ""}`;
-    edges.update((es) => [
-      ...es,
-      {
-        id: edgeId,
-        source,
-        target,
-        sourceHandle, // attaches to specific left-side source handle
-        targetHandle, // attaches to specific right-side target handle
-        markerEnd: "arrowclosed", // directed edge
-      },
-    ]);
+    if (!source || !target) return; // incomplete connection
+    if (!targetHandle) return; // require a target handle
+    if (!sourceHandle) return; // require a source handle
+    const edgeId = `${source}:${sourceHandle}-->${target}:${targetHandle}`;
+    edges.update((es: Edge[]) => {
+      if (es.some((edge) => edge.id === edgeId)) return es; // prevent duplicates
+      return [
+        ...es,
+        addMarkerEndToEdge({
+          id: edgeId,
+          source,
+          target,
+          sourceHandle, // attaches to specific left-side source handle
+          targetHandle, // attaches to specific right-side target handle
+        }),
+      ];
+    });
   }
 
   function handleBeforeDelete(
     e: CustomEvent<{ nodes: Node<CustomNodeData>[]; edges: Edge[] }>
   ) {
     const { nodes: toDelete, edges: toDeleteEdges } = e.detail;
-    nodes.update((n) => n.filter((node) => !toDelete.includes(node)));
-    edges.update((es) => es.filter((edge) => !toDeleteEdges.includes(edge)));
+    nodes.update((n) =>
+      n.filter((node) => !toDelete.some((d) => d.id === node.id))
+    );
+    edges.update((es) =>
+      es.filter((edge) => !toDeleteEdges.some((d) => d.id === edge.id))
+    );
+  }
+
+  function handleSubmit() {
+    gradio.dispatch("submit", { nodes: $nodes, edges: $edges });
   }
 </script>
 
@@ -238,6 +277,8 @@
       {nodes}
       {edges}
       {nodeTypes}
+      on:init={handleInit}
+      on:move={handleMove}
       on:nodeclick={handleNodeClick}
       on:edgeclick={handleEdgeClick}
       on:connect={handleConnect}
