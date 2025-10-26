@@ -1,9 +1,9 @@
 <!--
 THIS IS THE EXPECTED DATA STRUCTURE FOR THIS CUSTOM NODE:
 
-const node: Node<DynamicNodeData> = {
+const node: Node<CustomNodeData> = {
   id: "node-1",
-  type: "dynamic", // must match nodeTypes = { dynamic: DynamicHandlesNode }
+  type: "dynamic", // must match nodeTypes = { dynamic: CustomNode }
   position: { x: 200, y: 150 },
   data: {
     label: "My Node",
@@ -26,12 +26,12 @@ const node: Node<DynamicNodeData> = {
     type NodeProps,
     type Node,
   } from "@xyflow/svelte";
-  import type { DynamicNodeData } from "./DynamicNodeData.ts";
+  import type { CustomNodeData } from "./CustomNodeData.js";
 
-  export let props: NodeProps<Node<DynamicNodeData>>;
+  export let props: NodeProps<Node<CustomNodeData>>;
   const { id, data } = props; // destructure what you need
   // export let id: string;
-  // export let data: DynamicNodeData;
+  // export let data: CustomNodeData;
 
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -48,8 +48,8 @@ const node: Node<DynamicNodeData> = {
   const topOffset = data?.topOffsetPx ?? 0;
 </script>
 
-<div class="dynamic-node">
-  <div class="label">{data?.label ?? "Dynamic Node"}</div>
+<div class="custom-node">
+  <div class="label">{data?.label ?? "Custom Node"}</div>
 
   <!-- Sources on the left, centered and evenly spaced -->
   {#each data?.sources ?? [] as s, i}
@@ -77,7 +77,7 @@ const node: Node<DynamicNodeData> = {
 </div>
 
 <style>
-  .dynamic-node {
+  .custom-node {
     position: relative; /* required for absolute handle positioning */
     padding: 12px 20px;
     border: 1px solid #999;

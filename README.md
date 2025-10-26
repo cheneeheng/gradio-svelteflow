@@ -21,14 +21,14 @@ The primary purpose of this frontend is to provide a user interface where users 
     *   It manages the state of `nodes` and `edges` using Svelte stores.
     *   It defines event handlers for user interactions like adding nodes (`handleAddNode`), connecting nodes (`handleConnect`), clicking nodes/edges, and deleting elements.
     *   It communicates with the Gradio backend by dispatching events (`gradio.dispatch`) such as `change`, `select`, and `submit`.
-    *   It registers the custom node component `DynamicHandlesNode`.
+    *   It registers the custom node component `CustomNode`.
 
-*   **`DynamicHandlesNode.svelte`**: This is a custom node component designed for the SvelteFlow diagram.
+*   **`CustomNode.svelte`**: This is a custom node component designed for the SvelteFlow diagram.
     *   It allows nodes to have a dynamic number of source (output) and target (input) handles.
     *   The number and position of these handles are determined by the `sources` and `targets` arrays in the node's `data` property.
     *   It uses `useUpdateNodeInternals` from `@xyflow/svelte` to ensure the node's dimensions are recalculated when the number of handles changes.
 
-*   **`DynamicNodeData.ts`**: This file defines the TypeScript type `DynamicNodeData` for the `data` property of the custom nodes. It specifies the structure for the node's label and its source/target handle definitions.
+*   **`CustomNodeData.ts`**: This file defines the TypeScript type `CustomNodeData` for the `data` property of the custom nodes. It specifies the structure for the node's label and its source/target handle definitions.
 
 *   **`package.json`**: This file lists the project's dependencies. Key dependencies include:
     *   `@xyflow/svelte`: The core library for the flow diagram.

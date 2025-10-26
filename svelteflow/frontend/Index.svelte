@@ -14,13 +14,13 @@
   import type { Node, Edge, NodeTypes } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import { writable } from "svelte/store";
-  import DynamicHandlesNode from "./DynamicHandlesNode.svelte";
-  import type { DynamicNodeData } from "./DynamicNodeData.ts";
+  import CustomNode from "./CustomNode.svelte";
+  import type { CustomNodeData } from "./CustomNodeData";
 
   export let gradio: Gradio<{
-    change: { nodes: Node<DynamicNodeData>[]; edges: Edge[] };
-    select: { nodes: Node<DynamicNodeData>[]; edges: Edge[] };
-    submit: { nodes: Node<DynamicNodeData>[]; edges: Edge[] };
+    change: { nodes: Node<CustomNodeData>[]; edges: Edge[] };
+    select: { nodes: Node<CustomNodeData>[]; edges: Edge[] };
+    submit: { nodes: Node<CustomNodeData>[]; edges: Edge[] };
     clear_status: LoadingStatus;
   }>;
   export let label = "Svelte-Flow";
@@ -28,7 +28,7 @@
   export let elem_id = "";
   export let elem_classes: string[] = [];
   export let visible: boolean | "hidden" = true;
-  export let value: { nodes: Node<DynamicNodeData>[]; edges: Edge[] } | null =
+  export let value: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null =
     null;
   export let show_label: boolean = false;
   export let scale: number | null = null;
@@ -44,17 +44,17 @@
   // NOTE: Plan to upgrade to @xyflow/svelte v1 (Svelte 5) later,
   // where NodeTypes is simplified and these strict constructor-typ
   //  mismatches go away.
-  // const nodeTypes: NodeTypes = { dynamic: DynamicHandlesNode };
+  // const nodeTypes: NodeTypes = { dynamic: CustomNode };
   // Temporarily silence TypeScript with a cast during registration:
   const nodeTypes: NodeTypes = {
-    dynamic: DynamicHandlesNode as unknown as NodeTypes[string],
+    dynamic: CustomNode as unknown as NodeTypes[string],
   };
 
   // GRAPH DATA ---------------------------------------------------------------
 
   function sameGraph(
-    a: { nodes: Node<DynamicNodeData>[]; edges: Edge[] } | null,
-    b: { nodes: Node<DynamicNodeData>[]; edges: Edge[] } | null
+    a: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null,
+    b: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null
   ): boolean {
     // check reference
     if (a === b) return true;
@@ -88,7 +88,7 @@
     return true;
   }
 
-  const nodes = writable<Node<DynamicNodeData>[]>([]);
+  const nodes = writable<Node<CustomNodeData>[]>([]);
   const edges = writable<Edge[]>([]);
 
   // Sync from parent -> local stores
@@ -98,7 +98,7 @@
   }
 
   // Sync from local stores -> parent
-  let lastDispatched: { nodes: Node<DynamicNodeData>[]; edges: Edge[] } | null =
+  let lastDispatched: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null =
     null;
 
   $: {
@@ -117,7 +117,7 @@
       event: MouseEvent | TouchEvent;
     }>
   ) {
-    const casted_node = e.detail.node as Node<DynamicNodeData>;
+    const casted_node = e.detail.node as Node<CustomNodeData>;
     if (interactive && e.detail.event instanceof MouseEvent) {
       gradio.dispatch("select", { nodes: [casted_node], edges: [] });
     }
@@ -152,7 +152,7 @@
   function handleAddNode() {
     const id = crypto.randomUUID();
     // one source and one target handle
-    const newNode: Node<DynamicNodeData> = {
+    const newNode: Node<CustomNodeData> = {
       id,
       type: "dynamic", // must match nodeTypes key
       position: { x: 100, y: 100 },
@@ -189,7 +189,7 @@
   }
 
   function handleBeforeDelete(
-    e: CustomEvent<{ nodes: Node<DynamicNodeData>[]; edges: Edge[] }>
+    e: CustomEvent<{ nodes: Node<CustomNodeData>[]; edges: Edge[] }>
   ) {
     const { nodes: toDelete, edges: toDeleteEdges } = e.detail;
     nodes.update((n) => n.filter((node) => !toDelete.includes(node)));

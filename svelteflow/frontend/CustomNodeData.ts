@@ -1,4 +1,4 @@
-export type DynamicNodeData = {
+export type CustomNodeData = {
   label?: string;
   sources?: { id: string }[];
   targets?: { id: string }[];
