@@ -13,9 +13,14 @@
   import { SvelteFlow, Controls, MarkerType } from "@xyflow/svelte";
   import type { Node, Edge, NodeTypes } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
-  import { writable } from "svelte/store";
+  import { writable, type Writable } from "svelte/store";
   import CustomNode from "./CustomNode.svelte";
   import type { CustomNodeData } from "./CustomNodeData";
+
+  // Hack: Polyfill process and Buffer at runtime
+  import { Buffer } from "buffer";
+  (globalThis as any).process = (globalThis as any).process || { env: {} };
+  (globalThis as any).Buffer = (globalThis as any).Buffer || Buffer;
 
   export let gradio: Gradio<{
     change: { nodes: Node<CustomNodeData>[]; edges: Edge[] };
@@ -117,60 +122,61 @@
     };
   }
 
-  // const nodes = writable<Node<CustomNodeData>[]>([]);
-  // const edges = writable<Edge[]>([]);
+  const nodes = writable<Node<CustomNodeData>[]>([]);
+  const edges = writable<Edge[]>([]);
 
-  // // // Sync from parent -> local stores
-  // // $: if (value && !sameGraph(value, { nodes: $nodes, edges: $edges })) {
-  // //   nodes.set(value.nodes);
-  // //   edges.set(value.edges.map(addMarkerEndToEdge));
-  // // }
+  // Sync from parent -> local stores
+  $: if (value && !sameGraph(value, { nodes: $nodes, edges: $edges })) {
+    nodes.set(value.nodes);
+    // edges.set(value.edges.map(addMarkerEndToEdge));
+    edges.set(value.edges.map((e) => addMarkerEndToEdge({ ...e })));
+  }
 
-  // // // Sync from local stores -> parent
-  // // let lastDispatched: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null =
-  // //   null;
+  // Sync from local stores -> parent
+  let lastDispatched: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null =
+    null;
 
-  // // $: {
-  // //   const new_value = { nodes: $nodes, edges: $edges };
-  // //   if (!sameGraph(new_value, value) && !sameGraph(new_value, lastDispatched)) {
-  // //     gradio.dispatch("change", new_value);
-  // //     lastDispatched = new_value;
-  // //   }
-  // // }
+  $: {
+    const new_value = { nodes: $nodes, edges: $edges };
+    if (!sameGraph(new_value, value) && !sameGraph(new_value, lastDispatched)) {
+      gradio.dispatch("change", new_value);
+      lastDispatched = new_value;
+    }
+  }
 
-  // Minimal nodes with matching handles
-  const nodes = writable([
-    {
-      id: "node-1",
-      position: { x: 0, y: 0 },
-      data: { label: "Source" },
-      type: "default",
-    },
-    {
-      id: "node-2",
-      position: { x: 250, y: 100 },
-      data: { label: "Target" },
-      type: "default",
-    },
-  ]);
+  // // Minimal nodes with matching handles
+  // const nodes = writable([
+  //   {
+  //     id: "node-1",
+  //     position: { x: 0, y: 0 },
+  //     data: { label: "Source" },
+  //     type: "default",
+  //   },
+  //   {
+  //     id: "node-2",
+  //     position: { x: 250, y: 100 },
+  //     data: { label: "Target" },
+  //     type: "default",
+  //   },
+  // ]);
 
-  // Minimal edge with matching handle IDs and arrowhead
-  const edges = writable([
-    {
-      id: "e1-2",
-      source: "node-1",
-      target: "node-2",
-      // these must match actual <Handle id="…"> if you use custom nodes
-      sourceHandle: null,
-      targetHandle: null,
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: "#222",
-        width: 20,
-        height: 20,
-      },
-    },
-  ]);
+  // // Minimal edge with matching handle IDs and arrowhead
+  // const edges = writable([
+  //   {
+  //     id: "e1-2",
+  //     source: "node-1",
+  //     target: "node-2",
+  //     // these must match actual <Handle id="…"> if you use custom nodes
+  //     sourceHandle: null,
+  //     targetHandle: null,
+  //     markerEnd: {
+  //       type: MarkerType.ArrowClosed,
+  //       color: "#222",
+  //       width: 20,
+  //       height: 20,
+  //     },
+  //   },
+  // ]);
 
   // EVENT HANDLERS -----------------------------------------------------------
 
@@ -181,12 +187,18 @@
 
   function handleAddNode() {
     if (!flowInstance) return;
-    // Get container size
-    const bounds = flowInstance.getBoundingClientRect(); // available in 0.1.x
-    const cx = bounds.width / 2;
-    const cy = bounds.height / 2;
+    // Get current viewport transform
+    const [vx, vy, zoom] = flowInstance.getViewport();
+    // Compute the center of the visible area
+    const container = document.querySelector(".svelte-flow") as HTMLElement;
+    // const container = flowInstance.getBoundingClientRect?.();
+    const cx = container ? container.clientWidth / 2 : 250;
+    const cy = container ? container.clientHeight / 2 : 150;
     // Project screen coords to flow coords
-    const { x, y } = flowInstance.project({ x: cx, y: cy });
+    const { x, y } = flowInstance.project({
+      x: (cx - vx) / zoom,
+      y: (cy - vy) / zoom,
+    });
     const id = crypto.randomUUID();
     const jitter = Math.random() * 40 - 20; // -20..+20 px
     const newNode: Node<CustomNodeData> = {
@@ -261,18 +273,27 @@
   function handleBeforeDelete(
     e: CustomEvent<{ nodes: Node<CustomNodeData>[]; edges: Edge[] }>
   ) {
-    const { nodes: toDelete, edges: toDeleteEdges } = e.detail;
-    nodes.update((n) =>
-      n.filter((node) => !toDelete.some((d) => d.id === node.id))
-    );
-    edges.update((es) =>
-      es.filter((edge) => !toDeleteEdges.some((d) => d.id === edge.id))
-    );
+    // manually remove selected nodes/edges
+    // const { nodes: toDelete, edges: toDeleteEdges } = e.detail;
+    // nodes.update((n) =>
+    //   n.filter((node) => !toDelete.some((d) => d.id === node.id))
+    // );
+    // edges.update((es) =>
+    //   es.filter((edge) => !toDeleteEdges.some((d) => d.id === edge.id))
+    // );
+    // return false;
+
+    // allow SvelteFlow to remove selected nodes/edges
+    return true;
   }
 
   function handleSubmit() {
     gradio.dispatch("submit", { nodes: $nodes, edges: $edges });
   }
+
+  // Cast to the looser type SvelteFlow expects
+  let nodesGeneric = nodes as unknown as Writable<Node[]>;
+  let edgesGeneric = edges as unknown as Writable<Edge[]>;
 </script>
 
 <Block
@@ -313,8 +334,16 @@
 
   <div style="height: 500px">
     <SvelteFlow
-      {nodes}
-      {edges}
+      bind:nodes={nodesGeneric}
+      bind:edges={edgesGeneric}
+      defaultEdgeOptions={{
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: "#222",
+          width: 20,
+          height: 20,
+        },
+      }}
       on:init={handleInit}
       on:move={handleMove}
       on:nodeclick={handleNodeClick}
