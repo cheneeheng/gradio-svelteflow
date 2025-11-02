@@ -8,19 +8,20 @@
   } from "@xyflow/svelte";
   import type { CustomNodeData } from "./CustomNodeData.js";
 
+  // SvelteFlow passes a single "props" object
   export let props: NodeProps<Node<CustomNodeData>>;
-  const { id, data } = props; // destructure what you need
+
+  // Derive reactive locals from props
+  $: id = props.id;
+  $: data = props.data;
 
   const updateNodeInternals = useUpdateNodeInternals();
-
-  // Rerenders when node properties change (e.g. dynamic handle)
-  $: updateNodeInternals(id);
 
   // collapsed/expanded state
   let collapsed = false;
   function toggleCollapse() {
     collapsed = !collapsed;
-    updateNodeInternals(id); // recalc handles/size
+    updateNodeInternals(id); // recalc handles/size when user toggles
   }
 
   function topPositionInPercentage(index: number, count: number): string {
@@ -28,8 +29,21 @@
     return `${((index + 1) / (count + 1)) * 100}%`;
   }
 
-  const sideOffset = data?.sideOffsetPx ?? 8;
-  const topOffset = data?.topOffsetPx ?? 0;
+  // React to data changes; recompute offsets and reflow handles only when relevant
+  $: sideOffset = (data?.sideOffsetPx ?? 8);
+  $: topOffset = (data?.topOffsetPx ?? 0);
+
+  // Call updateNodeInternals only when handle layout can change:
+  // - collapsed state toggles visibility
+  // - sources/targets count changes
+  $: {
+    const sourceCount = (data?.sources ?? []).length;
+    const targetCount = (data?.targets ?? []).length;
+    // Guard against undefined id
+    if (id) {
+      updateNodeInternals(id);
+    }
+  }
 </script>
 
 <div class="custom-node">
@@ -77,7 +91,7 @@
     border: 1px solid #999;
     border-radius: 6px;
     background: white;
-    min-height: 40px; /* smaller minimum when collapsed */
+    min-height: 40px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;

@@ -10,7 +10,7 @@
   } from "@gradio/atoms";
   import { StatusTracker } from "@gradio/statustracker";
   import type { LoadingStatus } from "@gradio/statustracker";
-  import { SvelteFlow, Controls } from "@xyflow/svelte";
+  import { SvelteFlow, Controls, MarkerType } from "@xyflow/svelte";
   import type { Node, Edge, NodeTypes } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import { writable } from "svelte/store";
@@ -46,9 +46,9 @@
   //  mismatches go away.
   // const nodeTypes: NodeTypes = { dynamic: CustomNode };
   // Temporarily silence TypeScript with a cast during registration:
-  const nodeTypes: NodeTypes = {
-    dynamic: CustomNode as unknown as NodeTypes[string],
-  };
+  // const nodeTypes: NodeTypes = {
+  //   dynamic: CustomNode as unknown as NodeTypes[string],
+  // };
 
   // GRAPH DATA ---------------------------------------------------------------
 
@@ -107,31 +107,70 @@
 
   function addMarkerEndToEdge(edge: Edge): Edge {
     return {
-      markerEnd: "arrowclosed", // directed edge
-      ...edge, // explicit props override
+      ...edge,
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: "#222",
+        width: 20,
+        height: 20,
+      },
     };
   }
 
-  const nodes = writable<Node<CustomNodeData>[]>([]);
-  const edges = writable<Edge[]>([]);
+  // const nodes = writable<Node<CustomNodeData>[]>([]);
+  // const edges = writable<Edge[]>([]);
 
-  // Sync from parent -> local stores
-  $: if (value && !sameGraph(value, { nodes: $nodes, edges: $edges })) {
-    nodes.set(value.nodes);
-    edges.set(value.edges.map(addMarkerEndToEdge));
-  }
+  // // // Sync from parent -> local stores
+  // // $: if (value && !sameGraph(value, { nodes: $nodes, edges: $edges })) {
+  // //   nodes.set(value.nodes);
+  // //   edges.set(value.edges.map(addMarkerEndToEdge));
+  // // }
 
-  // Sync from local stores -> parent
-  let lastDispatched: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null =
-    null;
+  // // // Sync from local stores -> parent
+  // // let lastDispatched: { nodes: Node<CustomNodeData>[]; edges: Edge[] } | null =
+  // //   null;
 
-  $: {
-    const new_value = { nodes: $nodes, edges: $edges };
-    if (!sameGraph(new_value, value) && !sameGraph(new_value, lastDispatched)) {
-      gradio.dispatch("change", new_value);
-      lastDispatched = new_value;
-    }
-  }
+  // // $: {
+  // //   const new_value = { nodes: $nodes, edges: $edges };
+  // //   if (!sameGraph(new_value, value) && !sameGraph(new_value, lastDispatched)) {
+  // //     gradio.dispatch("change", new_value);
+  // //     lastDispatched = new_value;
+  // //   }
+  // // }
+
+  // Minimal nodes with matching handles
+  const nodes = writable([
+    {
+      id: "node-1",
+      position: { x: 0, y: 0 },
+      data: { label: "Source" },
+      type: "default",
+    },
+    {
+      id: "node-2",
+      position: { x: 250, y: 100 },
+      data: { label: "Target" },
+      type: "default",
+    },
+  ]);
+
+  // Minimal edge with matching handle IDs and arrowhead
+  const edges = writable([
+    {
+      id: "e1-2",
+      source: "node-1",
+      target: "node-2",
+      // these must match actual <Handle id="…"> if you use custom nodes
+      sourceHandle: null,
+      targetHandle: null,
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: "#222",
+        width: 20,
+        height: 20,
+      },
+    },
+  ]);
 
   // EVENT HANDLERS -----------------------------------------------------------
 
@@ -152,7 +191,7 @@
     const jitter = Math.random() * 40 - 20; // -20..+20 px
     const newNode: Node<CustomNodeData> = {
       id,
-      type: "dynamic",
+      // type: "dynamic",
       position: { x: x + jitter, y: y + jitter },
       data: {
         label: `Node ${Date.now()}`,
@@ -276,7 +315,6 @@
     <SvelteFlow
       {nodes}
       {edges}
-      {nodeTypes}
       on:init={handleInit}
       on:move={handleMove}
       on:nodeclick={handleNodeClick}

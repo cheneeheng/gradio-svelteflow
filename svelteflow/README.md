@@ -29,12 +29,16 @@ from gradio_svelteflow import SvelteFlow
 
 example = SvelteFlow().example_value()
 
-with gr.Blocks() as app:
+with gr.Blocks() as demo:
     btn = gr.Button("Example")
     sf = SvelteFlow(
+        value=example,
         info="INFO",
         label="LABEL",
         show_label=True,
+        interactive=True,
+        submit_btn=True,
+        visible=True,
     )
     json = gr.JSON()
     txt = gr.Textbox(value="0")
@@ -45,13 +49,11 @@ with gr.Blocks() as app:
         txt,
         txt,
     )
-
-
-app.launch()
+    sf.submit(lambda x: x, sf, json)
 
 
 if __name__ == "__main__":
-    app.launch()
+    demo.launch()
 
 ```
 
