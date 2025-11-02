@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -23,6 +24,8 @@ class SvelteFlow(Component):
         Events.submit,
         Events.select,
     ]
+
+    FRONTEND_DIR = str(pathlib.Path(__file__).parent.parent / "frontend")
 
     def __init__(
         self,
