@@ -12,10 +12,12 @@
   import type { LoadingStatus } from "@gradio/statustracker";
   import { SvelteFlow, Controls, MarkerType } from "@xyflow/svelte";
   import type { Node, Edge, NodeTypes } from "@xyflow/svelte";
+  import type { Viewport, Connection } from "@xyflow/system";
   import "@xyflow/svelte/dist/style.css";
-  import { writable, type Writable } from "svelte/store";
+  import { get, writable, type Writable } from "svelte/store";
   import CustomNode from "./CustomNode.svelte";
   import type { CustomNodeData } from "./CustomNodeData";
+  // import { sameGraph } from "./GraphUtils";
 
   // Hack: Polyfill process and Buffer at runtime
   import { Buffer } from "buffer";
@@ -42,7 +44,10 @@
   export let interactive: boolean = false;
   export let submit_btn: boolean = false;
   export let show_fullscreen_button = true;
+
   let fullscreen = false;
+  let flowInstance: SvelteFlow;
+  let viewport: Viewport = { x: 0, y: 0, zoom: 1 };
 
   // CUSTOM SVELTEFLOW ITEMS --------------------------------------------------
 
@@ -110,26 +115,13 @@
     return true;
   }
 
-  function addMarkerEndToEdge(edge: Edge): Edge {
-    return {
-      ...edge,
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        color: "#222",
-        width: 20,
-        height: 20,
-      },
-    };
-  }
-
   const nodes = writable<Node<CustomNodeData>[]>([]);
   const edges = writable<Edge[]>([]);
 
   // Sync from parent -> local stores
   $: if (value && !sameGraph(value, { nodes: $nodes, edges: $edges })) {
     nodes.set(value.nodes);
-    // edges.set(value.edges.map(addMarkerEndToEdge));
-    edges.set(value.edges.map((e) => addMarkerEndToEdge({ ...e })));
+    edges.set(value.edges);
   }
 
   // Sync from local stores -> parent
@@ -178,32 +170,89 @@
   //   },
   // ]);
 
-  // EVENT HANDLERS -----------------------------------------------------------
+  // PROP HANDLERS -----------------------------------------------------------
 
-  let flowInstance: any = null;
   function handleInit(e: CustomEvent<any>) {
-    flowInstance = e.detail;
+    console.log("Flow initialized");
   }
 
+  function handleMove(event: MouseEvent | TouchEvent | null, vp: Viewport) {
+    viewport = vp;
+    console.log("Viewport moved:", viewport);
+    // you can also react to the raw DOM event if needed:
+    if (event) {
+      console.log("Triggered by:", event.type);
+    }
+  }
+
+  function handleConnect(connection: Connection) {
+    const { source, target, sourceHandle, targetHandle } = connection;
+    if (!source || !target) return; // incomplete connection
+    // if (!targetHandle) return; // require a target handle
+    // if (!sourceHandle) return; // require a source handle
+    console.log("Inside handleConnect()");
+    const id = crypto.randomUUID();
+    const edgeId = `${source}:${sourceHandle}-->${target}:${targetHandle}`;
+    edges.update((es: Edge[]) => {
+      // if (es.some((edge) => edge.id === edgeId)) return es; // prevent duplicates
+      return [
+        ...es,
+        {
+          id: id,
+          source,
+          target,
+          sourceHandle, // attaches to specific source handle
+          targetHandle, // attaches to specific target handle
+          label: edgeId,
+        },
+      ];
+    });
+  }
+
+  async function handleBeforeDelete({
+    nodes,
+    edges: toDeleteEdges,
+  }: {
+    nodes: Node<CustomNodeData>[];
+    edges: Edge[];
+  }): Promise<boolean> {
+    console.log("Inside handleBeforeDelete()");
+    // 1. If you want to manually filter:
+    // nodesStore.update((n) => n.filter((node) => !nodes.some((d) => d.id === node.id)));
+    // edgesStore.update((es) => es.filter((edge) => !toDeleteEdges.some((d) => d.id === edge.id)));
+    // return false; // abort built‑in deletion
+    // 2. Let SvelteFlow handle deletion
+    return true;
+  }
+
+  function handleDelete({
+    nodes: deletedNodes,
+    edges: deletedEdges,
+  }: {
+    nodes: Node<CustomNodeData>[];
+    edges: Edge[];
+  }) {
+    console.log("Inside handleDelete()");
+    const currentNodes = get(nodes);
+    const currentEdges = get(edges);
+  }
+
+  // EVENT HANDLERS -----------------------------------------------------------
+
   function handleAddNode() {
-    if (!flowInstance) return;
-    // Get current viewport transform
-    const [vx, vy, zoom] = flowInstance.getViewport();
+    console.log("Inside handleAddNode()");
     // Compute the center of the visible area
     const container = document.querySelector(".svelte-flow") as HTMLElement;
-    // const container = flowInstance.getBoundingClientRect?.();
     const cx = container ? container.clientWidth / 2 : 250;
     const cy = container ? container.clientHeight / 2 : 150;
     // Project screen coords to flow coords
-    const { x, y } = flowInstance.project({
-      x: (cx - vx) / zoom,
-      y: (cy - vy) / zoom,
-    });
+    const x = (cx - viewport.x) / viewport.zoom;
+    const y = (cy - viewport.y) / viewport.zoom;
     const id = crypto.randomUUID();
     const jitter = Math.random() * 40 - 20; // -20..+20 px
     const newNode: Node<CustomNodeData> = {
       id,
-      // type: "dynamic",
+      type: "default",
       position: { x: x + jitter, y: y + jitter },
       data: {
         label: `Node ${Date.now()}`,
@@ -211,14 +260,8 @@
         targets: [{ id: `${id}-t1` }],
       },
     };
+    console.log(newNode);
     nodes.update((n) => [...n, newNode]);
-  }
-
-  // NOTE: Not used now, but maybe in the future
-  let viewport = { x: 0, y: 0, zoom: 1 };
-  function handleMove(e: CustomEvent<{ transform: [number, number, number] }>) {
-    const [x, y, zoom] = e.detail.transform;
-    viewport = { x, y, zoom };
   }
 
   function handleNodeClick(
@@ -227,6 +270,7 @@
       event: MouseEvent | TouchEvent;
     }>
   ) {
+    console.log("Inside handleNodeClick()");
     const casted_node = e.detail.node as Node<CustomNodeData>;
     if (interactive && e.detail.event instanceof MouseEvent) {
       gradio.dispatch("select", { nodes: [casted_node], edges: [] });
@@ -237,63 +281,21 @@
   function handleEdgeClick(
     e: CustomEvent<{ edge: Edge; event: MouseEvent | TouchEvent }>
   ) {
+    console.log("Inside handleEdgeClick()");
     if (interactive && e.detail.event instanceof MouseEvent) {
       gradio.dispatch("select", { nodes: [], edges: [e.detail.edge] });
     }
   }
 
-  function handleConnect(
-    e: CustomEvent<{
-      source: string; // node id
-      target: string; // node id
-      sourceHandle?: string; // handle id
-      targetHandle?: string; // handle id
-    }>
-  ) {
-    const { source, target, sourceHandle, targetHandle } = e.detail;
-    if (!source || !target) return; // incomplete connection
-    if (!targetHandle) return; // require a target handle
-    if (!sourceHandle) return; // require a source handle
-    const edgeId = `${source}:${sourceHandle}-->${target}:${targetHandle}`;
-    edges.update((es: Edge[]) => {
-      if (es.some((edge) => edge.id === edgeId)) return es; // prevent duplicates
-      return [
-        ...es,
-        addMarkerEndToEdge({
-          id: edgeId,
-          source,
-          target,
-          sourceHandle, // attaches to specific left-side source handle
-          targetHandle, // attaches to specific right-side target handle
-        }),
-      ];
-    });
-  }
-
-  function handleBeforeDelete(
-    e: CustomEvent<{ nodes: Node<CustomNodeData>[]; edges: Edge[] }>
-  ) {
-    // manually remove selected nodes/edges
-    // const { nodes: toDelete, edges: toDeleteEdges } = e.detail;
-    // nodes.update((n) =>
-    //   n.filter((node) => !toDelete.some((d) => d.id === node.id))
-    // );
-    // edges.update((es) =>
-    //   es.filter((edge) => !toDeleteEdges.some((d) => d.id === edge.id))
-    // );
-    // return false;
-
-    // allow SvelteFlow to remove selected nodes/edges
-    return true;
-  }
-
   function handleSubmit() {
+    console.log("Inside handleSubmit()");
     gradio.dispatch("submit", { nodes: $nodes, edges: $edges });
   }
 
   // Cast to the looser type SvelteFlow expects
   let nodesGeneric = nodes as unknown as Writable<Node[]>;
   let edgesGeneric = edges as unknown as Writable<Edge[]>;
+  const handleInitCompat = handleInit as unknown as () => void;
 </script>
 
 <Block
@@ -332,31 +334,32 @@
     <button on:click={handleAddNode}>Add Node</button>
   </div>
 
-  <div style="height: 500px">
-    <SvelteFlow
-      bind:nodes={nodesGeneric}
-      bind:edges={edgesGeneric}
-      defaultEdgeOptions={{
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: "#222",
-          width: 20,
-          height: 20,
-        },
-      }}
-      on:init={handleInit}
-      on:move={handleMove}
-      on:nodeclick={handleNodeClick}
-      on:edgeclick={handleEdgeClick}
-      on:connect={handleConnect}
-      on:beforedelete={handleBeforeDelete}
-      nodesDraggable={interactive}
-      nodesConnectable={interactive}
-      elementsSelectable={interactive}
-    >
-      <Controls />
-    </SvelteFlow>
-  </div>
+  <SvelteFlow
+    bind:this={flowInstance}
+    bind:nodes={nodesGeneric}
+    bind:edges={edgesGeneric}
+    defaultEdgeOptions={{
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: "#222",
+        width: 20,
+        height: 20,
+      },
+    }}
+    nodesDraggable={interactive}
+    nodesConnectable={interactive}
+    elementsSelectable={interactive}
+    on:nodeclick={handleNodeClick}
+    on:edgeclick={handleEdgeClick}
+    oninit={handleInitCompat}
+    onMove={handleMove}
+    onconnect={handleConnect}
+    ondelete={handleDelete}
+    onbeforedelete={handleBeforeDelete}
+    style="height: 500px"
+  >
+    <Controls />
+  </SvelteFlow>
 
   {#if submit_btn}
     <div style="display: flex; justify-content: center; margin-top: 10px;">
