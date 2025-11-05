@@ -6,6 +6,9 @@
   import "@xyflow/svelte/dist/style.css";
 
   import type { CustomNodeData } from "./CustomNodeData";
+  import CustomEdge from "./CustomEdge.svelte";
+
+  const edgeTypes = { custom: CustomEdge };
 
   export let interactive: boolean = true;
 
@@ -67,12 +70,12 @@
     const id = crypto.randomUUID();
     const edgeId = `${source}:${sourceHandle}-->${target}:${targetHandle}`;
     edges.update((es: Edge[]) => {
-      // if (es.some((edge) => edge.id === edgeId)) return es; // prevent duplicates
+      if (es.some((edge) => edge.id === edgeId)) return es; // prevent duplicates
       const next = [
         ...es,
         {
-          id: id,
-          type: "default",
+          id: edgeId,
+          // type: "custom",
           source,
           target,
           sourceHandle,
@@ -83,6 +86,28 @@
       console.log("Edges now:", next);
       return next;
     });
+  }
+
+  function handleEdgeCreate(connection: Connection): Edge | null {
+    const { source, target, sourceHandle, targetHandle } = connection;
+    if (!source || !target) return null; // block incomplete connections
+    const edgeId = `${source}:${sourceHandle ?? ""}-->${target}:${targetHandle ?? ""}`;
+    return {
+      id: edgeId,
+      source,
+      target,
+      sourceHandle,
+      targetHandle,
+      type: "custom",
+      label: edgeId,
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 20,
+        height: 20,
+        color: "#222",
+      },
+      data: { one: 1 },
+    };
   }
 
   async function handleBeforeDelete({
@@ -111,14 +136,17 @@
     console.log("Inside handleDelete()");
     const currentNodes = get(nodes);
     const currentEdges = get(edges);
+    console.log(currentEdges);
+    console.log(deletedEdges);
   }
 
   // EVENT HANDLERS -----------------------------------------------------------
 
   function handleAddNode() {
     console.log("Inside handleAddNode()");
-    // Compute the center of the visible area
-    const container = document.querySelector(".svelte-flow") as HTMLElement;
+    // // Compute the center of the visible area
+    // const container = document.querySelector(".svelte-flow") as HTMLElement;
+    const container = (flowInstance?.$el as HTMLElement) ?? null;
     const cx = container ? container.clientWidth / 2 : 250;
     const cy = container ? container.clientHeight / 2 : 150;
     // Project screen coords to flow coords
@@ -180,7 +208,29 @@
   bind:this={flowInstance}
   bind:nodes={nodesGeneric}
   bind:edges={edgesGeneric}
+  {edgeTypes}
+  nodesConnectable={interactive}
+  nodesDraggable={interactive}
+  elementsSelectable={interactive}
+  on:nodeclick={handleNodeClick}
+  on:edgeclick={handleEdgeClick}
+  oninit={handleInitCompat}
+  onMove={handleMove}
+  onedgecreate={handleEdgeCreate}
+  ondelete={handleDelete}
+  onbeforedelete={handleBeforeDelete}
+  deleteKey={["Delete", "Backspace"]}
+  style="height: 500px"
+>
+  <Controls />
+</SvelteFlow>
+
+<!-- <SvelteFlow
+  bind:this={flowInstance}
+  bind:nodes={nodesGeneric}
+  bind:edges={edgesGeneric}
   defaultEdgeOptions={{
+    // type: "custom",
     markerEnd: {
       type: MarkerType.ArrowClosed,
       color: "#222",
@@ -202,4 +252,4 @@
   style="height: 500px"
 >
   <Controls />
-</SvelteFlow>
+</SvelteFlow> -->
