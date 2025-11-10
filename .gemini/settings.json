@@ -1,12 +1,14 @@
 {
   "general": {
-    "preferredEditor": "code"
+    "preferredEditor": "code",
+    "enablePromptCompletion": true
   },
   "ui": {
     "hideTips": true,
     "hideBanner": true,
     "showMemoryUsage": true,
-    "showLineNumbers": true
+    "showLineNumbers": true,
+    "useFullWidth": true
   },
   "telemetry": {
     "enabled": false
@@ -19,6 +21,11 @@
       "selectedType ": "oauth-personal"
     }
   },
+  "context": {
+    "fileName": [
+      "agent-tasks/AGENTS.md"
+    ]
+  },
   "ide": {
     "hasSeenNudge": true,
     "enabled": false
@@ -26,6 +33,11 @@
   "mcpServers": {
     "gradio": {
       "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/sse"
+    }
+  },
+  "tools": {
+    "shell": {
+      "showColor": true
     }
   }
 }
