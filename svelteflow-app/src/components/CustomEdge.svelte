@@ -66,7 +66,16 @@
   {style}
 />
 
-<!-- {#if label}
+<!-- <BaseEdge
+  {id}
+  {path}
+  {markerStart}
+  {markerEnd}
+  {interactionWidth}
+  {style}
+/>
+
+{#if label}
   <text
     x={(sourceX + targetX) / 2}
     y={(sourceY + targetY) / 2 - 5}

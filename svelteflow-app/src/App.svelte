@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { Controls, SvelteFlow, type Edge, type Node } from "@xyflow/svelte";
+  import {
+    Controls,
+    SvelteFlow,
+    MarkerType,
+    type Edge,
+    type Node,
+  } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import type { Connection, Viewport } from "@xyflow/system";
   import { get, writable, type Writable } from "svelte/store";
@@ -38,7 +44,12 @@
     const { source, target, sourceHandle, targetHandle } = connection;
     if (!source || !target) return;
 
-    const currentEdges = get(edges);
+    // Get current edges and strip out any default edge first
+    let currentEdges = get(edges).filter(
+      (e) =>
+        !(e.source === source && e.target === target && !e.label && !e.type)
+    );
+
     const parallelEdges = currentEdges.filter(
       (edge) => edge.source === source && edge.target === target
     );
@@ -52,9 +63,26 @@
       sourceHandle,
       targetHandle,
       label: `Edge ${key}`,
+      type: "custom",
     };
 
-    edges.update((es) => [...es, newEdge]);
+    edges.update((es) => {
+      if (
+        es.some(
+          (e) =>
+            e.source === source && e.target === target && !e.label && !e.type
+        )
+      ) {
+        // remove the default edge before adding your own
+        es = es.filter(
+          (e) =>
+            !(e.source === source && e.target === target && !e.label && !e.type)
+        );
+      }
+      return [...es, newEdge];
+    });
+
+    // edges.update((es) => [...es, newEdge]);
   }
 
   async function handleBeforeDelete({
@@ -308,6 +336,14 @@
   bind:edges
   {nodeTypes}
   {edgeTypes}
+  defaultEdgeOptions={{
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      color: "#222",
+      width: 20,
+      height: 20,
+    },
+  }}
   nodesConnectable={interactive}
   nodesDraggable={interactive}
   elementsSelectable={interactive}
