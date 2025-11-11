@@ -1,17 +1,21 @@
 <script lang="ts">
-  import { get, writable, derived, type Writable } from "svelte/store";
-  import { SvelteFlow, Controls, MarkerType } from "@xyflow/svelte";
-  import type { Node, Edge } from "@xyflow/svelte";
-  import type { Viewport, Connection } from "@xyflow/system";
+  import { Controls, SvelteFlow, type Edge, type Node } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
+  import type { Connection, Viewport } from "@xyflow/system";
+  import { get, writable, type Writable } from "svelte/store";
 
-  import type { CustomNode, CustomEdge, Attribute } from "./types/schemas";
   import CustomEdgeComponent from "./components/CustomEdge.svelte";
   import CustomNodeComponent from "./components/CustomNode.svelte";
-  import NodeEditPopup from "./components/NodeEditPopup.svelte";
   import EdgeEditPopup from "./components/EdgeEditPopup.svelte";
+  import NodeEditPopup from "./components/NodeEditPopup.svelte";
+  import {
+    clickedEdges,
+    clickedNodes,
+    searchedNodes,
+  } from "./stores/highlightStore";
+  import type { Attribute, CustomEdge, CustomNode } from "./types/schemas";
+  import { debounce } from "./utils/debounce";
   import { uuidv4 } from "./utils/uuid";
-  import { clickedNodes, clickedEdges, searchedNodes } from "./stores/highlightStore";
 
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
@@ -21,35 +25,12 @@
   let flowInstance: SvelteFlow;
   let viewport: Viewport = { x: 0, y: 0, zoom: 1 };
 
-  const nodes = writable<CustomNode[]>([]);
-  const edges = writable<CustomEdge[]>([]);
+  let nodes: Writable<Node[]> = writable<Node[]>([]);
+  let edges: Writable<Edge[]> = writable<Edge[]>([]);
   const editingNode = writable<CustomNode | null>(null);
   const editingEdge = writable<CustomEdge | null>(null);
-  let searchQuery = '';
+  let searchQuery = "";
   const graphVersion = writable<number>(0);
-
-  // Derived stores for displaying nodes and edges with highlight info
-  const displayNodes = derived([nodes, clickedNodes, searchedNodes], ([$nodes, $clickedNodes, $searchedNodes]) => {
-    return $nodes.map(node => {
-      let highlightType: 'click' | 'search' | null = null;
-      if ($clickedNodes.includes(node.id)) {
-        highlightType = 'click';
-      } else if ($searchedNodes.includes(node.id)) {
-        highlightType = 'search';
-      }
-      return { ...node, highlightType };
-    });
-  });
-
-  const displayEdges = derived([edges, clickedEdges], ([$edges, $clickedEdges]) => {
-    return $edges.map(edge => {
-      let highlightType: 'click' | null = null;
-      if ($clickedEdges.includes(edge.id)) {
-        highlightType = 'click';
-      }
-      return { ...edge, highlightType };
-    });
-  });
 
   // PROP HANDLERS -----------------------------------------------------------
 
@@ -77,18 +58,20 @@
   }
 
   async function handleBeforeDelete({
-    nodes,
+    nodes: nodesToDelete,
     edges: toDeleteEdges,
   }: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
+    nodes: Node[];
+    edges: Edge[];
   }): Promise<boolean> {
-    const nodeNames = nodes.map(n => n.data.name).join(', ');
-    const edgeIds = toDeleteEdges.map(e => e.id).join(', ');
-    let message = 'Are you sure you want to delete ';
-    if (nodes.length > 0) message += `node(s) ${nodeNames}`;
-    if (edges.length > 0) message += `edge(s) ${edgeIds}`;
-    
+    const nodeNames = nodesToDelete
+      .map((n) => (n.data as CustomNode["data"]).name)
+      .join(", ");
+    const edgeIds = toDeleteEdges.map((e) => e.id).join(", ");
+    let message = "Are you sure you want to delete ";
+    if (nodesToDelete.length > 0) message += `node(s) ${nodeNames}`;
+    if (toDeleteEdges.length > 0) message += `edge(s) ${edgeIds}`;
+
     return confirm(message);
   }
 
@@ -96,8 +79,8 @@
     nodes: deletedNodes,
     edges: deletedEdges,
   }: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
+    nodes: Node[];
+    edges: Edge[];
   }) {
     clickedNodes.set([]);
     clickedEdges.set([]);
@@ -121,7 +104,7 @@
         attributes: [],
         handles: [],
       },
-      type: 'custom',
+      type: "custom",
     };
     nodes.update((n) => [...n, newNode]);
     editingNode.set(newNode);
@@ -141,12 +124,16 @@
         editingNode.set(clickedNode);
       } else {
         const connectedEdges = get(edges).filter(
-          (edge) => edge.source === clickedNode.id || edge.target === clickedNode.id
+          (edge) =>
+            edge.source === clickedNode.id || edge.target === clickedNode.id
         );
-        const neighborIds = connectedEdges.flatMap((edge) => [edge.source, edge.target]);
-        
+        const neighborIds = connectedEdges.flatMap((edge) => [
+          edge.source,
+          edge.target,
+        ]);
+
         clickedNodes.set([clickedNode.id, ...neighborIds]);
-        clickedEdges.set(connectedEdges.map(edge => edge.id));
+        clickedEdges.set(connectedEdges.map((edge) => edge.id));
       }
     }
   }
@@ -166,36 +153,53 @@
     // 1. Validate unique node name
     const currentNodes = get(nodes);
     const isNameDuplicate = currentNodes.some(
-      (n) => n.id !== updatedNode.id && n.data.name === updatedNode.data.name
+      (n) =>
+        n.id !== updatedNode.id &&
+        (n.data as CustomNode["data"]).name === updatedNode.data.name
     );
     if (isNameDuplicate) {
-      alert(`Node name "${updatedNode.data.name}" already exists. Please choose a unique name.`);
+      alert(
+        `Node name "${updatedNode.data.name}" already exists. Please choose a unique name.`
+      );
       return;
     }
 
     // 2. Validate unique attribute keys per node
     const attributeKeys = updatedNode.data.attributes.map((attr) => attr.key);
-    const hasDuplicateAttributeKeys = new Set(attributeKeys).size !== attributeKeys.length;
+    const hasDuplicateAttributeKeys =
+      new Set(attributeKeys).size !== attributeKeys.length;
     if (hasDuplicateAttributeKeys) {
-      alert('Duplicate attribute keys found. Please ensure all attribute keys are unique within the node.');
+      alert(
+        "Duplicate attribute keys found. Please ensure all attribute keys are unique within the node."
+      );
       return;
     }
-    
+
     updatedNode.data.handles = updatedNode.data.attributes
       .filter((attr: Attribute) => attr.connectable)
       .map((attr: Attribute) => ({ id: attr.key, type: attr.type }));
 
     nodes.update((currentNodes) => {
-      return currentNodes.map((n) => (n.id === updatedNode.id ? updatedNode : n));
+      return currentNodes.map((n) =>
+        n.id === updatedNode.id ? updatedNode : n
+      );
     });
 
-    const handleIds = new Set(updatedNode.data.handles.map(h => h.id));
-    edges.update(currentEdges => {
-      return currentEdges.filter(edge => {
-        if (edge.source === updatedNode.id && edge.sourceHandle && !handleIds.has(edge.sourceHandle)) {
+    const handleIds = new Set(updatedNode.data.handles.map((h) => h.id));
+    edges.update((currentEdges) => {
+      return currentEdges.filter((edge) => {
+        if (
+          edge.source === updatedNode.id &&
+          edge.sourceHandle &&
+          !handleIds.has(edge.sourceHandle)
+        ) {
           return false;
         }
-        if (edge.target === updatedNode.id && edge.targetHandle && !handleIds.has(edge.targetHandle)) {
+        if (
+          edge.target === updatedNode.id &&
+          edge.targetHandle &&
+          !handleIds.has(edge.targetHandle)
+        ) {
           return false;
         }
         return true;
@@ -218,7 +222,9 @@
   function handleSaveEdge(event: CustomEvent<CustomEdge>) {
     const updatedEdge = event.detail;
     edges.update((currentEdges) => {
-      return currentEdges.map((e) => (e.id === updatedEdge.id ? updatedEdge : e));
+      return currentEdges.map((e) =>
+        e.id === updatedEdge.id ? updatedEdge : e
+      );
     });
     editingEdge.set(null);
     clickedNodes.set([]);
@@ -234,12 +240,15 @@
   }
 
   function handleSaveGraph() {
-    graphVersion.update(n => n + 1);
+    graphVersion.update((n) => n + 1);
     const graph = {
       nodes: get(nodes),
       edges: get(edges),
     };
-    console.log(`Saving graph version ${get(graphVersion)}:`, JSON.stringify(graph, null, 2));
+    console.log(
+      `Saving graph version ${get(graphVersion)}:`,
+      JSON.stringify(graph, null, 2)
+    );
     // TODO: Send serialized graph to backend
     clickedNodes.set([]);
     clickedEdges.set([]);
@@ -253,33 +262,50 @@
       searchedNodes.set([]);
       return;
     }
-    const matchingNodes = get(nodes).filter(node =>
-      node.data.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchingNodes = get(nodes).filter((node) =>
+      (node.data as CustomNode["data"]).name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
     );
-    searchedNodes.set(matchingNodes.map(node => node.id));
+    searchedNodes.set(matchingNodes.map((node) => node.id));
   }
 
   const debouncedSearch = debounce(handleSearchInternal, 300);
 </script>
 
 {#if $editingNode}
-  <NodeEditPopup node={$editingNode} on:save={handleSaveNode} on:cancel={handleCancelEdit} />
+  <NodeEditPopup
+    node={$editingNode}
+    on:save={handleSaveNode}
+    on:cancel={handleCancelEdit}
+  />
 {/if}
 
 {#if $editingEdge}
-  <EdgeEditPopup edge={$editingEdge} on:save={handleSaveEdge} on:cancel={handleCancelEdgeEdit} />
+  <EdgeEditPopup
+    edge={$editingEdge}
+    on:save={handleSaveEdge}
+    on:cancel={handleCancelEdgeEdit}
+  />
 {/if}
 
-<div style="display: flex; justify-content: center; margin-bottom: 10px; gap: 10px;">
-  <input type="text" bind:value={searchQuery} on:input={debouncedSearch} placeholder="Search nodes..." />
+<div
+  style="display: flex; justify-content: center; margin-bottom: 10px; gap: 10px;"
+>
+  <input
+    type="text"
+    bind:value={searchQuery}
+    on:input={debouncedSearch}
+    placeholder="Search nodes..."
+  />
   <button on:click={handleAddNode}>Add Node</button>
   <button on:click={handleSaveGraph}>Save Graph</button>
 </div>
 
 <SvelteFlow
   bind:this={flowInstance}
-  nodes={$displayNodes}
-  edges={$displayEdges}
+  bind:nodes
+  bind:edges
   {nodeTypes}
   {edgeTypes}
   nodesConnectable={interactive}
@@ -291,7 +317,7 @@
   ondelete={handleDelete}
   onbeforedelete={handleBeforeDelete}
   deleteKey={["Delete", "Backspace"]}
-  style="height: 500px"
+  style="height: 95vh"
 >
   <Controls />
 </SvelteFlow>

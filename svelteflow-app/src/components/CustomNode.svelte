@@ -1,15 +1,38 @@
 <script lang="ts">
-  import { Handle, Position } from '@xyflow/svelte';
-  import type { CustomNode } from '../types/schemas';
+  import { Handle, Position, type NodeProps } from "@xyflow/svelte";
+  import { derived } from "svelte/store";
+  import { clickedNodes, searchedNodes } from "../stores/highlightStore";
 
-  export let data: CustomNode['data'];
-  export let id: string;
-  export let highlightType: 'click' | 'search' | null = null;
+  export let id;
+  export let data;
+  export let type;
+  export let dragging;
+  export let zIndex;
+  export let selectable;
+  export let deletable;
+  export let selected;
+  export let draggable;
+  export let isConnectable;
+  export let positionAbsoluteX;
+  export let positionAbsoluteY;
 
   $: ({ name, attributes, handles } = data);
+
+  const highlightType = derived(
+    [clickedNodes, searchedNodes],
+    ([$clickedNodes, $searchedNodes]) => {
+      if ($clickedNodes.includes(id)) return "click";
+      if ($searchedNodes.includes(id)) return "search";
+      return null;
+    }
+  );
 </script>
 
-<div class="custom-node" class:highlight-click={highlightType === 'click'} class:highlight-search={highlightType === 'search'}>
+<div
+  class="custom-node"
+  class:highlight-click={$highlightType === "click"}
+  class:highlight-search={$highlightType === "search"}
+>
   <div class="node-name">{name}</div>
   {#if attributes.length}
     <div class="attributes">
@@ -24,7 +47,11 @@
     </div>
   {/if}
   {#each handles as handle}
-    <Handle type={handle.type === 'input' ? 'target' : 'source'} position={handle.type === 'input' ? Position.Left : Position.Right} id={handle.id} />
+    <Handle
+      type={handle.type === "input" ? "target" : "source"}
+      position={handle.type === "input" ? Position.Left : Position.Right}
+      id={handle.id}
+    />
   {/each}
 </div>
 
