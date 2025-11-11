@@ -1,4 +1,3 @@
-<!-- Based on BezierEdge.svelte -->
 <script lang="ts">
   import { BaseEdge, getBezierPath } from "@xyflow/svelte";
   export let id;
@@ -25,8 +24,7 @@
   export let selectable = undefined;
   export let deletable = undefined;
   export let data = undefined;
-
-  console.log("data", data);
+  export let highlightType: 'click' | null = null;
 
   $: [path, labelX, labelY] = getBezierPath({
     sourceX,
@@ -37,6 +35,9 @@
     targetPosition,
     curvature: pathOptions?.curvature,
   });
+
+  $: strokeColor = highlightType === 'click' ? 'blue' : (selected ? 'tomato' : '#222');
+  $: strokeWidth = highlightType || selected ? 2 : 1;
 </script>
 
 <BaseEdge
@@ -45,7 +46,7 @@
   {markerStart}
   {markerEnd}
   {interactionWidth}
-  style={`stroke: ${selected ? "tomato" : "#222"}; stroke-width: ${selected ? 2 : 1};`}
+  style={`stroke: ${strokeColor}; stroke-width: ${strokeWidth};`}
 />
 
 {#if label}

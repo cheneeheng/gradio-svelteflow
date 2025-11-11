@@ -4,11 +4,12 @@
 
   export let data: CustomNode['data'];
   export let id: string;
+  export let highlightType: 'click' | 'search' | null = null;
 
   $: ({ name, attributes, handles } = data);
 </script>
 
-<div class="custom-node">
+<div class="custom-node" class:highlight-click={highlightType === 'click'} class:highlight-search={highlightType === 'search'}>
   <div class="node-name">{name}</div>
   {#if attributes.length}
     <div class="attributes">
@@ -23,7 +24,7 @@
     </div>
   {/if}
   {#each handles as handle}
-    <Handle type={handle.type} position={handle.type === 'input' ? Position.Left : Position.Right} id={handle.id} />
+    <Handle type={handle.type === 'input' ? 'target' : 'source'} position={handle.type === 'input' ? Position.Left : Position.Right} id={handle.id} />
   {/each}
 </div>
 
@@ -49,5 +50,13 @@
   .key {
     font-weight: bold;
     margin-right: 5px;
+  }
+  .highlight-click {
+    border-color: blue;
+    box-shadow: 0 0 0 2px blue;
+  }
+  .highlight-search {
+    border-color: yellow;
+    box-shadow: 0 0 0 2px yellow;
   }
 </style>

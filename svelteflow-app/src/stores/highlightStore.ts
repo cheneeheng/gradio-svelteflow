@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
 
-export const highlightedNodes = writable<string[]>([]);
-export const highlightedEdges = writable<string[]>([]);
+export const clickedNodes = writable<string[]>([]);
+export const clickedEdges = writable<string[]>([]);
+export const searchedNodes = writable<string[]>([]);

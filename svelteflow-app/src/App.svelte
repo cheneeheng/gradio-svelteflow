@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { get, writable, type Writable } from "svelte/store";
+  import { get, writable, derived, type Writable } from "svelte/store";
   import { SvelteFlow, Controls, MarkerType } from "@xyflow/svelte";
   import type { Node, Edge } from "@xyflow/svelte";
   import type { Viewport, Connection } from "@xyflow/system";
@@ -11,7 +11,7 @@
   import NodeEditPopup from "./components/NodeEditPopup.svelte";
   import EdgeEditPopup from "./components/EdgeEditPopup.svelte";
   import { uuidv4 } from "./utils/uuid";
-  import { highlightedNodes, highlightedEdges } from "./stores/highlightStore";
+  import { clickedNodes, clickedEdges, searchedNodes } from "./stores/highlightStore";
 
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
@@ -26,20 +26,32 @@
   const editingNode = writable<CustomNode | null>(null);
   const editingEdge = writable<CustomEdge | null>(null);
   let searchQuery = '';
+  const graphVersion = writable<number>(0);
+
+  // Derived stores for displaying nodes and edges with highlight info
+  const displayNodes = derived([nodes, clickedNodes, searchedNodes], ([$nodes, $clickedNodes, $searchedNodes]) => {
+    return $nodes.map(node => {
+      let highlightType: 'click' | 'search' | null = null;
+      if ($clickedNodes.includes(node.id)) {
+        highlightType = 'click';
+      } else if ($searchedNodes.includes(node.id)) {
+        highlightType = 'search';
+      }
+      return { ...node, highlightType };
+    });
+  });
+
+  const displayEdges = derived([edges, clickedEdges], ([$edges, $clickedEdges]) => {
+    return $edges.map(edge => {
+      let highlightType: 'click' | null = null;
+      if ($clickedEdges.includes(edge.id)) {
+        highlightType = 'click';
+      }
+      return { ...edge, highlightType };
+    });
+  });
 
   // PROP HANDLERS -----------------------------------------------------------
-
-  function handleInit() {
-    console.log("Flow initialized");
-  }
-
-  function handleMove(event: MouseEvent | TouchEvent | null, vp: Viewport) {
-    viewport = vp;
-    // you can also react to the raw DOM event if needed:
-    if (event) {
-      console.log("Triggered by:", event.type);
-    }
-  }
 
   function handleConnect(connection: Connection) {
     const { source, target, sourceHandle, targetHandle } = connection;
@@ -87,8 +99,9 @@
     nodes: CustomNode[];
     edges: CustomEdge[];
   }) {
-    highlightedNodes.set([]);
-    highlightedEdges.set([]);
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+    searchedNodes.set([]);
   }
 
   // EVENT HANDLERS -----------------------------------------------------------
@@ -122,8 +135,9 @@
   ) {
     const clickedNode = e.detail.node as CustomNode;
     if (interactive && e.detail.event instanceof MouseEvent) {
-      // If the node is already highlighted, open the edit popup
-      if (get(highlightedNodes).includes(clickedNode.id)) {
+      searchedNodes.set([]); // Clear search highlights on click
+      if (get(clickedNodes).includes(clickedNode.id)) {
+        // If already clicked, open edit popup
         editingNode.set(clickedNode);
       } else {
         const connectedEdges = get(edges).filter(
@@ -131,8 +145,8 @@
         );
         const neighborIds = connectedEdges.flatMap((edge) => [edge.source, edge.target]);
         
-        highlightedNodes.set([clickedNode.id, ...neighborIds]);
-        highlightedEdges.set(connectedEdges.map(edge => edge.id));
+        clickedNodes.set([clickedNode.id, ...neighborIds]);
+        clickedEdges.set(connectedEdges.map(edge => edge.id));
       }
     }
   }
@@ -148,6 +162,24 @@
 
   function handleSaveNode(event: CustomEvent<CustomNode>) {
     const updatedNode = event.detail;
+
+    // 1. Validate unique node name
+    const currentNodes = get(nodes);
+    const isNameDuplicate = currentNodes.some(
+      (n) => n.id !== updatedNode.id && n.data.name === updatedNode.data.name
+    );
+    if (isNameDuplicate) {
+      alert(`Node name "${updatedNode.data.name}" already exists. Please choose a unique name.`);
+      return;
+    }
+
+    // 2. Validate unique attribute keys per node
+    const attributeKeys = updatedNode.data.attributes.map((attr) => attr.key);
+    const hasDuplicateAttributeKeys = new Set(attributeKeys).size !== attributeKeys.length;
+    if (hasDuplicateAttributeKeys) {
+      alert('Duplicate attribute keys found. Please ensure all attribute keys are unique within the node.');
+      return;
+    }
     
     updatedNode.data.handles = updatedNode.data.attributes
       .filter((attr: Attribute) => attr.connectable)
@@ -171,12 +203,16 @@
     });
 
     editingNode.set(null);
-    highlightedNodes.set([]);
-    highlightedEdges.set([]);
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+    searchedNodes.set([]);
   }
 
   function handleCancelEdit() {
     editingNode.set(null);
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+    searchedNodes.set([]);
   }
 
   function handleSaveEdge(event: CustomEvent<CustomEdge>) {
@@ -185,34 +221,45 @@
       return currentEdges.map((e) => (e.id === updatedEdge.id ? updatedEdge : e));
     });
     editingEdge.set(null);
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+    searchedNodes.set([]);
   }
 
   function handleCancelEdgeEdit() {
     editingEdge.set(null);
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+    searchedNodes.set([]);
   }
 
   function handleSaveGraph() {
+    graphVersion.update(n => n + 1);
     const graph = {
       nodes: get(nodes),
       edges: get(edges),
     };
-    console.log("Saving graph:", JSON.stringify(graph, null, 2));
+    console.log(`Saving graph version ${get(graphVersion)}:`, JSON.stringify(graph, null, 2));
+    // TODO: Send serialized graph to backend
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+    searchedNodes.set([]);
   }
 
-  function handleSearch() {
+  function handleSearchInternal() {
+    clickedNodes.set([]); // Clear click highlights on search
+    clickedEdges.set([]);
     if (searchQuery.length === 0) {
-      highlightedNodes.set([]);
+      searchedNodes.set([]);
       return;
     }
     const matchingNodes = get(nodes).filter(node =>
       node.data.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    highlightedNodes.set(matchingNodes.map(node => node.id));
+    searchedNodes.set(matchingNodes.map(node => node.id));
   }
 
-  let nodesGeneric = nodes as unknown as Writable<Node[]>;
-  let edgesGeneric = edges as unknown as Writable<Edge[]>;
-  const handleInitCompat = handleInit as unknown as () => void;
+  const debouncedSearch = debounce(handleSearchInternal, 300);
 </script>
 
 {#if $editingNode}
@@ -224,15 +271,15 @@
 {/if}
 
 <div style="display: flex; justify-content: center; margin-bottom: 10px; gap: 10px;">
-  <input type="text" bind:value={searchQuery} on:input={handleSearch} placeholder="Search nodes..." />
+  <input type="text" bind:value={searchQuery} on:input={debouncedSearch} placeholder="Search nodes..." />
   <button on:click={handleAddNode}>Add Node</button>
   <button on:click={handleSaveGraph}>Save Graph</button>
 </div>
 
 <SvelteFlow
   bind:this={flowInstance}
-  bind:nodes={nodesGeneric}
-  bind:edges={edgesGeneric}
+  nodes={$displayNodes}
+  edges={$displayEdges}
   {nodeTypes}
   {edgeTypes}
   nodesConnectable={interactive}
@@ -240,8 +287,6 @@
   elementsSelectable={interactive}
   on:nodeclick={handleNodeClick}
   on:edgeclick={handleEdgeClick}
-  oninit={handleInitCompat}
-  onMove={handleMove}
   onconnect={handleConnect}
   ondelete={handleDelete}
   onbeforedelete={handleBeforeDelete}
@@ -252,7 +297,5 @@
 </SvelteFlow>
 
 <style>
-  :global(.highlight) {
-    box-shadow: 0 0 10px 5px yellow;
-  }
+  /* No global highlight style needed here anymore, styles are in components */
 </style>
