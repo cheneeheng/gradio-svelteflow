@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    Background,
     Controls,
     SvelteFlow,
     MarkerType,
@@ -7,6 +8,7 @@
     type Node,
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
+  import "./styles/theme.css";
   import type { Connection, Viewport } from "@xyflow/system";
   import { get, writable, type Writable } from "svelte/store";
 
@@ -19,7 +21,9 @@
     clickedNodes,
     searchedNodes,
   } from "./stores/highlightStore";
+  import { theme } from "./stores/themeStore";
   import type { Attribute, CustomEdge, CustomNode } from "./types/schemas";
+  import { getLayoutedElements, type LayoutDirection } from "./utils/layout";
   import { debounce } from "./utils/debounce";
   import { uuidv4 } from "./utils/uuid";
 
@@ -36,7 +40,33 @@
   const editingNode = writable<CustomNode | null>(null);
   const editingEdge = writable<CustomEdge | null>(null);
   let searchQuery = "";
-  const graphVersion = writable<number>(0);
+  let layoutDirection: LayoutDirection = "TB";
+
+  let clickTimer: number | null = null;
+
+  $: if (typeof document !== 'undefined') {
+    if ($theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+
+  function toggleTheme() {
+    theme.update((t) => (t === "light" ? "dark" : "light"));
+  }
+
+  function handleLayout() {
+    const currentNodes = get(nodes);
+    const currentEdges = get(edges);
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      currentNodes,
+      currentEdges,
+      layoutDirection
+    );
+    nodes.set([...layoutedNodes]);
+    edges.set([...layoutedEdges]);
+  }
 
   // PROP HANDLERS -----------------------------------------------------------
 
@@ -81,8 +111,6 @@
       }
       return [...es, newEdge];
     });
-
-    // edges.update((es) => [...es, newEdge]);
   }
 
   async function handleBeforeDelete({
@@ -115,6 +143,11 @@
     searchedNodes.set([]);
   }
 
+  function handlePaneClick() {
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+  }
+
   // EVENT HANDLERS -----------------------------------------------------------
 
   function handleAddNode() {
@@ -135,7 +168,6 @@
       type: "custom",
     };
     nodes.update((n) => [...n, newNode]);
-    editingNode.set(newNode);
   }
 
   function handleNodeClick(
@@ -144,29 +176,61 @@
       event: MouseEvent | TouchEvent;
     }>
   ) {
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      handleNodeDoubleClick(e);
+    } else {
+      clickTimer = setTimeout(() => {
+        const clickedNode = e.detail.node as CustomNode;
+        if (interactive && e.detail.event instanceof MouseEvent) {
+          searchedNodes.set([]); // Clear search highlights on click
+
+          const connectedEdges = get(edges).filter(
+            (edge) =>
+              edge.source === clickedNode.id || edge.target === clickedNode.id
+          );
+          const neighborIds = connectedEdges.flatMap((edge) => [
+            edge.source,
+            edge.target,
+          ]).filter(id => id !== clickedNode.id);
+
+          clickedNodes.set([...new Set(neighborIds)]); // Use Set to ensure unique IDs
+          clickedEdges.set(connectedEdges.map((edge) => edge.id));
+        }
+        clickTimer = null;
+      }, 250);
+    }
+  }
+
+  function handleNodeDoubleClick(
+    e: CustomEvent<{
+      node: Node;
+      event: MouseEvent | TouchEvent;
+    }>
+  ) {
     const clickedNode = e.detail.node as CustomNode;
     if (interactive && e.detail.event instanceof MouseEvent) {
-      searchedNodes.set([]); // Clear search highlights on click
-      if (get(clickedNodes).includes(clickedNode.id)) {
-        // If already clicked, open edit popup
-        editingNode.set(clickedNode);
-      } else {
-        const connectedEdges = get(edges).filter(
-          (edge) =>
-            edge.source === clickedNode.id || edge.target === clickedNode.id
-        );
-        const neighborIds = connectedEdges.flatMap((edge) => [
-          edge.source,
-          edge.target,
-        ]);
-
-        clickedNodes.set([clickedNode.id, ...neighborIds]);
-        clickedEdges.set(connectedEdges.map((edge) => edge.id));
-      }
+      editingNode.set(clickedNode);
     }
   }
 
   function handleEdgeClick(
+    e: CustomEvent<{ edge: Edge; event: MouseEvent | TouchEvent }>
+  ) {
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      handleEdgeDoubleClick(e);
+    } else {
+      clickTimer = setTimeout(() => {
+        // empty for now, but we might want to add single-click logic for edges later
+        clickTimer = null;
+      }, 250);
+    }
+  }
+
+  function handleEdgeDoubleClick(
     e: CustomEvent<{ edge: Edge; event: MouseEvent | TouchEvent }>
   ) {
     const clickedEdge = e.detail.edge as CustomEdge;
@@ -268,19 +332,49 @@
   }
 
   function handleSaveGraph() {
-    graphVersion.update((n) => n + 1);
     const graph = {
       nodes: get(nodes),
       edges: get(edges),
+      viewport: viewport,
     };
-    console.log(
-      `Saving graph version ${get(graphVersion)}:`,
-      JSON.stringify(graph, null, 2)
-    );
-    // TODO: Send serialized graph to backend
-    clickedNodes.set([]);
-    clickedEdges.set([]);
-    searchedNodes.set([]);
+    const data = JSON.stringify(graph, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "graph.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleLoadGraph(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const graph = JSON.parse(reader.result as string);
+        if (graph.nodes && graph.edges) {
+          nodes.set(graph.nodes);
+          edges.set(graph.edges);
+        } else {
+          alert("Invalid graph file format.");
+        }
+      } catch (e) {
+        alert("Error loading graph.");
+        console.error(e);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function triggerLoad() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = handleLoadGraph;
+    input.click();
   }
 
   function handleSearchInternal() {
@@ -301,63 +395,82 @@
   const debouncedSearch = debounce(handleSearchInternal, 300);
 </script>
 
-{#if $editingNode}
-  <NodeEditPopup
-    node={$editingNode}
-    on:save={handleSaveNode}
-    on:cancel={handleCancelEdit}
-  />
-{/if}
+<div class="app-container">
+  {#if $editingNode}
+    <NodeEditPopup
+      node={$editingNode}
+      on:save={handleSaveNode}
+      on:cancel={handleCancelEdit}
+    />
+  {/if}
 
-{#if $editingEdge}
-  <EdgeEditPopup
-    edge={$editingEdge}
-    on:save={handleSaveEdge}
-    on:cancel={handleCancelEdgeEdit}
-  />
-{/if}
+  {#if $editingEdge}
+    <EdgeEditPopup
+      edge={$editingEdge}
+      on:save={handleSaveEdge}
+      on:cancel={handleCancelEdgeEdit}
+    />
+  {/if}
 
-<div
-  style="display: flex; justify-content: center; margin-bottom: 10px; gap: 10px;"
->
-  <input
-    type="text"
-    bind:value={searchQuery}
-    on:input={debouncedSearch}
-    placeholder="Search nodes..."
-  />
-  <button on:click={handleAddNode}>Add Node</button>
-  <button on:click={handleSaveGraph}>Save Graph</button>
+  <div
+    style="display: flex; justify-content: center; margin-bottom: 10px; gap: 10px;"
+  >
+    <input
+      type="text"
+      bind:value={searchQuery}
+      on:input={debouncedSearch}
+      placeholder="Search nodes..."
+    />
+    <button on:click={handleAddNode}>Add Node</button>
+    <button on:click={handleSaveGraph}>Save to File</button>
+    <button on:click={triggerLoad}>Load from File</button>
+    <button on:click={handleLayout}>Relayout</button>
+    <select bind:value={layoutDirection}>
+      <option value="TB">Vertical</option>
+      <option value="LR">Horizontal</option>
+    </select>
+    <button on:click={toggleTheme}>
+      Toggle Theme ({$theme === "light" ? "Dark" : "Light"})
+    </button>
+  </div>
+
+  <SvelteFlow
+    bind:this={flowInstance}
+    bind:nodes
+    bind:edges
+    {nodeTypes}
+    {edgeTypes}
+    colorMode={$theme}
+    defaultEdgeOptions={{
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 20,
+        height: 20,
+      },
+    }}
+    nodesConnectable={interactive}
+    nodesDraggable={interactive}
+    elementsSelectable={interactive}
+    on:nodeclick={handleNodeClick}
+    on:edgeclick={handleEdgeClick}
+    on:paneclick={handlePaneClick}
+    onconnect={handleConnect}
+    ondelete={handleDelete}
+    onbeforedelete={handleBeforeDelete}
+    deleteKey={["Delete", "Backspace"]}
+    style="height: 95vh; background: var(--background);"
+  >
+    <Controls />
+    <Background />
+  </SvelteFlow>
 </div>
 
-<SvelteFlow
-  bind:this={flowInstance}
-  bind:nodes
-  bind:edges
-  {nodeTypes}
-  {edgeTypes}
-  defaultEdgeOptions={{
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      color: "#222",
-      width: 20,
-      height: 20,
-    },
-  }}
-  nodesConnectable={interactive}
-  nodesDraggable={interactive}
-  elementsSelectable={interactive}
-  on:nodeclick={handleNodeClick}
-  on:edgeclick={handleEdgeClick}
-  onconnect={handleConnect}
-  ondelete={handleDelete}
-  onbeforedelete={handleBeforeDelete}
-  deleteKey={["Delete", "Backspace"]}
-  style="height: 95vh"
->
-  <Controls />
-</SvelteFlow>
-
 <style>
+  .app-container {
+    width: 100%;
+    height: 100vh;
+    background-color: var(--background);
+    color: var(--text-color);
+  }
   /* No global highlight style needed here anymore, styles are in components */
 </style>

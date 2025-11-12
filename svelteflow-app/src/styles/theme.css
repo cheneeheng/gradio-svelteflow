@@ -1,0 +1,37 @@
+:root {
+  --background: #ffffff;
+  --text-color: #222;
+  --node-background: #f0f0f0;
+  --node-border: #333;
+  --popup-background: #ffffff;
+  --popup-border: #ccc;
+  --popup-shadow: rgba(0, 0, 0, 0.1);
+  --button-background: #f0f0f0;
+  --button-border: #ccc;
+  --button-text: #222;
+  --button-hover-background: #e0e0e0;
+  --input-background: #ffffff;
+  --input-border: #ccc;
+  --input-text: #222;
+  --controls-background: #f0f0f0;
+  --controls-border: #ddd;
+}
+
+:root.dark {
+  --background: #333333;
+  --text-color: #f0f0f0;
+  --node-background: #555555;
+  --node-border: #f0f0f0;
+  --popup-background: #444444;
+  --popup-border: #666;
+  --popup-shadow: rgba(0, 0, 0, 0.5);
+  --button-background: #555555;
+  --button-border: #666;
+  --button-text: #f0f0f0;
+  --button-hover-background: #666666;
+  --input-background: #555555;
+  --input-border: #666;
+  --input-text: #f0f0f0;
+  --controls-background: #555555;
+  --controls-border: #666;
+}
