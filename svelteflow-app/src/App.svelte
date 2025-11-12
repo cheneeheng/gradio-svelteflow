@@ -42,6 +42,16 @@
   let searchQuery = "";
   let layoutDirection: LayoutDirection = "TB";
 
+  let clickTimer: number | null = null;
+
+  $: if (typeof document !== 'undefined') {
+    if ($theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+
   function toggleTheme() {
     theme.update((t) => (t === "light" ? "dark" : "light"));
   }
@@ -101,8 +111,6 @@
       }
       return [...es, newEdge];
     });
-
-    // edges.update((es) => [...es, newEdge]);
   }
 
   async function handleBeforeDelete({
@@ -135,6 +143,11 @@
     searchedNodes.set([]);
   }
 
+  function handlePaneClick() {
+    clickedNodes.set([]);
+    clickedEdges.set([]);
+  }
+
   // EVENT HANDLERS -----------------------------------------------------------
 
   function handleAddNode() {
@@ -163,21 +176,30 @@
       event: MouseEvent | TouchEvent;
     }>
   ) {
-    const clickedNode = e.detail.node as CustomNode;
-    if (interactive && e.detail.event instanceof MouseEvent) {
-      searchedNodes.set([]); // Clear search highlights on click
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      handleNodeDoubleClick(e);
+    } else {
+      clickTimer = setTimeout(() => {
+        const clickedNode = e.detail.node as CustomNode;
+        if (interactive && e.detail.event instanceof MouseEvent) {
+          searchedNodes.set([]); // Clear search highlights on click
 
-      const connectedEdges = get(edges).filter(
-        (edge) =>
-          edge.source === clickedNode.id || edge.target === clickedNode.id
-      );
-      const neighborIds = connectedEdges.flatMap((edge) => [
-        edge.source,
-        edge.target,
-      ]);
+          const connectedEdges = get(edges).filter(
+            (edge) =>
+              edge.source === clickedNode.id || edge.target === clickedNode.id
+          );
+          const neighborIds = connectedEdges.flatMap((edge) => [
+            edge.source,
+            edge.target,
+          ]).filter(id => id !== clickedNode.id);
 
-      clickedNodes.set([clickedNode.id, ...neighborIds]);
-      clickedEdges.set(connectedEdges.map((edge) => edge.id));
+          clickedNodes.set([...new Set(neighborIds)]); // Use Set to ensure unique IDs
+          clickedEdges.set(connectedEdges.map((edge) => edge.id));
+        }
+        clickTimer = null;
+      }, 250);
     }
   }
 
@@ -193,6 +215,21 @@
     }
   }
 
+  function handleEdgeClick(
+    e: CustomEvent<{ edge: Edge; event: MouseEvent | TouchEvent }>
+  ) {
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      handleEdgeDoubleClick(e);
+    } else {
+      clickTimer = setTimeout(() => {
+        // empty for now, but we might want to add single-click logic for edges later
+        clickTimer = null;
+      }, 250);
+    }
+  }
+
   function handleEdgeDoubleClick(
     e: CustomEvent<{ edge: Edge; event: MouseEvent | TouchEvent }>
   ) {
@@ -200,12 +237,6 @@
     if (interactive && e.detail.event instanceof MouseEvent) {
       editingEdge.set(clickedEdge);
     }
-  }
-
-  function handleEdgeClick(
-    e: CustomEvent<{ edge: Edge; event: MouseEvent | TouchEvent }>
-  ) {
-    // empty for now, but we might want to add single-click logic for edges later
   }
 
   function handleSaveNode(event: CustomEvent<CustomNode>) {
@@ -321,20 +352,17 @@
     if (!input.files?.length) return;
     const file = input.files[0];
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const graph = JSON.parse(reader.result as string);
         if (graph.nodes && graph.edges) {
           nodes.set(graph.nodes);
           edges.set(graph.edges);
-          if (graph.viewport) {
-            flowInstance.setViewport(graph.viewport);
-          }
         } else {
           alert("Invalid graph file format.");
         }
       } catch (e) {
-        alert("Error parsing graph file.");
+        alert("Error loading graph.");
         console.error(e);
       }
     };
@@ -367,7 +395,7 @@
   const debouncedSearch = debounce(handleSearchInternal, 300);
 </script>
 
-<div class="app-container" class:dark={$theme === 'dark'}>
+<div class="app-container">
   {#if $editingNode}
     <NodeEditPopup
       node={$editingNode}
@@ -412,10 +440,10 @@
     bind:edges
     {nodeTypes}
     {edgeTypes}
+    colorMode={$theme}
     defaultEdgeOptions={{
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        color: "#222",
         width: 20,
         height: 20,
       },
@@ -424,9 +452,8 @@
     nodesDraggable={interactive}
     elementsSelectable={interactive}
     on:nodeclick={handleNodeClick}
-    on:nodedblclick={handleNodeDoubleClick}
     on:edgeclick={handleEdgeClick}
-    on:edgedblclick={handleEdgeDoubleClick}
+    on:paneclick={handlePaneClick}
     onconnect={handleConnect}
     ondelete={handleDelete}
     onbeforedelete={handleBeforeDelete}

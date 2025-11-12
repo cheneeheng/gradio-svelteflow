@@ -43,7 +43,7 @@
 
     <div class="form-section">
       <div class="form-group">
-        <label for="node-name">Name:</label>
+        <label for="node-name">Name</label>
         <input id="node-name" bind:value={name} />
       </div>
     </div>
@@ -74,7 +74,7 @@
         {/each}
       </div>
       <button class="add-attribute-btn" on:click={addAttribute}>
-        + Add Attribute
+        +
       </button>
     </div>
 

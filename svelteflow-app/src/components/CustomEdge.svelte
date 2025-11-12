@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { BaseEdge, getBezierPath } from "@xyflow/svelte";
+  import { BaseEdge, getBezierPath, MarkerType } from "@xyflow/svelte";
   import { derived } from "svelte/store";
   import { clickedEdges } from "../stores/highlightStore";
 
@@ -42,11 +42,9 @@
     $highlightType === "click"
       ? "blue"
       : selected
-      ? "tomato"
-      : "var(--node-border)";
-
+        ? "tomato"
+        : "var(--node-border)";
   $: strokeWidth = $highlightType || selected ? 2.5 : 1.5;
-
   $: style = `stroke: ${strokeColor}; stroke-width: ${strokeWidth};`;
 
   // merge default label styles with user-provided ones
