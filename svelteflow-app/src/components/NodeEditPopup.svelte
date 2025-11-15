@@ -1,10 +1,12 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import type { CustomNode, Attribute } from "../types/schemas";
+  import { Plus, Trash2 } from "lucide-svelte";
 
   export let node: CustomNode;
 
   let name = node.data.name;
+  let description = node.data.description;
   let attributes = JSON.parse(JSON.stringify(node.data.attributes));
 
   const dispatch = createEventDispatcher();
@@ -26,6 +28,7 @@
       data: {
         ...node.data,
         name,
+        description,
         attributes,
       },
     };
@@ -45,6 +48,10 @@
       <div class="form-group">
         <label for="node-name">Name</label>
         <input id="node-name" bind:value={name} />
+      </div>
+      <div class="form-group">
+        <label for="node-description">Description</label>
+        <input id="node-description" bind:value={description} />
       </div>
     </div>
 
@@ -68,13 +75,13 @@
               Connect
             </label>
             <button class="remove-btn" on:click={() => removeAttribute(i)}>
-              &times;
+              <Trash2 size={18} />
             </button>
           </div>
         {/each}
       </div>
       <button class="add-attribute-btn" on:click={addAttribute}>
-        +
+        <Plus size={18} />
       </button>
     </div>
 
@@ -92,7 +99,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -100,120 +107,153 @@
   }
   .popup {
     background: var(--popup-background);
-    padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px var(--popup-shadow);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     width: 90%;
-    max-width: 600px;
+    max-width: 700px;
     border: 1px solid var(--popup-border);
-    max-height: 80vh;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
   }
   h3 {
     margin-top: 0;
-    margin-bottom: 24px;
-    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
     color: var(--text-color);
     border-bottom: 1px solid var(--popup-border);
-    padding-bottom: 16px;
+    padding-bottom: 1rem;
   }
   .form-section {
-    margin-bottom: 24px;
+    margin-bottom: 1.5rem;
   }
   .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 1rem;
   }
   label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
     color: var(--text-color);
   }
   input,
   select {
-    padding: 8px 12px;
-    border-radius: 4px;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
     border: 1px solid var(--input-border);
     background: var(--input-background);
     color: var(--input-text);
     box-sizing: border-box;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--accent-color, #007bff);
+    box-shadow: 0 0 0 2px var(--accent-color-light, rgba(0, 123, 255, 0.25));
   }
   .attributes-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 1rem;
     overflow-y: auto;
-    max-height: 30vh;
-    padding-right: 8px;
+    max-height: 40vh;
+    padding: 0.5rem;
+    margin: -0.5rem;
   }
   .attribute-item {
     display: grid;
-    grid-template-columns: 1fr 1fr auto auto auto auto;
-    gap: 8px;
+    grid-template-columns: 1fr 1fr 80px 80px 80px auto;
+    gap: 1rem;
     align-items: center;
-  }
-  .attribute-item input.key {
-    flex: 2;
-  }
-  .attribute-item input.value {
-    flex: 3;
   }
   .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.85rem;
+    gap: 0.5rem;
+    font-size: 0.9rem;
     white-space: nowrap;
+    cursor: pointer;
   }
   .remove-btn {
     background: none;
     border: none;
-    color: #ff4d4d;
-    font-size: 1.5rem;
+    color: var(--text-color);
+    opacity: 0.6;
     cursor: pointer;
-    padding: 0 8px;
+    padding: 0;
+    transition: opacity 0.2s;
+  }
+  .remove-btn:hover {
+    opacity: 1;
+    color: #ff4d4d;
   }
   .add-attribute-btn {
-    margin-top: 16px;
-    background: none;
+    margin-top: 1rem;
+    background: var(--button-secondary-background, var(--input-background));
     border: 1px dashed var(--button-border);
-    color: var(--button-text);
-    padding: 8px;
+    color: var(--button-secondary-text, var(--text-color));
+    padding: 0.75rem;
     width: 100%;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    font-weight: 600;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .add-attribute-btn:hover {
+    background: var(--button-secondary-hover-background, var(--background));
+    border-color: var(--accent-color, #007bff);
   }
   .button-group {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
+    gap: 1rem;
     margin-top: auto;
-    padding-top: 24px;
+    padding-top: 1.5rem;
     border-top: 1px solid var(--popup-border);
   }
   button {
-    padding: 10px 20px;
-    border-radius: 4px;
-    border: 1px solid var(--button-border);
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
     cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s;
+    font-weight: 700;
+    font-size: 1rem;
+    transition:
+      background-color 0.2s,
+      transform 0.1s;
+  }
+  button:active {
+    transform: translateY(1px);
   }
   .primary {
-    background: #007bff;
+    background: var(--accent-color, #007bff);
     color: white;
-    border-color: #007bff;
   }
   .primary:hover {
-    background: #0056b3;
+    background: var(--accent-color-dark, #0056b3);
   }
   .secondary {
-    background: var(--button-background);
-    color: var(--button-text);
+    background: var(--button-secondary-background, var(--button-background));
+    color: var(--button-secondary-text, var(--button-text));
+    border: 1px solid var(--button-border);
   }
   .secondary:hover {
-    background: var(--button-hover-background);
+    background: var(
+      --button-secondary-hover-background,
+      var(--button-hover-background)
+    );
   }
 </style>

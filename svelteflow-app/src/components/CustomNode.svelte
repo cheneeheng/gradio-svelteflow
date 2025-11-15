@@ -3,6 +3,7 @@
   import { derived } from "svelte/store";
   import { clickedNodes, searchedNodes } from "../stores/highlightStore";
   import { onMount } from "svelte";
+  import { ChevronDown, ChevronUp } from "lucide-svelte";
 
   export let id;
   export let data;
@@ -17,7 +18,8 @@
   export let positionAbsoluteX;
   export let positionAbsoluteY;
 
-  $: ({ name, attributes, handles } = data);
+  $: ({ name, description, attributes, handles } = data);
+  let attributesVisible = true;
 
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -34,9 +36,9 @@
     }
   );
 
-  function getHandlePosition(type: "input" | "output", index: number, total: number) {
-    const offset = 100 / (total + 1);
-    return `${(index + 1) * offset}%`;
+  function toggleAttributes() {
+    attributesVisible = !attributesVisible;
+    updateNodeInternals(id);
   }
 </script>
 
@@ -46,38 +48,71 @@
   class:highlight-search={$highlightType === "search"}
   class:selected
 >
+  <button class="attribute-toggle" on:click={toggleAttributes}>
+    {#if attributesVisible}
+      <ChevronUp size={16} />
+    {:else}
+      <ChevronDown size={16} />
+    {/if}
+  </button>
   <div class="node-header">{name}</div>
   <div class="node-body">
-    {#if attributes.length}
-      <div class="attributes">
-        {#each attributes as attr}
-          {#if attr.visible}
-            <div class="attribute">
-              <span class="key">{attr.key}:</span>
-              <span class="value">{attr.value}</span>
-            </div>
-          {/if}
-        {/each}
+    <div class="node-description">{description}</div>
+    {#if attributesVisible && attributes.length}
+      <hr class="divider" />
+      <div class="attributes-grid">
+        <div class="attributes-column">
+          {#each attributes.filter((attr) => attr.type === "input") as attr, i}
+            {#if attr.visible}
+              <div class="attribute-card" style={`position: relative;`}>
+                <Handle
+                  type="target"
+                  position={Position.Left}
+                  id={attr.key}
+                  style="top: 50%;"
+                />
+                <span class="key">{attr.key}</span>
+                <span class="value">{attr.value}</span>
+              </div>
+            {/if}
+          {/each}
+        </div>
+        <div class="attributes-column">
+          {#each attributes.filter((attr) => attr.type === "output") as attr, i}
+            {#if attr.visible}
+              <div class="attribute-card" style={`position: relative;`}>
+                <Handle
+                  type="source"
+                  position={Position.Right}
+                  id={attr.key}
+                  style="top: 50%;"
+                />
+                <span class="key">{attr.key}</span>
+                <span class="value">{attr.value}</span>
+              </div>
+            {/if}
+          {/each}
+        </div>
       </div>
     {/if}
   </div>
 
-  {#each handles.filter(h => h.type === 'input') as handle, i}
+  {#if !attributesVisible}
     <Handle
       type="target"
       position={Position.Left}
-      id={handle.id}
-      style={`top: ${getHandlePosition('input', i, handles.filter(h => h.type === 'input').length)}`}
+      id="input-collapsed"
+      style="top: 50%; opacity: 0.5;"
+      isConnectable={false}
     />
-  {/each}
-  {#each handles.filter(h => h.type === 'output') as handle, i}
     <Handle
       type="source"
       position={Position.Right}
-      id={handle.id}
-      style={`top: ${getHandlePosition('output', i, handles.filter(h => h.type === 'output').length)}`}
+      id="output-collapsed"
+      style="top: 50%; opacity: 0.5;"
+      isConnectable={false}
     />
-  {/each}
+  {/if}
 </div>
 
 <style>
@@ -85,15 +120,32 @@
     background: var(--node-background);
     border: 1px solid var(--node-border);
     border-radius: 8px;
-    min-width: 180px;
+    min-width: 220px;
     font-family: sans-serif;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .attribute-toggle {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--button-background);
+    border: 1px solid var(--button-border);
+    border-radius: 4px;
+    padding: 4px;
+    font-size: 0.75em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .node-header {
-    background-color: var(--node-border);
-    color: var(--background);
+    background-color: var(--header-background, var(--node-border));
+    color: var(--header-text-color, var(--background));
     padding: 8px 12px;
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
@@ -105,38 +157,68 @@
     padding: 12px;
   }
 
-  .attributes {
+  .node-description {
+    padding: 0 0 12px 0;
     font-size: 0.9em;
   }
 
-  .attribute {
+  .divider {
+    border: none;
+    border-top: 1px solid var(--node-border);
+    margin: 0;
+    opacity: 0.5;
+  }
+
+  .attributes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-top: 12px;
+  }
+
+  .attributes-column {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .attribute-card {
+    background: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
   }
 
   .key {
     font-weight: 600;
     margin-right: 8px;
     color: var(--text-color);
+    background: var(--controls-background);
+    padding: 2px 6px;
+    border-radius: 4px;
   }
 
   .value {
     color: var(--text-color);
+    opacity: 0.8;
   }
 
   .highlight-click {
-    border-color: blue;
-    box-shadow: 0 0 0 2px blue, 0 4px 12px rgba(0, 0, 255, 0.2);
+    border-color: var(--highlight-color);
+    box-shadow: 0 0 0 3px var(--highlight-color);
   }
 
   .highlight-search {
-    border-color: yellow;
-    box-shadow: 0 0 0 2px yellow, 0 4px 12px rgba(255, 255, 0, 0.2);
+    border-color: var(--search-color);
+    box-shadow: 0 0 0 3px var(--search-color);
   }
 
   .selected {
-    border-color: tomato;
-    box-shadow: 0 0 0 2px tomato, 0 4px 12px rgba(255, 99, 71, 0.2);
+    border-color: var(--selection-color);
+    box-shadow: 0 0 0 3px var(--selection-color);
   }
 </style>

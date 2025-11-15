@@ -42,7 +42,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -50,63 +50,84 @@
   }
   .popup {
     background: var(--popup-background);
-    padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px var(--popup-shadow);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     width: 90%;
-    max-width: 400px;
+    max-width: 450px;
     border: 1px solid var(--popup-border);
   }
   h3 {
     margin-top: 0;
-    margin-bottom: 16px;
-    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
     color: var(--text-color);
   }
   .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 1.5rem;
   }
   label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-color);
   }
   input {
     width: 100%;
-    padding: 8px 12px;
-    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
     border: 1px solid var(--input-border);
     background: var(--input-background);
     color: var(--input-text);
     box-sizing: border-box;
+    font-size: 1rem;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--accent-color, #007bff);
+    box-shadow: 0 0 0 2px var(--accent-color-light, rgba(0, 123, 255, 0.25));
   }
   .button-group {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
+    gap: 1rem;
+    margin-top: 1.5rem;
   }
   button {
-    padding: 8px 16px;
-    border-radius: 4px;
-    border: 1px solid var(--button-border);
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
     cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s;
+    font-weight: 700;
+    font-size: 1rem;
+    transition:
+      background-color 0.2s,
+      transform 0.1s;
+  }
+  button:active {
+    transform: translateY(1px);
   }
   .primary {
-    background: #007bff;
+    background: var(--accent-color, #007bff);
     color: white;
-    border-color: #007bff;
   }
   .primary:hover {
-    background: #0056b3;
+    background: var(--accent-color-dark, #0056b3);
   }
   .secondary {
-    background: var(--button-background);
-    color: var(--button-text);
+    background: var(--button-secondary-background, var(--button-background));
+    color: var(--button-secondary-text, var(--button-text));
+    border: 1px solid var(--button-border);
   }
   .secondary:hover {
-    background: var(--button-hover-background);
+    background: var(
+      --button-secondary-hover-background,
+      var(--button-hover-background)
+    );
   }
 </style>

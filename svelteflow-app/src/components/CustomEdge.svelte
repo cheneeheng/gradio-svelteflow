@@ -40,11 +40,11 @@
 
   $: strokeColor =
     $highlightType === "click"
-      ? "blue"
+      ? "var(--highlight-color)"
       : selected
-        ? "tomato"
+        ? "var(--selection-color)"
         : "var(--node-border)";
-  $: strokeWidth = $highlightType || selected ? 2.5 : 1.5;
+  $: strokeWidth = $highlightType || selected ? 3 : 1.5;
   $: style = `stroke: ${strokeColor}; stroke-width: ${strokeWidth};`;
 
   // merge default label styles with user-provided ones
