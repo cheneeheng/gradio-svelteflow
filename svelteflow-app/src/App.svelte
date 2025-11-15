@@ -11,6 +11,15 @@
   import "./styles/theme.css";
   import type { Connection, Viewport } from "@xyflow/system";
   import { get, writable, type Writable } from "svelte/store";
+  import {
+    Plus,
+    Save,
+    FolderOpen,
+    Layout,
+    Sun,
+    Moon,
+    Search,
+  } from "lucide-svelte";
 
   import CustomEdgeComponent from "./components/CustomEdge.svelte";
   import CustomNodeComponent from "./components/CustomNode.svelte";
@@ -44,11 +53,11 @@
 
   let clickTimer: number | null = null;
 
-  $: if (typeof document !== 'undefined') {
-    if ($theme === 'dark') {
-      document.documentElement.classList.add('dark');
+  $: if (typeof document !== "undefined") {
+    if ($theme === "dark") {
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }
 
@@ -162,6 +171,7 @@
       position: { x: x, y: y },
       data: {
         name: `Node-${id.substring(0, 4)}`,
+        description: "This is a new node.",
         attributes: [],
         handles: [],
       },
@@ -190,10 +200,9 @@
             (edge) =>
               edge.source === clickedNode.id || edge.target === clickedNode.id
           );
-          const neighborIds = connectedEdges.flatMap((edge) => [
-            edge.source,
-            edge.target,
-          ]).filter(id => id !== clickedNode.id);
+          const neighborIds = connectedEdges
+            .flatMap((edge) => [edge.source, edge.target])
+            .filter((id) => id !== clickedNode.id);
 
           clickedNodes.set([...new Set(neighborIds)]); // Use Set to ensure unique IDs
           clickedEdges.set(connectedEdges.map((edge) => edge.id));
@@ -393,7 +402,18 @@
   }
 
   const debouncedSearch = debounce(handleSearchInternal, 300);
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      clickedNodes.set([]);
+      clickedEdges.set([]);
+      searchedNodes.set([]);
+      searchQuery = "";
+    }
+  }
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="app-container">
   {#if $editingNode}
@@ -412,25 +432,30 @@
     />
   {/if}
 
-  <div
-    style="display: flex; justify-content: center; margin-bottom: 10px; gap: 10px;"
-  >
-    <input
-      type="text"
-      bind:value={searchQuery}
-      on:input={debouncedSearch}
-      placeholder="Search nodes..."
-    />
-    <button on:click={handleAddNode}>Add Node</button>
-    <button on:click={handleSaveGraph}>Save to File</button>
-    <button on:click={triggerLoad}>Load from File</button>
-    <button on:click={handleLayout}>Relayout</button>
+  <div class="toolbar">
+    <div class="search-bar">
+      <Search size={18} />
+      <input
+        type="text"
+        bind:value={searchQuery}
+        on:input={debouncedSearch}
+        placeholder="Search nodes..."
+      />
+    </div>
+    <button class="toolbar-button" on:click={handleAddNode}><Plus size={18} /></button>
+    <button class="toolbar-button" on:click={handleSaveGraph}><Save size={18} /></button>
+    <button class="toolbar-button" on:click={triggerLoad}><FolderOpen size={18} /></button>
+    <button class="toolbar-button" on:click={handleLayout}><Layout size={18} /></button>
     <select bind:value={layoutDirection}>
       <option value="TB">Vertical</option>
       <option value="LR">Horizontal</option>
     </select>
-    <button on:click={toggleTheme}>
-      Toggle Theme ({$theme === "light" ? "Dark" : "Light"})
+    <button class="toolbar-button" on:click={toggleTheme}>
+      {#if $theme === 'light'}
+        <Moon size={18} />
+      {:else}
+        <Sun size={18} />
+      {/if}
     </button>
   </div>
 
@@ -458,7 +483,7 @@
     ondelete={handleDelete}
     onbeforedelete={handleBeforeDelete}
     deleteKey={["Delete", "Backspace"]}
-    style="height: 95vh; background: var(--background);"
+    style="height: 100vh; background: var(--background);"
   >
     <Controls />
     <Background />
@@ -466,11 +491,80 @@
 </div>
 
 <style>
+  :global(html, body) {
+    background-color: var(--background);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
   .app-container {
     width: 100%;
     height: 100vh;
     background-color: var(--background);
     color: var(--text-color);
+    position: relative;
   }
-  /* No global highlight style needed here anymore, styles are in components */
+
+  .toolbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--controls-background);
+    border: 1px solid var(--controls-border);
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    padding: 0 8px;
+  }
+
+  .search-bar input {
+    border: none;
+    background: transparent;
+    padding: 8px;
+    color: var(--text-color);
+  }
+
+  .search-bar input:focus {
+    outline: none;
+  }
+
+  .toolbar-button {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .toolbar-button:hover {
+    background: var(--button-hover-background);
+  }
+
+  select {
+    background: var(--input-background);
+    color: var(--text-color);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    padding: 8px;
+  }
 </style>

@@ -16,6 +16,7 @@ export interface Handle {
 export interface CustomNode extends SvelteFlowNode {
   data: {
     name: string;
+    description: string;
     attributes: Attribute[];
     handles: Handle[];
   };
