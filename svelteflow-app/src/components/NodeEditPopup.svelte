@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import type { CustomNode, Attribute } from "../types/schemas";
+  import { Plus, Trash2 } from "lucide-svelte";
 
   export let node: CustomNode;
 
@@ -74,12 +75,14 @@
               Connect
             </label>
             <button class="remove-btn" on:click={() => removeAttribute(i)}>
-              &times;
+              <Trash2 size={18} />
             </button>
           </div>
         {/each}
       </div>
-      <button class="add-attribute-btn" on:click={addAttribute}> + </button>
+      <button class="add-attribute-btn" on:click={addAttribute}>
+        <Plus size={18} />
+      </button>
     </div>
 
     <div class="button-group">
@@ -167,8 +170,8 @@
   }
   .attribute-item {
     display: grid;
-    grid-template-columns: 1fr 1fr auto auto auto auto;
-    gap: 0.75rem;
+    grid-template-columns: 1fr 1fr 80px 80px 80px auto;
+    gap: 1rem;
     align-items: center;
   }
   .checkbox-label {
@@ -184,9 +187,8 @@
     border: none;
     color: var(--text-color);
     opacity: 0.6;
-    font-size: 1.75rem;
     cursor: pointer;
-    padding: 0 0.5rem;
+    padding: 0;
     transition: opacity 0.2s;
   }
   .remove-btn:hover {
@@ -206,6 +208,9 @@
     transition:
       background-color 0.2s,
       border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .add-attribute-btn:hover {
     background: var(--button-secondary-hover-background, var(--background));

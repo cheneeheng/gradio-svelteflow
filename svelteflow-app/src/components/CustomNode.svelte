@@ -3,6 +3,7 @@
   import { derived } from "svelte/store";
   import { clickedNodes, searchedNodes } from "../stores/highlightStore";
   import { onMount } from "svelte";
+  import { ChevronDown, ChevronUp } from "lucide-svelte";
 
   export let id;
   export let data;
@@ -48,7 +49,11 @@
   class:selected
 >
   <button class="attribute-toggle" on:click={toggleAttributes}>
-    {attributesVisible ? "Hide" : "Show"}
+    {#if attributesVisible}
+      <ChevronUp size={16} />
+    {:else}
+      <ChevronDown size={16} />
+    {/if}
   </button>
   <div class="node-header">{name}</div>
   <div class="node-body">
@@ -97,13 +102,15 @@
       type="target"
       position={Position.Left}
       id="input-collapsed"
-      style="top: 50%;"
+      style="top: 50%; opacity: 0.5;"
+      isConnectable={false}
     />
     <Handle
       type="source"
       position={Position.Right}
       id="output-collapsed"
-      style="top: 50%;"
+      style="top: 50%; opacity: 0.5;"
+      isConnectable={false}
     />
   {/if}
 </div>
@@ -128,9 +135,12 @@
     background: var(--button-background);
     border: 1px solid var(--button-border);
     border-radius: 4px;
-    padding: 2px 8px;
+    padding: 4px;
     font-size: 0.75em;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .node-header {
@@ -179,7 +189,7 @@
     padding: 4px 8px;
     font-size: 0.85em;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
   }
 
@@ -187,6 +197,9 @@
     font-weight: 600;
     margin-right: 8px;
     color: var(--text-color);
+    background: var(--controls-background);
+    padding: 2px 6px;
+    border-radius: 4px;
   }
 
   .value {

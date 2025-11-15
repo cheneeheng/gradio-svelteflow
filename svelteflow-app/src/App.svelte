@@ -19,6 +19,8 @@
     Sun,
     Moon,
     Search,
+    Settings,
+    MoreHorizontal,
   } from "lucide-svelte";
 
   import CustomEdgeComponent from "./components/CustomEdge.svelte";
@@ -450,6 +452,8 @@
       <option value="TB">Vertical</option>
       <option value="LR">Horizontal</option>
     </select>
+    <button class="toolbar-button"><Settings size={18} /></button>
+    <button class="toolbar-button"><MoreHorizontal size={18} /></button>
     <button class="toolbar-button" on:click={toggleTheme}>
       {#if $theme === 'light'}
         <Moon size={18} />
