@@ -19,11 +19,13 @@ export interface CustomNode extends SvelteFlowNode {
     description: string;
     attributes: Attribute[];
     handles: Handle[];
+    collapsed?: boolean;
   };
 }
 
 export interface CustomEdge extends SvelteFlowEdge {
   label?: string;
+  data?: { [key: string]: any };
 }
 
 export interface GraphSchema {

@@ -18,8 +18,8 @@
   export let positionAbsoluteX;
   export let positionAbsoluteY;
 
-  $: ({ name, description, attributes, handles } = data);
-  let attributesVisible = true;
+  $: ({ name, description, attributes, handles, collapsed } = data);
+  $: attributesVisible = !collapsed;
 
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -35,11 +35,6 @@
       return null;
     }
   );
-
-  function toggleAttributes() {
-    attributesVisible = !attributesVisible;
-    updateNodeInternals(id);
-  }
 </script>
 
 <div
@@ -48,7 +43,7 @@
   class:highlight-search={$highlightType === "search"}
   class:selected
 >
-  <button class="attribute-toggle" on:click={toggleAttributes}>
+  <button class="attribute-toggle collapse-toggle-btn">
     {#if attributesVisible}
       <ChevronUp size={16} />
     {:else}
@@ -103,14 +98,14 @@
       position={Position.Left}
       id="input-collapsed"
       style="top: 50%; opacity: 0.5;"
-      isConnectable={false}
+      isConnectable={true}
     />
     <Handle
       type="source"
       position={Position.Right}
       id="output-collapsed"
       style="top: 50%; opacity: 0.5;"
-      isConnectable={false}
+      isConnectable={true}
     />
   {/if}
 </div>
@@ -121,17 +116,18 @@
     border: 1px solid var(--node-border);
     border-radius: 8px;
     min-width: 220px;
+    max-width: 300px;
     font-family: sans-serif;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
     position: relative;
+    z-index: 1;
   }
 
   .attribute-toggle {
     position: absolute;
     top: -25px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 10px;
     background: var(--button-background);
     border: 1px solid var(--button-border);
     border-radius: 4px;
@@ -160,6 +156,8 @@
   .node-description {
     padding: 0 0 12px 0;
     font-size: 0.9em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 
   .divider {
@@ -191,20 +189,24 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    word-wrap: break-word;
+    word-break: break-all;
   }
 
   .key {
     font-weight: 600;
     margin-right: 8px;
     color: var(--text-color);
-    background: var(--controls-background);
+    background: var(--badge-background);
     padding: 2px 6px;
     border-radius: 4px;
+    white-space: normal;
   }
 
   .value {
     color: var(--text-color);
     opacity: 0.8;
+    white-space: normal;
   }
 
   .highlight-click {

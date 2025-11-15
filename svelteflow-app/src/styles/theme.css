@@ -23,9 +23,10 @@
   --accent-color: #007bff;
   --accent-color-dark: #0056b3;
   --accent-color-light: rgba(0, 123, 255, 0.25);
-  --highlight-color: rgba(0, 123, 255, 0.2);
-  --selection-color: rgba(255, 99, 71, 0.2);
-  --search-color: rgba(255, 255, 0, 0.3);
+  --highlight-color: rgba(255, 179, 128, 0.3);
+  --selection-color: rgba(0, 123, 255, 0.2);
+  --search-color: rgba(110, 220, 110, 0.3);
+  --badge-background: #e9ecef;
 }
 
 :root.dark {
@@ -53,7 +54,8 @@
   --accent-color: #007bff;
   --accent-color-dark: #0056b3;
   --accent-color-light: rgba(0, 123, 255, 0.25);
-  --highlight-color: rgba(0, 123, 255, 0.3);
-  --selection-color: rgba(255, 99, 71, 0.3);
-  --search-color: rgba(255, 255, 0, 0.4);
+  --highlight-color: rgba(255, 179, 128, 0.4);
+  --selection-color: rgba(0, 123, 255, 0.3);
+  --search-color: rgba(110, 220, 110, 0.4);
+  --badge-background: #495057;
 }

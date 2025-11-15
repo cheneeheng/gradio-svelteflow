@@ -15,7 +15,7 @@
     Plus,
     Save,
     FolderOpen,
-    Layout,
+    RotateCw,
     Sun,
     Moon,
     Search,
@@ -105,6 +105,11 @@
       targetHandle,
       label: `Edge ${key}`,
       type: "custom",
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 20,
+        height: 20,
+      },
     };
 
     edges.update((es) => {
@@ -176,10 +181,43 @@
         description: "This is a new node.",
         attributes: [],
         handles: [],
+        collapsed: false,
       },
       type: "custom",
     };
     nodes.update((n) => [...n, newNode]);
+  }
+
+  function handleNodeCollapse(nodeId: string, isCollapsed: boolean) {
+    edges.update((es) => {
+      return es.map((edge) => {
+        if (edge.source === nodeId) {
+          if (isCollapsed) {
+            edge.data = {
+              ...edge.data,
+              originalSourceHandle: edge.sourceHandle,
+            };
+            edge.sourceHandle = "output-collapsed";
+          } else if (edge.data?.originalSourceHandle) {
+            edge.sourceHandle = edge.data.originalSourceHandle;
+            delete edge.data.originalSourceHandle;
+          }
+        }
+        if (edge.target === nodeId) {
+          if (isCollapsed) {
+            edge.data = {
+              ...edge.data,
+              originalTargetHandle: edge.targetHandle,
+            };
+            edge.targetHandle = "input-collapsed";
+          } else if (edge.data?.originalTargetHandle) {
+            edge.targetHandle = edge.data.originalTargetHandle;
+            delete edge.data.originalTargetHandle;
+          }
+        }
+        return edge;
+      });
+    });
   }
 
   function handleNodeClick(
@@ -188,6 +226,15 @@
       event: MouseEvent | TouchEvent;
     }>
   ) {
+    const target = e.detail.event.target as HTMLElement;
+    if (target.closest(".collapse-toggle-btn")) {
+      const node = e.detail.node as CustomNode;
+      node.data.collapsed = !node.data.collapsed;
+      nodes.update((n) => n);
+      handleNodeCollapse(node.id, node.data.collapsed);
+      return;
+    }
+
     if (clickTimer) {
       clearTimeout(clickTimer);
       clickTimer = null;
@@ -407,6 +454,8 @@
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Escape") {
+      nodes.update((ns) => ns.map((n) => ({ ...n, selected: false })));
+      edges.update((es) => es.map((e) => ({ ...e, selected: false })));
       clickedNodes.set([]);
       clickedEdges.set([]);
       searchedNodes.set([]);
@@ -444,17 +493,38 @@
         placeholder="Search nodes..."
       />
     </div>
-    <button class="toolbar-button" on:click={handleAddNode}><Plus size={18} /></button>
-    <button class="toolbar-button" on:click={handleSaveGraph}><Save size={18} /></button>
-    <button class="toolbar-button" on:click={triggerLoad}><FolderOpen size={18} /></button>
-    <button class="toolbar-button" on:click={handleLayout}><Layout size={18} /></button>
-    <select bind:value={layoutDirection}>
+    <button
+      class="toolbar-button"
+      on:click={handleAddNode}
+      title="Add a new node"
+      ><Plus size={18} /></button
+    >
+    <button
+      class="toolbar-button"
+      on:click={handleSaveGraph}
+      title="Save graph"
+      ><Save size={18} /></button
+    >
+    <button class="toolbar-button" on:click={triggerLoad} title="Load graph"
+      ><FolderOpen size={18} /></button
+    >
+    <button
+      class="toolbar-button"
+      on:click={handleLayout}
+      title="Relayout nodes"
+      ><RotateCw size={18} /></button
+    >
+    <select bind:value={layoutDirection} title="Layout direction">
       <option value="TB">Vertical</option>
       <option value="LR">Horizontal</option>
     </select>
-    <button class="toolbar-button"><Settings size={18} /></button>
-    <button class="toolbar-button"><MoreHorizontal size={18} /></button>
-    <button class="toolbar-button" on:click={toggleTheme}>
+    <button class="toolbar-button" title="Settings"
+      ><Settings size={18} /></button
+    >
+    <button class="toolbar-button" title="More options"
+      ><MoreHorizontal size={18} /></button
+    >
+    <button class="toolbar-button" on:click={toggleTheme} title="Toggle theme">
       {#if $theme === 'light'}
         <Moon size={18} />
       {:else}

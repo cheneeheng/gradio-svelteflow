@@ -51,11 +51,12 @@
       </div>
       <div class="form-group">
         <label for="node-description">Description</label>
-        <input id="node-description" bind:value={description} />
+        <textarea id="node-description" bind:value={description} rows="3"
+        ></textarea>
       </div>
     </div>
 
-    <div class="form-section">
+    <div class="form-section attributes-section">
       <h4>Attributes</h4>
       <div class="attributes-list">
         {#each attributes as attr, i}
@@ -127,7 +128,10 @@
     padding-bottom: 1rem;
   }
   .form-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .attributes-section {
+    margin-top: 0.5rem;
   }
   .form-group {
     margin-bottom: 1rem;
@@ -140,7 +144,8 @@
     color: var(--text-color);
   }
   input,
-  select {
+  select,
+  textarea {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 6px;
@@ -153,8 +158,13 @@
       border-color 0.2s,
       box-shadow 0.2s;
   }
+  textarea {
+    resize: vertical;
+    font-family: inherit;
+  }
   input:focus,
-  select:focus {
+  select:focus,
+  textarea:focus {
     outline: none;
     border-color: var(--accent-color, #007bff);
     box-shadow: 0 0 0 2px var(--accent-color-light, rgba(0, 123, 255, 0.25));
@@ -170,7 +180,7 @@
   }
   .attribute-item {
     display: grid;
-    grid-template-columns: 1fr 1fr 80px 80px 80px auto;
+    grid-template-columns: 1fr 1fr 100px 80px 80px auto;
     gap: 1rem;
     align-items: center;
   }
