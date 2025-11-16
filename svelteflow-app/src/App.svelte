@@ -563,21 +563,6 @@
     deleteKey={["Delete", "Backspace"]}
     style="height: 100vh; background: var(--background);"
   >
-    <svg>
-      <defs>
-        <marker
-          id="arrow-marker"
-          markerWidth="12.5"
-          markerHeight="12.5"
-          viewBox="-10 -10 20 20"
-          refX="0"
-          refY="0"
-          orient="auto-start-reverse"
-        >
-          <path d="M -5 -4 L 5 0 L -5 4 Z" fill="var(--node-border)" />
-        </marker>
-      </defs>
-    </svg>
     <Controls />
     <Background />
   </SvelteFlow>
