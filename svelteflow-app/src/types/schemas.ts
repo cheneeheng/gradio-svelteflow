@@ -1,16 +1,19 @@
-import type { Node as SvelteFlowNode, Edge as SvelteFlowEdge } from '@xyflow/svelte';
+import type {
+  Node as SvelteFlowNode,
+  Edge as SvelteFlowEdge,
+} from "@xyflow/svelte";
 
 export interface Attribute {
   key: string;
   value: string;
   visible: boolean;
   connectable: boolean;
-  type: 'input' | 'output';
+  type: "input" | "output";
 }
 
 export interface Handle {
   id: string;
-  type: 'input' | 'output';
+  type: "input" | "output";
 }
 
 export interface CustomNode extends SvelteFlowNode {
@@ -19,11 +22,19 @@ export interface CustomNode extends SvelteFlowNode {
     description: string;
     attributes: Attribute[];
     handles: Handle[];
+    collapsed?: boolean;
   };
+}
+
+export interface CollapsibleEdgeData {
+  originalSourceHandle?: string;
+  originalTargetHandle?: string;
+  [key: string]: unknown;
 }
 
 export interface CustomEdge extends SvelteFlowEdge {
   label?: string;
+  data?: CollapsibleEdgeData;
 }
 
 export interface GraphSchema {

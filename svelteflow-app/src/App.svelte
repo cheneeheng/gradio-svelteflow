@@ -15,7 +15,7 @@
     Plus,
     Save,
     FolderOpen,
-    Layout,
+    LayoutDashboard,
     Sun,
     Moon,
     Search,
@@ -33,7 +33,7 @@
     searchedNodes,
   } from "./stores/highlightStore";
   import { theme } from "./stores/themeStore";
-  import type { Attribute, CustomEdge, CustomNode } from "./types/schemas";
+  import type { Attribute, CollapsibleEdgeData, CustomEdge, CustomNode } from "./types/schemas";
   import { getLayoutedElements, type LayoutDirection } from "./utils/layout";
   import { debounce } from "./utils/debounce";
   import { uuidv4 } from "./utils/uuid";
@@ -176,10 +176,46 @@
         description: "This is a new node.",
         attributes: [],
         handles: [],
+        collapsed: false,
       },
       type: "custom",
     };
     nodes.update((n) => [...n, newNode]);
+  }
+
+
+
+  function handleNodeCollapse(nodeId: string, isCollapsed: boolean) {
+    edges.update((es) => {
+      return es.map((edge) => {
+        const data = edge.data as CollapsibleEdgeData;
+        if (edge.source === nodeId) {
+          if (isCollapsed) {
+            edge.data = {
+              ...data,
+              originalSourceHandle: edge.sourceHandle,
+            };
+            edge.sourceHandle = "output-collapsed";
+          } else if (data.originalSourceHandle) {
+            edge.sourceHandle = data.originalSourceHandle;
+            delete data.originalSourceHandle;
+          }
+        }
+        if (edge.target === nodeId) {
+          if (isCollapsed) {
+            edge.data = {
+              ...data,
+              originalTargetHandle: edge.targetHandle,
+            };
+            edge.targetHandle = "input-collapsed";
+          } else if (data.originalTargetHandle) {
+            edge.targetHandle = data.originalTargetHandle;
+            delete data.originalTargetHandle;
+          }
+        }
+        return edge;
+      });
+    });
   }
 
   function handleNodeClick(
@@ -188,6 +224,27 @@
       event: MouseEvent | TouchEvent;
     }>
   ) {
+    const target = e.detail.event.target as HTMLElement;
+    if (target.closest(".collapse-toggle-btn")) {
+      const node = e.detail.node as CustomNode;
+      nodes.update((nds) =>
+        nds.map((n) => {
+          if (n.id === node.id) {
+            return {
+              ...n,
+              data: {
+                ...n.data,
+                collapsed: !n.data.collapsed,
+              },
+            };
+          }
+          return n;
+        })
+      );
+      handleNodeCollapse(node.id, !node.data.collapsed);
+      return;
+    }
+
     if (clickTimer) {
       clearTimeout(clickTimer);
       clickTimer = null;
@@ -407,6 +464,8 @@
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Escape") {
+      nodes.update((ns) => ns.map((n) => ({ ...n, selected: false })));
+      edges.update((es) => es.map((e) => ({ ...e, selected: false })));
       clickedNodes.set([]);
       clickedEdges.set([]);
       searchedNodes.set([]);
@@ -444,18 +503,34 @@
         placeholder="Search nodes..."
       />
     </div>
-    <button class="toolbar-button" on:click={handleAddNode}><Plus size={18} /></button>
-    <button class="toolbar-button" on:click={handleSaveGraph}><Save size={18} /></button>
-    <button class="toolbar-button" on:click={triggerLoad}><FolderOpen size={18} /></button>
-    <button class="toolbar-button" on:click={handleLayout}><Layout size={18} /></button>
-    <select bind:value={layoutDirection}>
+    <button
+      class="toolbar-button"
+      on:click={handleAddNode}
+      title="Add a new node"><Plus size={18} /></button
+    >
+    <button class="toolbar-button" on:click={handleSaveGraph} title="Save graph"
+      ><Save size={18} /></button
+    >
+    <button class="toolbar-button" on:click={triggerLoad} title="Load graph"
+      ><FolderOpen size={18} /></button
+    >
+    <button
+      class="toolbar-button"
+      on:click={handleLayout}
+      title="Relayout nodes"><LayoutDashboard size={18} /></button
+    >
+    <select bind:value={layoutDirection} title="Layout direction">
       <option value="TB">Vertical</option>
       <option value="LR">Horizontal</option>
     </select>
-    <button class="toolbar-button"><Settings size={18} /></button>
-    <button class="toolbar-button"><MoreHorizontal size={18} /></button>
-    <button class="toolbar-button" on:click={toggleTheme}>
-      {#if $theme === 'light'}
+    <button class="toolbar-button" title="Settings"
+      ><Settings size={18} /></button
+    >
+    <button class="toolbar-button" title="More options"
+      ><MoreHorizontal size={18} /></button
+    >
+    <button class="toolbar-button" on:click={toggleTheme} title="Toggle theme">
+      {#if $theme === "light"}
         <Moon size={18} />
       {:else}
         <Sun size={18} />
@@ -470,13 +545,6 @@
     {nodeTypes}
     {edgeTypes}
     colorMode={$theme}
-    defaultEdgeOptions={{
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-      },
-    }}
     nodesConnectable={interactive}
     nodesDraggable={interactive}
     elementsSelectable={interactive}

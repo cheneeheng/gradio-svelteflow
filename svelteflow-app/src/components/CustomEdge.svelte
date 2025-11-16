@@ -49,11 +49,27 @@
 
   // merge default label styles with user-provided ones
   const defaultLabelStyle =
-    "user-select: none; pointer-events: none; font-size: 12px; fill: var(--text-color);";
+    "user-select: none; pointer-events: none; font-size: 12px; fill: var(--text-color); backgroundColor: var(--node-background)";
   $: mergedLabelStyle = labelStyle
     ? `${defaultLabelStyle} ${labelStyle}`
     : defaultLabelStyle;
 </script>
+
+<svg>
+  <defs>
+    <marker
+      id="arrow-marker-{id}"
+      markerWidth="8"
+      markerHeight="8"
+      viewBox="-10 -10 20 20"
+      refX="3"
+      refY="0"
+      orient="auto-start-reverse"
+    >
+      <path d="M -5 -4 L 5 0 L -5 4 Z" fill={strokeColor} />
+    </marker>
+  </defs>
+</svg>
 
 <BaseEdge
   {id}
@@ -63,7 +79,7 @@
   {labelY}
   labelStyle={mergedLabelStyle}
   {markerStart}
-  {markerEnd}
+  markerEnd="url(#arrow-marker-{id})"
   {interactionWidth}
   {style}
 />

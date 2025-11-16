@@ -2,7 +2,6 @@
   import { Handle, Position, useUpdateNodeInternals } from "@xyflow/svelte";
   import { derived } from "svelte/store";
   import { clickedNodes, searchedNodes } from "../stores/highlightStore";
-  import { onMount } from "svelte";
   import { ChevronDown, ChevronUp } from "lucide-svelte";
 
   export let id;
@@ -19,7 +18,6 @@
   export let positionAbsoluteY;
 
   $: ({ name, description, attributes, handles } = data);
-  let attributesVisible = true;
 
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -35,11 +33,6 @@
       return null;
     }
   );
-
-  function toggleAttributes() {
-    attributesVisible = !attributesVisible;
-    updateNodeInternals(id);
-  }
 </script>
 
 <div
@@ -48,8 +41,11 @@
   class:highlight-search={$highlightType === "search"}
   class:selected
 >
-  <button class="attribute-toggle" on:click={toggleAttributes}>
-    {#if attributesVisible}
+  <button
+    class="attribute-toggle collapse-toggle-btn"
+    on:click={(e) => e.currentTarget.blur()}
+  >
+    {#if !data.collapsed}
       <ChevronUp size={16} />
     {:else}
       <ChevronDown size={16} />
@@ -58,7 +54,7 @@
   <div class="node-header">{name}</div>
   <div class="node-body">
     <div class="node-description">{description}</div>
-    {#if attributesVisible && attributes.length}
+    {#if !data.collapsed && attributes.length}
       <hr class="divider" />
       <div class="attributes-grid">
         <div class="attributes-column">
@@ -69,9 +65,8 @@
                   type="target"
                   position={Position.Left}
                   id={attr.key}
-                  style="top: 50%;"
-                />
-                <span class="key">{attr.key}</span>
+                  style="top: 50%; left: -13px;"
+                /> <span class="key">{attr.key}</span>
                 <span class="value">{attr.value}</span>
               </div>
             {/if}
@@ -85,9 +80,8 @@
                   type="source"
                   position={Position.Right}
                   id={attr.key}
-                  style="top: 50%;"
-                />
-                <span class="key">{attr.key}</span>
+                  style="top: 50%; right: -13px;"
+                /> <span class="key">{attr.key}</span>
                 <span class="value">{attr.value}</span>
               </div>
             {/if}
@@ -97,20 +91,20 @@
     {/if}
   </div>
 
-  {#if !attributesVisible}
+  {#if data.collapsed}
     <Handle
       type="target"
       position={Position.Left}
       id="input-collapsed"
       style="top: 50%; opacity: 0.5;"
-      isConnectable={false}
+      isConnectable={true}
     />
     <Handle
       type="source"
       position={Position.Right}
       id="output-collapsed"
       style="top: 50%; opacity: 0.5;"
-      isConnectable={false}
+      isConnectable={true}
     />
   {/if}
 </div>
@@ -121,17 +115,18 @@
     border: 1px solid var(--node-border);
     border-radius: 8px;
     min-width: 220px;
+    max-width: 300px;
     font-family: sans-serif;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
     position: relative;
+    z-index: 1;
   }
 
   .attribute-toggle {
     position: absolute;
     top: -25px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 10px;
     background: var(--button-background);
     border: 1px solid var(--button-border);
     border-radius: 4px;
@@ -160,6 +155,8 @@
   .node-description {
     padding: 0 0 12px 0;
     font-size: 0.9em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 
   .divider {
@@ -191,20 +188,24 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    word-wrap: break-word;
+    word-break: break-all;
   }
 
   .key {
     font-weight: 600;
     margin-right: 8px;
     color: var(--text-color);
-    background: var(--controls-background);
+    background: var(--badge-background);
     padding: 2px 6px;
     border-radius: 4px;
+    white-space: normal;
   }
 
   .value {
     color: var(--text-color);
     opacity: 0.8;
+    white-space: normal;
   }
 
   .highlight-click {

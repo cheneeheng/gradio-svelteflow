@@ -51,38 +51,38 @@
       </div>
       <div class="form-group">
         <label for="node-description">Description</label>
-        <input id="node-description" bind:value={description} />
+        <textarea id="node-description" bind:value={description} rows="3"
+        ></textarea>
       </div>
-    </div>
-
-    <div class="form-section">
-      <h4>Attributes</h4>
-      <div class="attributes-list">
-        {#each attributes as attr, i}
-          <div class="attribute-item">
-            <input class="key" bind:value={attr.key} placeholder="Key" />
-            <input class="value" bind:value={attr.value} placeholder="Value" />
-            <select bind:value={attr.type}>
-              <option value="input">Input</option>
-              <option value="output">Output</option>
-            </select>
-            <label class="checkbox-label">
-              <input type="checkbox" bind:checked={attr.visible} />
-              Visible
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" bind:checked={attr.connectable} />
-              Connect
-            </label>
-            <button class="remove-btn" on:click={() => removeAttribute(i)}>
-              <Trash2 size={18} />
-            </button>
-          </div>
-        {/each}
+      <div class="form-group attributes-section">
+        <h4>Attributes</h4>
+        <div class="attributes-list">
+          {#each attributes as attr, i}
+            <div class="attribute-item">
+              <input class="key" bind:value={attr.key} placeholder="Key" />
+              <input class="value" bind:value={attr.value} placeholder="Value" />
+              <select bind:value={attr.type}>
+                <option value="input">Input</option>
+                <option value="output">Output</option>
+              </select>
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={attr.visible} />
+                Visible
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={attr.connectable} />
+                Connect
+              </label>
+              <button class="remove-btn" on:click={() => removeAttribute(i)}>
+                <Trash2 size={18} />
+              </button>
+            </div>
+          {/each}
+        </div>
+        <button class="add-attribute-btn" on:click={addAttribute}>
+          <Plus size={18} />
+        </button>
       </div>
-      <button class="add-attribute-btn" on:click={addAttribute}>
-        <Plus size={18} />
-      </button>
     </div>
 
     <div class="button-group">
@@ -127,7 +127,10 @@
     padding-bottom: 1rem;
   }
   .form-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .attributes-section {
+    margin-top: 0.5rem;
   }
   .form-group {
     margin-bottom: 1rem;
@@ -140,7 +143,8 @@
     color: var(--text-color);
   }
   input,
-  select {
+  select,
+  textarea {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 6px;
@@ -153,8 +157,13 @@
       border-color 0.2s,
       box-shadow 0.2s;
   }
+  textarea {
+    resize: vertical;
+    font-family: inherit;
+  }
   input:focus,
-  select:focus {
+  select:focus,
+  textarea:focus {
     outline: none;
     border-color: var(--accent-color, #007bff);
     box-shadow: 0 0 0 2px var(--accent-color-light, rgba(0, 123, 255, 0.25));
@@ -170,7 +179,7 @@
   }
   .attribute-item {
     display: grid;
-    grid-template-columns: 1fr 1fr 80px 80px 80px auto;
+    grid-template-columns: 1fr 1fr 100px 80px 80px auto;
     gap: 1rem;
     align-items: center;
   }
