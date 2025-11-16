@@ -1,6 +1,7 @@
 import type {
   Node as SvelteFlowNode,
   Edge as SvelteFlowEdge,
+  Viewport,
 } from "@xyflow/svelte";
 
 export interface Attribute {
@@ -51,4 +52,10 @@ export interface UIState {
     y: number;
     zoom: number;
   };
+}
+
+export interface Graph {
+  nodes: CustomNode[];
+  edges: CustomEdge[];
+  viewport: Viewport;
 }

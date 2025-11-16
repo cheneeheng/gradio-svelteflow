@@ -35,3 +35,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Frontend
+dist/
+node_modules

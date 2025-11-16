@@ -130,32 +130,7 @@ class SvelteFlow(Component):
                         "properties": {
                             "id": {"type": "string"},
                             "type": {"type": "string"},
-                            "data": {
-                                "type": "object",
-                                "properties": {
-                                    "label": {"type": "string"},
-                                    "sources": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {"type": "string"},
-                                            },
-                                        },
-                                    },
-                                    "targets": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {"type": "string"},
-                                            },
-                                        },
-                                    },
-                                    "topOffsetPx": {"type": "number"},
-                                    "sideOffsetPx": {"type": "number"},
-                                },
-                            },
+                            "data": {"type": "object"},
                             "position": {
                                 "type": "object",
                                 "properties": {
@@ -176,8 +151,15 @@ class SvelteFlow(Component):
                             "target": {"type": "string"},
                             "sourceHandle": {"type": "string"},
                             "targetHandle": {"type": "string"},
-                            "markerEnd": {"type": "string"},
                         },
+                    },
+                },
+                "viewport": {
+                    "type": "object",
+                    "properties": {
+                        "x": {"type": "number"},
+                        "y": {"type": "number"},
+                        "zoom": {"type": "number"},
                     },
                 },
             },
@@ -188,99 +170,18 @@ class SvelteFlow(Component):
             "nodes": [
                 {
                     "id": "node-1",
-                    "type": "dynamic",
+                    "type": "custom",
                     "position": {"x": 100, "y": 150},
                     "data": {
-                        "label": "Start",
-                        "sources": [{"id": "node-1-s1"}],
-                        "targets": [{"id": "node-1-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-2",
-                    "type": "dynamic",
-                    "position": {"x": 250, "y": 150},
-                    "data": {
-                        "label": "Process A",
-                        "sources": [{"id": "node-2-s1"}],
-                        "targets": [{"id": "node-2-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-3",
-                    "type": "dynamic",
-                    "position": {"x": 400, "y": 150},
-                    "data": {
-                        "label": "Decision",
-                        "sources": [{"id": "node-3-s1"}],
-                        "targets": [{"id": "node-3-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-4",
-                    "type": "dynamic",
-                    "position": {"x": 550, "y": 100},
-                    "data": {
-                        "label": "Branch A",
-                        "sources": [{"id": "node-4-s1"}],
-                        "targets": [{"id": "node-4-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-5",
-                    "type": "dynamic",
-                    "position": {"x": 550, "y": 200},
-                    "data": {
-                        "label": "Branch B",
-                        "sources": [{"id": "node-5-s1"}],
-                        "targets": [{"id": "node-5-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
+                        "name": "Start",
+                        "description": "This is the start of the process.",
+                        "attributes": [],
+                        "handles": [],
                     },
                 },
             ],
-            "edges": [
-                {
-                    "id": "node-1:node-1-s1-->node-2:node-2-t1",
-                    "source": "node-1",
-                    "target": "node-2",
-                    "sourceHandle": "node-1-s1",
-                    "targetHandle": "node-2-t1",
-                    "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-2:node-2-s1-->node-3:node-3-t1",
-                    "source": "node-2",
-                    "target": "node-3",
-                    "sourceHandle": "node-2-s1",
-                    "targetHandle": "node-3-t1",
-                    "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-4:node-4-t1",
-                    "source": "node-3",
-                    "target": "node-4",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-4-t1",
-                    "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-5:node-5-t1",
-                    "source": "node-3",
-                    "target": "node-5",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-5-t1",
-                    "markerEnd": "arrowclosed",
-                },
-            ],
+            "edges": [],
+            "viewport": {"x": 0, "y": 0, "zoom": 1},
         }
 
     def example_value(self) -> Any:
@@ -288,97 +189,16 @@ class SvelteFlow(Component):
             "nodes": [
                 {
                     "id": "node-1",
-                    # "type": "dynamic",
+                    "type": "custom",
                     "position": {"x": 100, "y": 150},
                     "data": {
-                        "label": "Start",
-                        "sources": [{"id": "node-1-s1"}],
-                        "targets": [{"id": "node-1-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-2",
-                    # "type": "dynamic",
-                    "position": {"x": 250, "y": 150},
-                    "data": {
-                        "label": "Process A",
-                        "sources": [{"id": "node-2-s1"}],
-                        "targets": [{"id": "node-2-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-3",
-                    # "type": "dynamic",
-                    "position": {"x": 400, "y": 150},
-                    "data": {
-                        "label": "Decision",
-                        "sources": [{"id": "node-3-s1"}],
-                        "targets": [{"id": "node-3-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-4",
-                    # "type": "dynamic",
-                    "position": {"x": 550, "y": 100},
-                    "data": {
-                        "label": "Branch A",
-                        "sources": [{"id": "node-4-s1"}],
-                        "targets": [{"id": "node-4-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-5",
-                    # "type": "dynamic",
-                    "position": {"x": 550, "y": 200},
-                    "data": {
-                        "label": "Branch B",
-                        "sources": [{"id": "node-5-s1"}],
-                        "targets": [{"id": "node-5-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
+                        "name": "Start",
+                        "description": "This is the start of the process.",
+                        "attributes": [],
+                        "handles": [],
                     },
                 },
             ],
-            "edges": [
-                {
-                    "id": "node-1:node-1-s1-->node-2:node-2-t1",
-                    "source": "node-1",
-                    "target": "node-2",
-                    "sourceHandle": "node-1-s1",
-                    "targetHandle": "node-2-t1",
-                    # "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-2:node-2-s1-->node-3:node-3-t1",
-                    "source": "node-2",
-                    "target": "node-3",
-                    "sourceHandle": "node-2-s1",
-                    "targetHandle": "node-3-t1",
-                    # "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-4:node-4-t1",
-                    "source": "node-3",
-                    "target": "node-4",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-4-t1",
-                    # "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-5:node-5-t1",
-                    "source": "node-3",
-                    "target": "node-5",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-5-t1",
-                    # "markerEnd": "arrowclosed",
-                },
-            ],
+            "edges": [],
+            "viewport": {"x": 0, "y": 0, "zoom": 1},
         }

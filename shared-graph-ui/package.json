@@ -1,0 +1,21 @@
+{
+  "name": "@graph-ui/core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@xyflow/svelte": "^0.1.39",
+    "buffer": "^6.0.3",
+    "dagre": "^0.8.5",
+    "lucide-svelte": "^0.553.0",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "svelte": "^4.2.20"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "@types/dagre": "^0.7.53",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21"
+  }
+}
