@@ -54,36 +54,35 @@
         <textarea id="node-description" bind:value={description} rows="3"
         ></textarea>
       </div>
-    </div>
-
-    <div class="form-section attributes-section">
-      <h4>Attributes</h4>
-      <div class="attributes-list">
-        {#each attributes as attr, i}
-          <div class="attribute-item">
-            <input class="key" bind:value={attr.key} placeholder="Key" />
-            <input class="value" bind:value={attr.value} placeholder="Value" />
-            <select bind:value={attr.type}>
-              <option value="input">Input</option>
-              <option value="output">Output</option>
-            </select>
-            <label class="checkbox-label">
-              <input type="checkbox" bind:checked={attr.visible} />
-              Visible
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" bind:checked={attr.connectable} />
-              Connect
-            </label>
-            <button class="remove-btn" on:click={() => removeAttribute(i)}>
-              <Trash2 size={18} />
-            </button>
-          </div>
-        {/each}
+      <div class="form-group attributes-section">
+        <h4>Attributes</h4>
+        <div class="attributes-list">
+          {#each attributes as attr, i}
+            <div class="attribute-item">
+              <input class="key" bind:value={attr.key} placeholder="Key" />
+              <input class="value" bind:value={attr.value} placeholder="Value" />
+              <select bind:value={attr.type}>
+                <option value="input">Input</option>
+                <option value="output">Output</option>
+              </select>
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={attr.visible} />
+                Visible
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={attr.connectable} />
+                Connect
+              </label>
+              <button class="remove-btn" on:click={() => removeAttribute(i)}>
+                <Trash2 size={18} />
+              </button>
+            </div>
+          {/each}
+        </div>
+        <button class="add-attribute-btn" on:click={addAttribute}>
+          <Plus size={18} />
+        </button>
       </div>
-      <button class="add-attribute-btn" on:click={addAttribute}>
-        <Plus size={18} />
-      </button>
     </div>
 
     <div class="button-group">

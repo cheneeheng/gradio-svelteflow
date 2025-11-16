@@ -47,11 +47,6 @@
   $: strokeWidth = $highlightType || selected ? 3 : 1.5;
   $: style = `stroke: ${strokeColor}; stroke-width: ${strokeWidth};`;
 
-  $: coloredMarkerEnd = {
-    ...(typeof markerEnd === "object" ? markerEnd : { type: markerEnd }),
-    color: strokeColor,
-  };
-
   // merge default label styles with user-provided ones
   const defaultLabelStyle =
     "user-select: none; pointer-events: none; font-size: 12px; fill: var(--text-color);";
@@ -68,7 +63,7 @@
   {labelY}
   labelStyle={mergedLabelStyle}
   {markerStart}
-  markerEnd={coloredMarkerEnd}
+  markerEnd="url(#arrow-marker)"
   {interactionWidth}
   {style}
 />

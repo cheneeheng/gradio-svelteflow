@@ -18,8 +18,7 @@
   export let positionAbsoluteX;
   export let positionAbsoluteY;
 
-  $: ({ name, description, attributes, handles, collapsed } = data);
-  $: attributesVisible = !collapsed;
+  $: ({ name, description, attributes, handles } = data);
 
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -43,8 +42,11 @@
   class:highlight-search={$highlightType === "search"}
   class:selected
 >
-  <button class="attribute-toggle collapse-toggle-btn">
-    {#if attributesVisible}
+  <button
+    class="attribute-toggle collapse-toggle-btn"
+    on:click={(e) => e.currentTarget.blur()}
+  >
+    {#if !data.collapsed}
       <ChevronUp size={16} />
     {:else}
       <ChevronDown size={16} />
@@ -53,7 +55,7 @@
   <div class="node-header">{name}</div>
   <div class="node-body">
     <div class="node-description">{description}</div>
-    {#if attributesVisible && attributes.length}
+    {#if !data.collapsed && attributes.length}
       <hr class="divider" />
       <div class="attributes-grid">
         <div class="attributes-column">
@@ -92,7 +94,7 @@
     {/if}
   </div>
 
-  {#if !attributesVisible}
+  {#if data.collapsed}
     <Handle
       type="target"
       position={Position.Left}

@@ -23,9 +23,14 @@ export interface CustomNode extends SvelteFlowNode {
   };
 }
 
+export interface CollapsibleEdgeData {
+  originalSourceHandle?: string;
+  originalTargetHandle?: string;
+}
+
 export interface CustomEdge extends SvelteFlowEdge {
   label?: string;
-  data?: { [key: string]: any };
+  data?: CollapsibleEdgeData;
 }
 
 export interface GraphSchema {

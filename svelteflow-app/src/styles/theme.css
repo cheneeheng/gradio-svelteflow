@@ -3,8 +3,8 @@
   --text-color: #222;
   --node-background: #f0f0f0;
   --node-border: #333;
-  --header-background: #007bff;
-  --header-text-color: #ffffff;
+  --header-background: #e0e0e0;
+  --header-text-color: #222;
   --popup-background: #ffffff;
   --popup-border: #ccc;
   --popup-shadow: rgba(0, 0, 0, 0.1);
@@ -23,9 +23,9 @@
   --accent-color: #007bff;
   --accent-color-dark: #0056b3;
   --accent-color-light: rgba(0, 123, 255, 0.25);
-  --highlight-color: rgba(255, 179, 128, 0.3);
-  --selection-color: rgba(0, 123, 255, 0.2);
-  --search-color: rgba(110, 220, 110, 0.3);
+  --highlight-color: rgba(255, 179, 128, 0.9);
+  --selection-color: rgba(0, 123, 255, 0.9);
+  --search-color: rgba(110, 220, 110, 0.9);
   --badge-background: #e9ecef;
 }
 
@@ -34,8 +34,8 @@
   --text-color: #f0f0f0;
   --node-background: #555555;
   --node-border: #f0f0f0;
-  --header-background: #0056b3;
-  --header-text-color: #ffffff;
+  --header-background: #444444;
+  --header-text-color: #f0f0f0;
   --popup-background: #444444;
   --popup-border: #666;
   --popup-shadow: rgba(0, 0, 0, 0.5);
@@ -54,8 +54,9 @@
   --accent-color: #007bff;
   --accent-color-dark: #0056b3;
   --accent-color-light: rgba(0, 123, 255, 0.25);
-  --highlight-color: rgba(255, 179, 128, 0.4);
-  --selection-color: rgba(0, 123, 255, 0.3);
-  --search-color: rgba(110, 220, 110, 0.4);
-  --badge-background: #495057;
+  --highlight-color: rgba(255, 179, 128, 0.9);
+  --selection-color: rgba(0, 123, 255, 0.9);
+  --search-color: rgba(110, 220, 110, 0.9);
+  --badge-background: #6c7680;
+  /* --badge-background: #495057; */
 }

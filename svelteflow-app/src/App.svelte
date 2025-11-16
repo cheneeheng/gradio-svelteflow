@@ -15,7 +15,7 @@
     Plus,
     Save,
     FolderOpen,
-    RotateCw,
+    LayoutDashboard,
     Sun,
     Moon,
     Search,
@@ -33,7 +33,7 @@
     searchedNodes,
   } from "./stores/highlightStore";
   import { theme } from "./stores/themeStore";
-  import type { Attribute, CustomEdge, CustomNode } from "./types/schemas";
+  import type { Attribute, CollapsibleEdgeData, CustomEdge, CustomNode } from "./types/schemas";
   import { getLayoutedElements, type LayoutDirection } from "./utils/layout";
   import { debounce } from "./utils/debounce";
   import { uuidv4 } from "./utils/uuid";
@@ -105,11 +105,7 @@
       targetHandle,
       label: `Edge ${key}`,
       type: "custom",
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-      },
+      zIndex: 1,
     };
 
     edges.update((es) => {
@@ -188,31 +184,34 @@
     nodes.update((n) => [...n, newNode]);
   }
 
+
+
   function handleNodeCollapse(nodeId: string, isCollapsed: boolean) {
     edges.update((es) => {
       return es.map((edge) => {
+        const data = edge.data as CollapsibleEdgeData;
         if (edge.source === nodeId) {
           if (isCollapsed) {
             edge.data = {
-              ...edge.data,
+              ...data,
               originalSourceHandle: edge.sourceHandle,
             };
             edge.sourceHandle = "output-collapsed";
-          } else if (edge.data?.originalSourceHandle) {
-            edge.sourceHandle = edge.data.originalSourceHandle;
-            delete edge.data.originalSourceHandle;
+          } else if (data.originalSourceHandle) {
+            edge.sourceHandle = data.originalSourceHandle;
+            delete data.originalSourceHandle;
           }
         }
         if (edge.target === nodeId) {
           if (isCollapsed) {
             edge.data = {
-              ...edge.data,
+              ...data,
               originalTargetHandle: edge.targetHandle,
             };
             edge.targetHandle = "input-collapsed";
-          } else if (edge.data?.originalTargetHandle) {
-            edge.targetHandle = edge.data.originalTargetHandle;
-            delete edge.data.originalTargetHandle;
+          } else if (data.originalTargetHandle) {
+            edge.targetHandle = data.originalTargetHandle;
+            delete data.originalTargetHandle;
           }
         }
         return edge;
@@ -229,9 +228,21 @@
     const target = e.detail.event.target as HTMLElement;
     if (target.closest(".collapse-toggle-btn")) {
       const node = e.detail.node as CustomNode;
-      node.data.collapsed = !node.data.collapsed;
-      nodes.update((n) => n);
-      handleNodeCollapse(node.id, node.data.collapsed);
+      nodes.update((nds) =>
+        nds.map((n) => {
+          if (n.id === node.id) {
+            return {
+              ...n,
+              data: {
+                ...n.data,
+                collapsed: !n.data.collapsed,
+              },
+            };
+          }
+          return n;
+        })
+      );
+      handleNodeCollapse(node.id, !node.data.collapsed);
       return;
     }
 
@@ -415,7 +426,12 @@
         const graph = JSON.parse(reader.result as string);
         if (graph.nodes && graph.edges) {
           nodes.set(graph.nodes);
-          edges.set(graph.edges);
+          edges.set(
+            graph.edges.map((e) => ({
+              ...e,
+              zIndex: 1,
+            }))
+          );
         } else {
           alert("Invalid graph file format.");
         }
@@ -496,13 +512,9 @@
     <button
       class="toolbar-button"
       on:click={handleAddNode}
-      title="Add a new node"
-      ><Plus size={18} /></button
+      title="Add a new node"><Plus size={18} /></button
     >
-    <button
-      class="toolbar-button"
-      on:click={handleSaveGraph}
-      title="Save graph"
+    <button class="toolbar-button" on:click={handleSaveGraph} title="Save graph"
       ><Save size={18} /></button
     >
     <button class="toolbar-button" on:click={triggerLoad} title="Load graph"
@@ -511,8 +523,7 @@
     <button
       class="toolbar-button"
       on:click={handleLayout}
-      title="Relayout nodes"
-      ><RotateCw size={18} /></button
+      title="Relayout nodes"><LayoutDashboard size={18} /></button
     >
     <select bind:value={layoutDirection} title="Layout direction">
       <option value="TB">Vertical</option>
@@ -525,7 +536,7 @@
       ><MoreHorizontal size={18} /></button
     >
     <button class="toolbar-button" on:click={toggleTheme} title="Toggle theme">
-      {#if $theme === 'light'}
+      {#if $theme === "light"}
         <Moon size={18} />
       {:else}
         <Sun size={18} />
@@ -540,13 +551,6 @@
     {nodeTypes}
     {edgeTypes}
     colorMode={$theme}
-    defaultEdgeOptions={{
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-      },
-    }}
     nodesConnectable={interactive}
     nodesDraggable={interactive}
     elementsSelectable={interactive}
@@ -559,6 +563,21 @@
     deleteKey={["Delete", "Backspace"]}
     style="height: 100vh; background: var(--background);"
   >
+    <svg>
+      <defs>
+        <marker
+          id="arrow-marker"
+          markerWidth="12.5"
+          markerHeight="12.5"
+          viewBox="-10 -10 20 20"
+          refX="0"
+          refY="0"
+          orient="auto-start-reverse"
+        >
+          <path d="M -5 -4 L 5 0 L -5 4 Z" fill="var(--node-border)" />
+        </marker>
+      </defs>
+    </svg>
     <Controls />
     <Background />
   </SvelteFlow>
