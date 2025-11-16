@@ -105,7 +105,6 @@
       targetHandle,
       label: `Edge ${key}`,
       type: "custom",
-      zIndex: 1,
     };
 
     edges.update((es) => {
@@ -426,12 +425,7 @@
         const graph = JSON.parse(reader.result as string);
         if (graph.nodes && graph.edges) {
           nodes.set(graph.nodes);
-          edges.set(
-            graph.edges.map((e) => ({
-              ...e,
-              zIndex: 1,
-            }))
-          );
+          edges.set(graph.edges);
         } else {
           alert("Invalid graph file format.");
         }

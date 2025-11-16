@@ -2,7 +2,6 @@
   import { Handle, Position, useUpdateNodeInternals } from "@xyflow/svelte";
   import { derived } from "svelte/store";
   import { clickedNodes, searchedNodes } from "../stores/highlightStore";
-  import { onMount } from "svelte";
   import { ChevronDown, ChevronUp } from "lucide-svelte";
 
   export let id;
@@ -66,9 +65,8 @@
                   type="target"
                   position={Position.Left}
                   id={attr.key}
-                  style="top: 50%;"
-                />
-                <span class="key">{attr.key}</span>
+                  style="top: 50%; left: -13px;"
+                /> <span class="key">{attr.key}</span>
                 <span class="value">{attr.value}</span>
               </div>
             {/if}
@@ -82,9 +80,8 @@
                   type="source"
                   position={Position.Right}
                   id={attr.key}
-                  style="top: 50%;"
-                />
-                <span class="key">{attr.key}</span>
+                  style="top: 50%; right: -13px;"
+                /> <span class="key">{attr.key}</span>
                 <span class="value">{attr.value}</span>
               </div>
             {/if}
