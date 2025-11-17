@@ -1,6 +1,6 @@
 {
     "terminal.integrated.defaultProfile.linux": "bash",
-    "diffEditor.renderSideBySide": false,
+    "diffEditor.renderSideBySide": true,
     "editor.rulers": [
         80
     ],

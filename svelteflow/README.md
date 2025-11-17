@@ -32,7 +32,6 @@ example = SvelteFlow().example_value()
 with gr.Blocks() as demo:
     btn = gr.Button("Example")
     sf = SvelteFlow(
-        value=example,
         info="INFO",
         label="LABEL",
         show_label=True,
