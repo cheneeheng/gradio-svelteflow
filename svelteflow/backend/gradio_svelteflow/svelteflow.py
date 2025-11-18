@@ -42,6 +42,7 @@ class SvelteFlow(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
+        canvas_min_height: str = "500px",
     ):
         """
         Parameters:
@@ -82,7 +83,9 @@ class SvelteFlow(Component):
                 if a component is re-rendered with the same key, these (and only these) parameters will be preserved
                 in the UI (if they have been changed by the user or an event listener) instead of re-rendered
                 based on the values provided during constructor.
+            canvas_min_height: minimum pixel height of the svelteflow canvas.
         """
+        self.canvas_min_height = canvas_min_height
         self.submit_btn = submit_btn
         super().__init__(
             label=label,
@@ -120,6 +123,7 @@ class SvelteFlow(Component):
         return value
 
     def api_info(self) -> dict[str, Any]:
+        # NOT CORRECT
         return {
             "type": "object",
             "properties": {
@@ -184,201 +188,66 @@ class SvelteFlow(Component):
         }
 
     def example_payload(self) -> Any:
-        return {
-            "nodes": [
-                {
-                    "id": "node-1",
-                    "type": "dynamic",
-                    "position": {"x": 100, "y": 150},
-                    "data": {
-                        "label": "Start",
-                        "sources": [{"id": "node-1-s1"}],
-                        "targets": [{"id": "node-1-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-2",
-                    "type": "dynamic",
-                    "position": {"x": 250, "y": 150},
-                    "data": {
-                        "label": "Process A",
-                        "sources": [{"id": "node-2-s1"}],
-                        "targets": [{"id": "node-2-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-3",
-                    "type": "dynamic",
-                    "position": {"x": 400, "y": 150},
-                    "data": {
-                        "label": "Decision",
-                        "sources": [{"id": "node-3-s1"}],
-                        "targets": [{"id": "node-3-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-4",
-                    "type": "dynamic",
-                    "position": {"x": 550, "y": 100},
-                    "data": {
-                        "label": "Branch A",
-                        "sources": [{"id": "node-4-s1"}],
-                        "targets": [{"id": "node-4-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-5",
-                    "type": "dynamic",
-                    "position": {"x": 550, "y": 200},
-                    "data": {
-                        "label": "Branch B",
-                        "sources": [{"id": "node-5-s1"}],
-                        "targets": [{"id": "node-5-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-            ],
-            "edges": [
-                {
-                    "id": "node-1:node-1-s1-->node-2:node-2-t1",
-                    "source": "node-1",
-                    "target": "node-2",
-                    "sourceHandle": "node-1-s1",
-                    "targetHandle": "node-2-t1",
-                    "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-2:node-2-s1-->node-3:node-3-t1",
-                    "source": "node-2",
-                    "target": "node-3",
-                    "sourceHandle": "node-2-s1",
-                    "targetHandle": "node-3-t1",
-                    "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-4:node-4-t1",
-                    "source": "node-3",
-                    "target": "node-4",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-4-t1",
-                    "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-5:node-5-t1",
-                    "source": "node-3",
-                    "target": "node-5",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-5-t1",
-                    "markerEnd": "arrowclosed",
-                },
-            ],
-        }
+        return {}
 
     def example_value(self) -> Any:
         return {
             "nodes": [
                 {
-                    "id": "node-1",
-                    # "type": "dynamic",
-                    "position": {"x": 100, "y": 150},
+                    "id": "adae56af-9bb7-4f67-a62d-dd173949a051",
+                    "position": {"x": 563, "y": 126},
                     "data": {
-                        "label": "Start",
-                        "sources": [{"id": "node-1-s1"}],
-                        "targets": [{"id": "node-1-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
+                        "name": "Node-adae",
+                        "description": "This is a node",
+                        "attributes": [
+                            {
+                                "key": "fruit",
+                                "value": "apple",
+                                "visible": True,
+                                "connectable": True,
+                                "type": "input",
+                            }
+                        ],
+                        "handles": [{"id": "fruit", "type": "input"}],
+                        "collapsed": False,
                     },
+                    "type": "custom",
+                    "measured": {"width": 182, "height": 80},
+                    "selected": False,
                 },
                 {
-                    "id": "node-2",
-                    # "type": "dynamic",
-                    "position": {"x": 250, "y": 150},
+                    "id": "36a5e9b8-2b7d-4c08-b34f-1da5d4fb7602",
+                    "position": {"x": 282, "y": 149.5},
                     "data": {
-                        "label": "Process A",
-                        "sources": [{"id": "node-2-s1"}],
-                        "targets": [{"id": "node-2-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
+                        "name": "Node-36a5",
+                        "description": "This is a node",
+                        "attributes": [
+                            {
+                                "key": "fruit",
+                                "value": "apple",
+                                "visible": True,
+                                "connectable": True,
+                                "type": "output",
+                            }
+                        ],
+                        "handles": [{"id": "fruit", "type": "output"}],
+                        "collapsed": False,
                     },
-                },
-                {
-                    "id": "node-3",
-                    # "type": "dynamic",
-                    "position": {"x": 400, "y": 150},
-                    "data": {
-                        "label": "Decision",
-                        "sources": [{"id": "node-3-s1"}],
-                        "targets": [{"id": "node-3-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-4",
-                    # "type": "dynamic",
-                    "position": {"x": 550, "y": 100},
-                    "data": {
-                        "label": "Branch A",
-                        "sources": [{"id": "node-4-s1"}],
-                        "targets": [{"id": "node-4-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
-                },
-                {
-                    "id": "node-5",
-                    # "type": "dynamic",
-                    "position": {"x": 550, "y": 200},
-                    "data": {
-                        "label": "Branch B",
-                        "sources": [{"id": "node-5-s1"}],
-                        "targets": [{"id": "node-5-t1"}],
-                        "topOffsetPx": 0,
-                        "sideOffsetPx": 8,
-                    },
+                    "type": "custom",
+                    "measured": {"width": 182, "height": 80},
+                    "selected": False,
                 },
             ],
             "edges": [
                 {
-                    "id": "node-1:node-1-s1-->node-2:node-2-t1",
-                    "source": "node-1",
-                    "target": "node-2",
-                    "sourceHandle": "node-1-s1",
-                    "targetHandle": "node-2-t1",
-                    # "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-2:node-2-s1-->node-3:node-3-t1",
-                    "source": "node-2",
-                    "target": "node-3",
-                    "sourceHandle": "node-2-s1",
-                    "targetHandle": "node-3-t1",
-                    # "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-4:node-4-t1",
-                    "source": "node-3",
-                    "target": "node-4",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-4-t1",
-                    # "markerEnd": "arrowclosed",
-                },
-                {
-                    "id": "node-3:node-3-s1-->node-5:node-5-t1",
-                    "source": "node-3",
-                    "target": "node-5",
-                    "sourceHandle": "node-3-s1",
-                    "targetHandle": "node-5-t1",
-                    # "markerEnd": "arrowclosed",
-                },
+                    "id": "36a5e9b8-2b7d-4c08-b34f-1da5d4fb7602_adae56af-9bb7-4f67-a62d-dd173949a051_1",
+                    "source": "36a5e9b8-2b7d-4c08-b34f-1da5d4fb7602",
+                    "target": "adae56af-9bb7-4f67-a62d-dd173949a051",
+                    "sourceHandle": "fruit",
+                    "targetHandle": "fruit",
+                    "label": "apple",
+                    "type": "custom",
+                }
             ],
+            "viewport": {"x": 0, "y": 0, "zoom": 1},
         }

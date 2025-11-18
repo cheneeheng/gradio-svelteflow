@@ -32,13 +32,14 @@ example = SvelteFlow().example_value()
 with gr.Blocks() as demo:
     btn = gr.Button("Example")
     sf = SvelteFlow(
-        value=example,
+        # value=example,
         info="INFO",
         label="LABEL",
         show_label=True,
         interactive=True,
         submit_btn=True,
         visible=True,
+        canvas_min_height="1000px",
     )
     json = gr.JSON()
     txt = gr.Textbox(value="0")
@@ -49,7 +50,12 @@ with gr.Blocks() as demo:
         txt,
         txt,
     )
-    sf.submit(lambda x: x, sf, json)
+
+    def tmp(x_):
+        print(x_)
+        return x_
+
+    sf.change(tmp, sf, json)
 
 
 if __name__ == "__main__":
@@ -264,6 +270,19 @@ int | str | tuple[int | str, ...] | None
 </td>
 <td align="left"><code>None</code></td>
 <td align="left">in a gr.render, Components with the same key across re-renders are treated as the same component,</td>
+</tr>
+
+<tr>
+<td align="left"><code>canvas_min_height</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+str
+```
+
+</td>
+<td align="left"><code>"500px"</code></td>
+<td align="left">minimum pixel height of the svelteflow canvas.</td>
 </tr>
 </tbody></table>
 

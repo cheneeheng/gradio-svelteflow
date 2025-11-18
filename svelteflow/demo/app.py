@@ -7,12 +7,14 @@ example = SvelteFlow().example_value()
 with gr.Blocks() as demo:
     btn = gr.Button("Example")
     sf = SvelteFlow(
+        # value=example,
         info="INFO",
         label="LABEL",
         show_label=True,
         interactive=True,
         submit_btn=True,
         visible=True,
+        canvas_min_height="1000px",
     )
     json = gr.JSON()
     txt = gr.Textbox(value="0")
@@ -23,7 +25,12 @@ with gr.Blocks() as demo:
         txt,
         txt,
     )
-    sf.submit(lambda x: x, sf, json)
+
+    def tmp(x_):
+        print(x_)
+        return x_
+
+    sf.change(tmp, sf, json)
 
 
 if __name__ == "__main__":
