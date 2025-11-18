@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Gradio } from "@gradio/utils";
+  import type { LoadingStatus } from "@gradio/statustracker";
   import {
     Background,
     Controls,
@@ -45,6 +47,12 @@
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
 
+  export let gradio: Gradio<{
+    change: { nodes: CustomNode[]; edges: CustomEdge[] };
+    select: { nodes: CustomNode[]; edges: CustomEdge[] };
+    submit: { nodes: CustomNode[]; edges: CustomEdge[] };
+    clear_status: LoadingStatus;
+  }>;
   export let interactive: boolean = true;
   export let value: { nodes: CustomNode[]; edges: CustomEdge[] } = {
     nodes: [],
@@ -95,7 +103,7 @@
     edges.set([...layoutedEdges]);
     value.nodes = get(nodes) as CustomNode[];
     value.edges = get(edges) as CustomEdge[];
-    dispatch("change", value);
+    gradio.dispatch("change", value);
   }
 
   // PROP HANDLERS -----------------------------------------------------------
@@ -142,7 +150,7 @@
       return [...es, newEdge];
     });
     value.edges = get(edges) as CustomEdge[];
-    dispatch("change", value);
+    gradio.dispatch("change", value);
   }
 
   async function handleBeforeDelete({
@@ -175,7 +183,7 @@
     searchedNodes.set([]);
     value.nodes = get(nodes) as CustomNode[];
     value.edges = get(edges) as CustomEdge[];
-    dispatch("change", value);
+    gradio.dispatch("change", value);
   }
 
   function handlePaneClick() {
@@ -206,7 +214,7 @@
     };
     nodes.update((n) => [...n, newNode]);
     value.nodes = get(nodes) as CustomNode[];
-    dispatch("change", value);
+    gradio.dispatch("change", value);
   }
 
   function handleNodeCollapse(nodeId: string, isCollapsed: boolean) {
@@ -241,7 +249,7 @@
       });
     });
     value.edges = get(edges) as CustomEdge[];
-    dispatch("change", value);
+    gradio.dispatch("change", value);
   }
 
   function handleNodeDragStart() {
@@ -306,6 +314,7 @@
         })
       );
       handleNodeCollapse(node.id, !node.data.collapsed);
+      value.nodes = get(nodes) as CustomNode[];
       return;
     }
 
@@ -389,7 +398,7 @@
     }
 
     updatedNode.data.handles = updatedNode.data.attributes
-      .filter((attr: Attribute) => attr.connectable)
+      .filter((attr: Attribute) => attr.connectable && attr.visible)
       .map((attr: Attribute) => ({ id: attr.key, type: attr.type }));
 
     nodes.update((currentNodes) => {
@@ -425,7 +434,7 @@
     searchedNodes.set([]);
     value.nodes = get(nodes) as CustomNode[];
     value.edges = get(edges) as CustomEdge[];
-    dispatch("change", value);
+    gradio.dispatch("change", value);
   }
 
   function handleCancelEdit() {
@@ -447,7 +456,7 @@
     clickedEdges.set([]);
     searchedNodes.set([]);
     value.edges = get(edges) as CustomEdge[];
-    dispatch("change", value);
+    gradio.dispatch("change", value);
   }
 
   function handleCancelEdgeEdit() {
@@ -515,11 +524,14 @@
         placeholder="Search nodes..."
       />
     </div>
-    <button
+    <button class="toolbar-button" title="Add a new node"
+      ><Plus size={18} /></button
+    >
+    <!-- <button
       class="toolbar-button"
       on:click={handleAddNode}
       title="Add a new node"><Plus size={18} /></button
-    >
+    > -->
     <button
       class="toolbar-button"
       on:click={handleLayout}
@@ -563,7 +575,7 @@
     ondelete={handleDelete}
     onbeforedelete={handleBeforeDelete}
     deleteKey={["Delete", "Backspace"]}
-    style="height: 100vh; background: var(--background);"
+    style="width: 100%; height: 100%; background: var(--background);"
   >
     <Controls />
     <Background />
@@ -580,6 +592,7 @@
     width: 100%;
     overflow: hidden;
   }
+
   .app-container {
     width: 100%;
     height: 100%;

@@ -69,6 +69,7 @@
                   position={Position.Left}
                   id={attr.key}
                   style="top: 50%; left: -13px;"
+                  isConnectable={attr.connectable}
                 /> <span class="key">{attr.key}</span>
                 <span class="value">{attr.value}</span>
               </div>
@@ -84,6 +85,7 @@
                   position={Position.Right}
                   id={attr.key}
                   style="top: 50%; right: -13px;"
+                  isConnectable={attr.connectable}
                 /> <span class="key">{attr.key}</span>
                 <span class="value">{attr.value}</span>
               </div>

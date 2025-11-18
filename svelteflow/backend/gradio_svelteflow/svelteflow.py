@@ -42,6 +42,7 @@ class SvelteFlow(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
+        canvas_min_height: str = "500px",
     ):
         """
         Parameters:
@@ -82,7 +83,9 @@ class SvelteFlow(Component):
                 if a component is re-rendered with the same key, these (and only these) parameters will be preserved
                 in the UI (if they have been changed by the user or an event listener) instead of re-rendered
                 based on the values provided during constructor.
+            canvas_min_height: minimum pixel height of the svelteflow canvas.
         """
+        self.canvas_min_height = canvas_min_height
         self.submit_btn = submit_btn
         super().__init__(
             label=label,
@@ -120,6 +123,7 @@ class SvelteFlow(Component):
         return value
 
     def api_info(self) -> dict[str, Any]:
+        # NOT CORRECT
         return {
             "type": "object",
             "properties": {
@@ -194,42 +198,44 @@ class SvelteFlow(Component):
                     "position": {"x": 563, "y": 126},
                     "data": {
                         "name": "Node-adae",
+                        "description": "This is a node",
                         "attributes": [
                             {
-                                "key": "2",
-                                "value": "2",
+                                "key": "fruit",
+                                "value": "apple",
                                 "visible": True,
                                 "connectable": True,
                                 "type": "input",
                             }
                         ],
-                        "handles": [{"id": "2", "type": "input"}],
+                        "handles": [{"id": "fruit", "type": "input"}],
+                        "collapsed": False,
                     },
                     "type": "custom",
                     "measured": {"width": 182, "height": 80},
                     "selected": False,
-                    "dragging": False,
                 },
                 {
                     "id": "36a5e9b8-2b7d-4c08-b34f-1da5d4fb7602",
                     "position": {"x": 282, "y": 149.5},
                     "data": {
                         "name": "Node-36a5",
+                        "description": "This is a node",
                         "attributes": [
                             {
-                                "key": "4",
-                                "value": "4",
+                                "key": "fruit",
+                                "value": "apple",
                                 "visible": True,
                                 "connectable": True,
                                 "type": "output",
                             }
                         ],
-                        "handles": [{"id": "4", "type": "output"}],
+                        "handles": [{"id": "fruit", "type": "output"}],
+                        "collapsed": False,
                     },
                     "type": "custom",
                     "measured": {"width": 182, "height": 80},
                     "selected": False,
-                    "dragging": False,
                 },
             ],
             "edges": [
@@ -237,9 +243,9 @@ class SvelteFlow(Component):
                     "id": "36a5e9b8-2b7d-4c08-b34f-1da5d4fb7602_adae56af-9bb7-4f67-a62d-dd173949a051_1",
                     "source": "36a5e9b8-2b7d-4c08-b34f-1da5d4fb7602",
                     "target": "adae56af-9bb7-4f67-a62d-dd173949a051",
-                    "sourceHandle": "4",
-                    "targetHandle": "2",
-                    "label": "Edge 1",
+                    "sourceHandle": "fruit",
+                    "targetHandle": "fruit",
+                    "label": "apple",
                     "type": "custom",
                 }
             ],

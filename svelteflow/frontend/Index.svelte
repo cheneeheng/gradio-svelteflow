@@ -29,8 +29,7 @@
   export let elem_id = "";
   export let elem_classes: string[] = [];
   export let visible: boolean | "hidden" = true;
-  export let value: { nodes: CustomNode[]; edges: CustomEdge[] } | null =
-    null;
+  export let value: { nodes: CustomNode[]; edges: CustomEdge[] } | null = null;
   export let show_label: boolean = false;
   export let scale: number | null = null;
   export let min_width: number | undefined = undefined;
@@ -38,9 +37,11 @@
   export let interactive: boolean = false;
   export let submit_btn: boolean = false;
   export let show_fullscreen_button = true;
+  export let canvas_min_height: string = "500px";
 
   let fullscreen = false;
 
+  $: graphValue = value ?? { nodes: [], edges: [] };
 </script>
 
 <Block
@@ -75,15 +76,17 @@
     />
   {/if}
 
-  <div class="svelteflow-gradio-container">
-    <GraphUI bind:value={value} {interactive} />
+  <div
+    class="svelteflow-gradio-container"
+    style="min-height: {canvas_min_height};"
+  >
+    <GraphUI bind:value={graphValue} {interactive} {gradio} />
   </div>
-
 </Block>
 
 <style>
   .svelteflow-gradio-container {
     width: 100%;
-    height: 500px;
+    height: 90%;
   }
 </style>
