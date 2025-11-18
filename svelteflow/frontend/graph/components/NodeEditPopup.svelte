@@ -19,7 +19,7 @@
   }
 
   function removeAttribute(index: number) {
-    attributes = attributes.filter((_, i) => i !== index);
+    attributes = attributes.filter((_: any, i: number) => i !== index);
   }
 
   function save() {

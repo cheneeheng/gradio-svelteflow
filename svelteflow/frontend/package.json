@@ -28,11 +28,16 @@
     "@xyflow/svelte": "^0.1.39",
     "buffer": "^6.0.3",
     "process": "^0.11.10",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "dagre": "^0.8.5",
+    "lucide-svelte": "^0.553.0",
+    "svelte": "^4.2.20"
   },
   "devDependencies": {
     "@gradio/preview": "0.14.0",
-    "rollup-plugin-node-polyfills": "^0.2.1"
+    "rollup-plugin-node-polyfills": "^0.2.1",
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "@types/dagre": "^0.7.53"
   },
   "peerDependencies": {
     "svelte": "^4.0.0"

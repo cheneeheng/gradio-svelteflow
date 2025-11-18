@@ -3,6 +3,9 @@
   import { derived } from "svelte/store";
   import { clickedNodes, searchedNodes } from "../stores/highlightStore";
   import { ChevronDown, ChevronUp } from "lucide-svelte";
+  import type { Attribute } from "../types/schemas";
+
+  export let attributes: Attribute[] = [];
 
   export let id;
   export let data;

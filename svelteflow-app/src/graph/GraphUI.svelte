@@ -33,7 +33,12 @@
     searchedNodes,
   } from "./stores/highlightStore";
   import { theme } from "./stores/themeStore";
-  import type { Attribute, CollapsibleEdgeData, CustomEdge, CustomNode } from "./types/schemas";
+  import type {
+    Attribute,
+    CollapsibleEdgeData,
+    CustomEdge,
+    CustomNode,
+  } from "./types/schemas";
   import { getLayoutedElements, type LayoutDirection } from "./utils/layout";
   import { debounce } from "./utils/debounce";
   import { uuidv4 } from "./utils/uuid";
@@ -54,6 +59,7 @@
   let layoutDirection: LayoutDirection = "TB";
 
   let clickTimer: number | null = null;
+  let isDragging = false;
 
   $: if (typeof document !== "undefined") {
     if ($theme === "dark") {
@@ -183,8 +189,6 @@
     nodes.update((n) => [...n, newNode]);
   }
 
-
-
   function handleNodeCollapse(nodeId: string, isCollapsed: boolean) {
     edges.update((es) => {
       return es.map((edge) => {
@@ -218,12 +222,47 @@
     });
   }
 
+  function handleNodeDragStart() {
+    isDragging = true;
+  }
+
+  function highlightNeighbors(node: CustomNode) {
+    if (!interactive) return;
+
+    searchedNodes.set([]); // Clear search highlights on click
+
+    const connectedEdges = get(edges).filter(
+      (edge) => edge.source === node.id || edge.target === node.id
+    );
+    const neighborIds = connectedEdges
+      .flatMap((edge) => [edge.source, edge.target])
+      .filter((id) => id !== node.id);
+
+    clickedNodes.set([...new Set(neighborIds)]);
+    clickedEdges.set(connectedEdges.map((edge) => edge.id));
+  }
+
+  function handleNodeDragStop(
+    e: CustomEvent<{
+      targetNode: Node<Record<string, unknown>, string>;
+      nodes: Node<Record<string, unknown>, string>[];
+      event: MouseEvent | TouchEvent;
+    }>
+  ) {
+    const clickedNode = e.detail.targetNode as CustomNode;
+    highlightNeighbors(clickedNode);
+    setTimeout(() => (isDragging = false), 10);
+  }
+
   function handleNodeClick(
     e: CustomEvent<{
       node: Node;
       event: MouseEvent | TouchEvent;
     }>
   ) {
+    if (isDragging) {
+      return;
+    }
     const target = e.detail.event.target as HTMLElement;
     if (target.closest(".collapse-toggle-btn")) {
       const node = e.detail.node as CustomNode;
@@ -253,18 +292,7 @@
       clickTimer = setTimeout(() => {
         const clickedNode = e.detail.node as CustomNode;
         if (interactive && e.detail.event instanceof MouseEvent) {
-          searchedNodes.set([]); // Clear search highlights on click
-
-          const connectedEdges = get(edges).filter(
-            (edge) =>
-              edge.source === clickedNode.id || edge.target === clickedNode.id
-          );
-          const neighborIds = connectedEdges
-            .flatMap((edge) => [edge.source, edge.target])
-            .filter((id) => id !== clickedNode.id);
-
-          clickedNodes.set([...new Set(neighborIds)]); // Use Set to ensure unique IDs
-          clickedEdges.set(connectedEdges.map((edge) => edge.id));
+          highlightNeighbors(clickedNode);
         }
         clickTimer = null;
       }, 250);
@@ -548,6 +576,8 @@
     nodesConnectable={interactive}
     nodesDraggable={interactive}
     elementsSelectable={interactive}
+    on:nodedragstart={handleNodeDragStart}
+    on:nodedragstop={handleNodeDragStop}
     on:nodeclick={handleNodeClick}
     on:edgeclick={handleEdgeClick}
     on:paneclick={handlePaneClick}
