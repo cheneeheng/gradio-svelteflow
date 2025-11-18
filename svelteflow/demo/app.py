@@ -14,8 +14,19 @@ with gr.Blocks() as demo:
         interactive=True,
         submit_btn=True,
         visible=True,
-        canvas_min_height="1000px",
+        canvas_height="200px",
     )
+    with gr.Accordion("flow"):
+        sf = SvelteFlow(
+            # value=example,
+            info="INFO",
+            label="LABEL",
+            show_label=True,
+            interactive=True,
+            submit_btn=True,
+            visible=True,
+            canvas_height="200px",
+        )
     json = gr.JSON()
     txt = gr.Textbox(value="0")
 

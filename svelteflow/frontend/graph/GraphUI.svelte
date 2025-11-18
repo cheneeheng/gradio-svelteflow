@@ -58,6 +58,7 @@
     nodes: [],
     edges: [],
   };
+  export let canvas_height: string = "500px";
 
   const dispatch = createEventDispatcher();
 
@@ -497,7 +498,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="app-container">
+<div class="app-container" style="height: {canvas_height};">
   {#if $editingNode}
     <NodeEditPopup
       node={$editingNode}
@@ -590,12 +591,12 @@
     padding: 0;
     height: 100%;
     width: 100%;
-    overflow: hidden;
+    overflow: auto;
   }
 
   .app-container {
     width: 100%;
-    height: 100%;
+    height: 300px;
     background-color: var(--background);
     color: var(--text-color);
     position: relative;

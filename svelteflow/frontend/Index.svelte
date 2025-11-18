@@ -37,11 +37,11 @@
   export let interactive: boolean = false;
   export let submit_btn: boolean = false;
   export let show_fullscreen_button = true;
-  export let canvas_min_height: string = "500px";
+  export let canvas_height: string = "500px";
 
   let fullscreen = false;
 
-  $: graphValue = value ?? { nodes: [], edges: [] };
+  $: graph_value = value ?? { nodes: [], edges: [] };
 </script>
 
 <Block
@@ -76,12 +76,12 @@
     />
   {/if}
 
-  <div
-    class="svelteflow-gradio-container"
-    style="min-height: {canvas_min_height};"
-  >
-    <GraphUI bind:value={graphValue} {interactive} {gradio} />
-  </div>
+  <GraphUI
+    bind:value={graph_value}
+    {interactive}
+    {gradio}
+    {canvas_height}
+  />
 </Block>
 
 <style>

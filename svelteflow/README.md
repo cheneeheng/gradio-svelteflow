@@ -39,8 +39,19 @@ with gr.Blocks() as demo:
         interactive=True,
         submit_btn=True,
         visible=True,
-        canvas_min_height="1000px",
+        canvas_height="200px",
     )
+    with gr.Accordion("flow"):
+        sf = SvelteFlow(
+            # value=example,
+            info="INFO",
+            label="LABEL",
+            show_label=True,
+            interactive=True,
+            submit_btn=True,
+            visible=True,
+            canvas_height="1000px",
+        )
     json = gr.JSON()
     txt = gr.Textbox(value="0")
 
@@ -273,7 +284,7 @@ int | str | tuple[int | str, ...] | None
 </tr>
 
 <tr>
-<td align="left"><code>canvas_min_height</code></td>
+<td align="left"><code>canvas_height</code></td>
 <td align="left" style="width: 25%;">
 
 ```python
@@ -282,7 +293,7 @@ str
 
 </td>
 <td align="left"><code>"500px"</code></td>
-<td align="left">minimum pixel height of the svelteflow canvas.</td>
+<td align="left">pixel height of the svelteflow canvas.</td>
 </tr>
 </tbody></table>
 
