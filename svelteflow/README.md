@@ -10,7 +10,7 @@ app_file: space.py
 ---
 
 # `gradio_svelteflow`
-<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.1%20-%20orange">  
+<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.2%20-%20orange">  
 
 Gradio component to render graphs using svelteflow.
 
@@ -32,25 +32,23 @@ example = SvelteFlow().example_value()
 with gr.Blocks() as demo:
     btn = gr.Button("Example")
     sf = SvelteFlow(
-        # value=example,
         info="INFO",
         label="LABEL",
         show_label=True,
         interactive=True,
         submit_btn=True,
         visible=True,
-        canvas_height="200px",
+        canvas_min_height="200px",
     )
     with gr.Accordion("flow"):
         sf = SvelteFlow(
-            # value=example,
-            info="INFO",
-            label="LABEL",
-            show_label=True,
+            # info="INFO",
+            # label="LABEL",
+            show_label=False,
             interactive=True,
             submit_btn=True,
             visible=True,
-            canvas_height="1000px",
+            canvas_min_height="200px",
         )
     json = gr.JSON()
     txt = gr.Textbox(value="0")
@@ -284,7 +282,7 @@ int | str | tuple[int | str, ...] | None
 </tr>
 
 <tr>
-<td align="left"><code>canvas_height</code></td>
+<td align="left"><code>canvas_min_height</code></td>
 <td align="left" style="width: 25%;">
 
 ```python
@@ -293,7 +291,7 @@ str
 
 </td>
 <td align="left"><code>"500px"</code></td>
-<td align="left">pixel height of the svelteflow canvas.</td>
+<td align="left">min pixel height of the svelteflow canvas.</td>
 </tr>
 </tbody></table>
 

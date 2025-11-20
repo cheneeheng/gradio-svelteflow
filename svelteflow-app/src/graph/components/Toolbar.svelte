@@ -1,0 +1,203 @@
+<script lang="ts">
+  import {
+    Ellipsis,
+    FolderOpen,
+    LayoutDashboard,
+    Moon,
+    Plus,
+    Save,
+    Search,
+    Settings,
+    Sun,
+  } from "lucide-svelte";
+  import {
+    searchQuery
+  } from "../stores/graphStore";
+  import { theme } from "../stores/themeStore";
+  import {
+    debouncedSearch,
+    handleAddNode,
+    handleLayout,
+    handleSaveGraph,
+    toggleTheme,
+    triggerLoad
+  } from "../utils/graph";
+  import type { LayoutDirection } from "../utils/layout";
+
+  export let size: "extra-small" | "small" | "medium" | "large" = "medium";
+
+  let layoutDirection: LayoutDirection = "LR";
+
+  // Reactive statement to call handleLayout when layoutDirection changes
+  $: handleLayout(layoutDirection);
+
+  let currentIconSize: number;
+  let currentPadding: string;
+  let currentFontSize: string;
+
+  $: {
+    switch (size) {
+      case "extra-small":
+        currentIconSize = 14;
+        currentPadding = "4px";
+        currentFontSize = "0.625rem"; // text-xs, even smaller
+        break;
+      case "small":
+        currentIconSize = 16;
+        currentPadding = "6px";
+        currentFontSize = "0.75rem"; // text-xs
+        break;
+      case "large":
+        currentIconSize = 24;
+        currentPadding = "10px";
+        currentFontSize = "1.125rem"; // text-lg
+        break;
+      case "medium":
+      default:
+        currentIconSize = 18;
+        currentPadding = "8px";
+        currentFontSize = "0.875rem"; // text-sm
+        break;
+    }
+  }
+</script>
+
+<div
+  class="toolbar"
+  style="--toolbar-padding: {currentPadding}; --toolbar-font-size: {currentFontSize};"
+>
+  <div class="search-bar" style="padding: var(--toolbar-padding);">
+    <Search size={currentIconSize} />
+    <input
+      type="text"
+      bind:value={$searchQuery}
+      on:input={debouncedSearch}
+      placeholder="Search nodes..."
+      style="font-size: var(--toolbar-font-size);"
+    />
+  </div>
+  <button
+    class="toolbar-button"
+    on:click={handleAddNode}
+    title="Add a new node"
+    style="padding: var(--toolbar-padding);"
+    ><Plus size={currentIconSize} /></button
+  >
+  <button
+    class="toolbar-button"
+    on:click={handleSaveGraph}
+    title="Save graph"
+    style="padding: var(--toolbar-padding);"
+    ><Save size={currentIconSize} /></button
+  >
+  <button
+    class="toolbar-button"
+    on:click={triggerLoad}
+    title="Load graph"
+    style="padding: var(--toolbar-padding);"
+    ><FolderOpen size={currentIconSize} /></button
+  >
+  <button
+    class="toolbar-button"
+    on:click={() => handleLayout(layoutDirection)}
+    title="Relayout nodes"
+    style="padding: var(--toolbar-padding);"
+    ><LayoutDashboard size={currentIconSize} /></button
+  >
+  <select
+    bind:value={layoutDirection}
+    title="Layout direction"
+    style="padding: var(--toolbar-padding); font-size: var(--toolbar-font-size);"
+  >
+    <option value="TB">Vertical</option>
+    <option value="LR">Horizontal</option>
+  </select>
+  <button
+    class="toolbar-button"
+    title="Settings"
+    style="padding: var(--toolbar-padding);"
+    ><Settings size={currentIconSize} /></button
+  >
+  <button
+    class="toolbar-button"
+    title="More options"
+    style="padding: var(--toolbar-padding);"
+    ><Ellipsis size={currentIconSize} /></button
+  >
+  <button
+    class="toolbar-button"
+    on:click={toggleTheme}
+    title="Toggle theme"
+    style="padding: var(--toolbar-padding);"
+  >
+    {#if $theme === "light"}
+      <Moon size={currentIconSize} />
+    {:else}
+      <Sun size={currentIconSize} />
+    {/if}
+  </button>
+</div>
+
+<style>
+  .toolbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--controls-background);
+    border: 1px solid var(--controls-border);
+    border-radius: 8px;
+    padding: var(--toolbar-padding);
+    display: flex;
+    gap: 8px; /* Consider making this gap dynamic based on size as well */
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    padding: 0 var(--toolbar-padding);
+  }
+
+  .search-bar input {
+    border: none;
+    background: transparent;
+    padding: var(--toolbar-padding);
+    color: var(--text-color);
+    font-size: var(--toolbar-font-size);
+  }
+
+  .search-bar input:focus {
+    outline: none;
+  }
+
+  .toolbar-button {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    padding: var(--toolbar-padding);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .toolbar-button:hover {
+    background: var(--button-hover-background);
+  }
+
+  select {
+    background: var(--input-background);
+    color: var(--text-color);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    padding: var(--toolbar-padding);
+    font-size: var(--toolbar-font-size);
+  }
+</style>

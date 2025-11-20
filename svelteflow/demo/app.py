@@ -7,25 +7,23 @@ example = SvelteFlow().example_value()
 with gr.Blocks() as demo:
     btn = gr.Button("Example")
     sf = SvelteFlow(
-        # value=example,
         info="INFO",
         label="LABEL",
         show_label=True,
         interactive=True,
         submit_btn=True,
         visible=True,
-        canvas_height="200px",
+        canvas_min_height="800px",
     )
     with gr.Accordion("flow"):
         sf = SvelteFlow(
-            # value=example,
-            info="INFO",
-            label="LABEL",
-            show_label=True,
+            # info="INFO",
+            # label="LABEL",
+            show_label=False,
             interactive=True,
             submit_btn=True,
             visible=True,
-            canvas_height="200px",
+            canvas_min_height="800px",
         )
     json = gr.JSON()
     txt = gr.Textbox(value="0")

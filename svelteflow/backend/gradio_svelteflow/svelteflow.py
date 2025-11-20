@@ -42,7 +42,7 @@ class SvelteFlow(Component):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
-        canvas_height: str = "500px",
+        canvas_min_height: str = "500px",
     ):
         """
         Parameters:
@@ -83,9 +83,9 @@ class SvelteFlow(Component):
                 if a component is re-rendered with the same key, these (and only these) parameters will be preserved
                 in the UI (if they have been changed by the user or an event listener) instead of re-rendered
                 based on the values provided during constructor.
-            canvas_height: pixel height of the svelteflow canvas.
+            canvas_min_height: min pixel height of the svelteflow canvas.
         """
-        self.canvas_height = canvas_height
+        self.canvas_min_height = canvas_min_height
         self.submit_btn = submit_btn
         super().__init__(
             label=label,

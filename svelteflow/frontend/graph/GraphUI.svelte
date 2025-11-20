@@ -58,7 +58,7 @@
     nodes: [],
     edges: [],
   };
-  export let canvas_height: string = "500px";
+  export let canvas_min_height: string = "500px";
 
   const dispatch = createEventDispatcher();
 
@@ -70,7 +70,7 @@
   const editingNode = writable<CustomNode | null>(null);
   const editingEdge = writable<CustomEdge | null>(null);
   let searchQuery = "";
-  let layoutDirection: LayoutDirection = "TB";
+  let layoutDirection: LayoutDirection = "LR";
 
   let clickTimer: number | null = null;
   let isDragging = false;
@@ -498,7 +498,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="app-container" style="height: {canvas_height};">
+<div class="app-container" style="min-height: {canvas_min_height};">
   {#if $editingNode}
     <NodeEditPopup
       node={$editingNode}
@@ -539,8 +539,8 @@
       title="Relayout nodes"><LayoutDashboard size={18} /></button
     >
     <select bind:value={layoutDirection} title="Layout direction">
-      <option value="TB">Vertical</option>
       <option value="LR">Horizontal</option>
+      <option value="TB">Vertical</option>
     </select>
     <button class="toolbar-button" title="Settings"
       ><Settings size={18} /></button
@@ -584,7 +584,7 @@
 </div>
 
 <style>
-  :global(html, body) {
+  /* :global(html, body) {
     background-color: var(--background);
     color: var(--text-color);
     margin: 0;
@@ -592,14 +592,19 @@
     height: 100%;
     width: 100%;
     overflow: auto;
-  }
+  } */
 
   .app-container {
     width: 100%;
-    height: 300px;
+    height: 100%;
     background-color: var(--background);
     color: var(--text-color);
     position: relative;
+  }
+
+  :global(.fullscreen.animating .app-container) {
+    height: 90vh;
+    overflow: hidden;
   }
 
   .toolbar {

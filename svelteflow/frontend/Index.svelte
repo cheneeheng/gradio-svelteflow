@@ -37,7 +37,7 @@
   export let interactive: boolean = false;
   export let submit_btn: boolean = false;
   export let show_fullscreen_button = true;
-  export let canvas_height: string = "500px";
+  export let canvas_min_height: string = "500px";
 
   let fullscreen = false;
 
@@ -80,13 +80,6 @@
     bind:value={graph_value}
     {interactive}
     {gradio}
-    {canvas_height}
+    {canvas_min_height}
   />
 </Block>
-
-<style>
-  .svelteflow-gradio-container {
-    width: 100%;
-    height: 90%;
-  }
-</style>
