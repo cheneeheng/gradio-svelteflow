@@ -7,7 +7,8 @@
 
   let name = node.data.name;
   let description = node.data.description;
-  let attributes = JSON.parse(JSON.stringify(node.data.attributes));
+  // let attributes = JSON.parse(JSON.stringify(node.data.attributes));
+  let attributes = [...node.data.attributes]; // local copy
 
   const dispatch = createEventDispatcher();
 
@@ -19,7 +20,7 @@
   }
 
   function removeAttribute(index: number) {
-    attributes = attributes.filter((_, i) => i !== index);
+    attributes = attributes.filter((_: any, i: number) => i !== index);
   }
 
   function save() {
@@ -43,7 +44,6 @@
 <div class="popup-overlay" on:click={cancel}>
   <div class="popup" on:click|stopPropagation>
     <h3>Edit Node</h3>
-
     <div class="form-section">
       <div class="form-group">
         <label for="node-name">Name</label>
@@ -56,35 +56,65 @@
       </div>
       <div class="form-group attributes-section">
         <h4>Attributes</h4>
-        <div class="attributes-list">
-          {#each attributes as attr, i}
-            <div class="attribute-item">
-              <input class="key" bind:value={attr.key} placeholder="Key" />
-              <input class="value" bind:value={attr.value} placeholder="Value" />
-              <select bind:value={attr.type}>
-                <option value="input">Input</option>
-                <option value="output">Output</option>
-              </select>
-              <label class="checkbox-label">
-                <input type="checkbox" bind:checked={attr.visible} />
-                Visible
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" bind:checked={attr.connectable} />
-                Connect
-              </label>
-              <button class="remove-btn" on:click={() => removeAttribute(i)}>
-                <Trash2 size={18} />
-              </button>
-            </div>
-          {/each}
-        </div>
+        <table class="attributes-table">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Value</th>
+              <th>Type</th>
+              <th>Visible</th>
+              <th>Connectable</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each attributes as attr, i}
+              <tr>
+                <td>
+                  <input class="key" bind:value={attr.key} placeholder="Key" />
+                </td>
+                <td>
+                  <input
+                    class="value"
+                    bind:value={attr.value}
+                    placeholder="Value"
+                  />
+                </td>
+                <td>
+                  <select bind:value={attr.type}>
+                    <option value="input">Input</option>
+                    <option value="output">Output</option>
+                  </select>
+                </td>
+                <td>
+                  <select bind:value={attr.visible}>
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </select>
+                </td>
+                <td>
+                  <select bind:value={attr.connectable}>
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </select>
+                </td>
+                <td>
+                  <button
+                    class="remove-btn"
+                    on:click={() => removeAttribute(i)}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
         <button class="add-attribute-btn" on:click={addAttribute}>
           <Plus size={18} />
         </button>
       </div>
     </div>
-
     <div class="button-group">
       <button class="secondary" on:click={cancel}>Cancel</button>
       <button class="primary" on:click={save}>Save</button>

@@ -494,6 +494,16 @@
       searchQuery = "";
     }
   }
+
+  // function handleSaveNodeExt(event: CustomEvent<CustomNode>) {
+  //   value = handleSaveNode(event);
+  //   gradio.dispatch("change", value);
+  // }
+
+  // function handleSaveEdgeExt(event: CustomEvent<CustomEdge>) {
+  //   value.edges = handleSaveEdge(event);
+  //   gradio.dispatch("change", value);
+  // }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -594,17 +604,28 @@
     overflow: auto;
   } */
 
+  :global(html:has(.fullscreen.animating)),
+  :global(body:has(.fullscreen.animating)) {
+    overflow: hidden;
+  }
+
   .app-container {
     width: 100%;
     height: 100%;
     background-color: var(--background);
     color: var(--text-color);
     position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  :global(.fullscreen.animating) {
+    display: flex;
+    flex-direction: column;
   }
 
   :global(.fullscreen.animating .app-container) {
-    height: 90vh;
-    overflow: hidden;
+    min-height: 0 !important;
   }
 
   .toolbar {
