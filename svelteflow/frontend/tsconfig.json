@@ -8,7 +8,11 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"verbatimModuleSyntax": true
+		"verbatimModuleSyntax": true,
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"target": "ES2019", // or ES2020 depending on your needs
+    	"lib": ["ES2019", "DOM"]
 	},
 	"exclude": ["node_modules", "dist", "./gradio.config.js"]
 }

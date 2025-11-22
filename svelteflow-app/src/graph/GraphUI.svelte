@@ -1,27 +1,44 @@
 <script lang="ts">
+  // ----------
+  // Imports
+  // ----------
   import { onMount } from "svelte";
+  import CustomEdgeEditPopup from "./components/CustomEdgeEditPopup.svelte";
+  import CustomNodeEditPopup from "./components/CustomNodeEditPopup.svelte";
+  import Graph from "./components/Graph.svelte";
+  import Toolbar from "./components/Toolbar.svelte";
   import {
     editingEdge,
     editingNode,
     interactive as interactiveStore,
   } from "./stores/graphStore";
-  import EdgeEditPopup from "./components/EdgeEditPopup.svelte";
-  import Graph from "./components/Graph.svelte";
-  import NodeEditPopup from "./components/NodeEditPopup.svelte";
-  import Toolbar from "./components/Toolbar.svelte";
   import { theme } from "./stores/themeStore";
+  import { handleKeydown } from "./utils/graph/canvas";
   import {
-    handleCancelEdgeEdit,
-    handleCancelEdit,
-    handleKeydown,
-    handleSaveEdge,
-    handleSaveNode,
-  } from "./utils/graph";
+    handleEdgeEditPopupCancel,
+    handleEdgeEditPopupSave,
+    handleNodeEditPopupCancel,
+    handleNodeEditPopupSave,
+  } from "./utils/graph/popup";
 
+  // ----------
+  // Exports
+  // ----------
   export let interactive: boolean = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
     "small";
 
+  // ----------
+  // Local vars
+  // ----------
+
+  // ----------
+  // Local functions
+  // ----------
+
+  // ----------
+  // Reactivity + svelte utils
+  // ----------
   onMount(() => {
     interactiveStore.set(interactive);
   });
@@ -39,18 +56,18 @@
 
 <div class="app-container">
   {#if $editingNode}
-    <NodeEditPopup
+    <CustomNodeEditPopup
       node={$editingNode}
-      on:save={handleSaveNode}
-      on:cancel={handleCancelEdit}
+      on:save={handleNodeEditPopupSave}
+      on:cancel={handleNodeEditPopupCancel}
     />
   {/if}
 
   {#if $editingEdge}
-    <EdgeEditPopup
+    <CustomEdgeEditPopup
       edge={$editingEdge}
-      on:save={handleSaveEdge}
-      on:cancel={handleCancelEdgeEdit}
+      on:save={handleEdgeEditPopupSave}
+      on:cancel={handleEdgeEditPopupCancel}
     />
   {/if}
 
@@ -59,7 +76,7 @@
 </div>
 
 <style>
-  :global(html, body) {
+  /* :global(html, body) {
     background-color: var(--background);
     color: var(--text-color);
     margin: 0;
@@ -67,14 +84,14 @@
     height: 100%;
     width: 100%;
     overflow: auto;
-  }
+  } */
 
   .app-container {
     width: 100%;
-    height: auto;
+    height: 100%;
     background-color: var(--background);
     color: var(--text-color);
-    display: flex;
     position: relative;
+    display: flex;
   }
 </style>

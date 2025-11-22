@@ -2,10 +2,19 @@
   // ----------
   // Imports
   // ----------
-  import { Background, Controls, MiniMap, SvelteFlow } from "@xyflow/svelte";
+  import type { LoadingStatus } from "@gradio/statustracker";
+  import type { Gradio } from "@gradio/utils";
+  import {
+    Background,
+    Controls,
+    MiniMap,
+    SvelteFlow,
+    type Node,
+  } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
+  import type { Connection } from "@xyflow/system";
   import { onMount } from "svelte";
-  import { type Writable } from "svelte/store";
+  import { get, type Writable } from "svelte/store";
   import {
     customEdges,
     customNodes,
@@ -33,6 +42,16 @@
   // ----------
   // Exports
   // ----------
+  export let gradio: Gradio<{
+    change: { nodes: CustomNode[]; edges: CustomEdge[] };
+    select: { nodes: CustomNode[]; edges: CustomEdge[] };
+    submit: { nodes: CustomNode[]; edges: CustomEdge[] };
+    clear_status: LoadingStatus;
+  }>;
+  export let value: { nodes: CustomNode[]; edges: CustomEdge[] } = {
+    nodes: [],
+    edges: [],
+  };
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;
 
@@ -51,6 +70,33 @@
   // ----------
   // Local functions
   // ----------
+  function handleConnectWrapper(connection: Connection) {
+    handleConnect(connection);
+    // value.nodes = get(customNodes);
+    value.edges = get(customEdges);
+    gradio.dispatch("change", value);
+  }
+
+  function handleDeleteWrapper() {
+    handleDelete();
+    value.nodes = get(customNodes);
+    value.edges = get(customEdges);
+    gradio.dispatch("change", value);
+  }
+
+  function handleNodeClickWrapper(
+    customEvent: CustomEvent<{
+      node: Node<Record<string, unknown>, string>;
+      event: MouseEvent | TouchEvent;
+    }>
+  ) {
+    const result = handleNodeClick(customEvent);
+    if (result === true) {
+      value.nodes = get(customNodes);
+      value.edges = get(customEdges);
+      gradio.dispatch("change", value);
+    }
+  }
 
   // ----------
   // Reactivity + svelte utils
@@ -62,7 +108,6 @@
   });
 </script>
 
-<!-- TODO: make the height adjustable -->
 <SvelteFlow
   bind:this={flowInstanceLocal}
   bind:nodes={nodesLocal}
@@ -75,16 +120,16 @@
   elementsSelectable={$interactive}
   on:nodedragstart={handleNodeDragStart}
   on:nodedragstop={handleNodeDragStop}
-  on:nodeclick={handleNodeClick}
+  on:nodeclick={handleNodeClickWrapper}
   on:edgeclick={handleEdgeClick}
   on:paneclick={handlePaneClick}
-  onconnect={handleConnect}
-  ondelete={handleDelete}
+  onconnect={handleConnectWrapper}
+  ondelete={handleDeleteWrapper}
   onbeforedelete={handleBeforeDelete}
   deleteKey={["Delete", "Backspace"]}
   {minZoom}
   {maxZoom}
-  style="height: 100vh; background: var(--background);"
+  style="flex: 1"
 >
   <MiniMap />
   <Controls />

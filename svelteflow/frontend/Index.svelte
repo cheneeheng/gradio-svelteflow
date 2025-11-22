@@ -37,6 +37,8 @@
   export let interactive: boolean = false;
   export let submit_btn: boolean = false;
   export let show_fullscreen_button = true;
+  export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
+    "small";
   export let canvas_min_height: string = "500px";
 
   let fullscreen = false;
@@ -77,9 +79,10 @@
   {/if}
 
   <GraphUI
+    {gradio}
     bind:value={graph_value}
     {interactive}
-    {gradio}
+    {toolbar_size}
     {canvas_min_height}
   />
 </Block>
