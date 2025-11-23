@@ -3,6 +3,10 @@
   import { derived } from "svelte/store";
   import { clickedEdges } from "../stores/highlightStore";
 
+  interface PathOptions {
+    curvature?: number;
+  }
+
   export let type;
   export let id;
   export let source;
@@ -15,12 +19,12 @@
   export let targetPosition;
   export let sourceHandle = undefined;
   export let targetHandle = undefined;
-  export let label = undefined;
-  export let labelStyle = undefined;
-  export let markerStart = undefined;
-  export let markerEnd = undefined;
-  export let pathOptions = undefined;
-  export let interactionWidth = undefined;
+  export let label: string | undefined = undefined;
+  export let labelStyle: string | undefined = undefined;
+  export let markerStart: string | undefined = undefined;
+  export let markerEnd: string | undefined = undefined;
+  export let pathOptions: PathOptions | undefined = undefined;
+  export let interactionWidth: number | undefined = undefined;
   export let selected = false;
 
   const highlightType = derived(clickedEdges, ($clickedEdges) => {

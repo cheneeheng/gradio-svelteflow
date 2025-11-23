@@ -10,7 +10,7 @@ app_file: space.py
 ---
 
 # `gradio_svelteflow`
-<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.1%20-%20orange">  
+<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.2%20-%20orange">  
 
 Gradio component to render graphs using svelteflow.
 
@@ -31,42 +31,34 @@ example = SvelteFlow().example_value()
 
 with gr.Blocks() as demo:
     btn = gr.Button("Example")
-    sf = SvelteFlow(
-        # value=example,
-        info="INFO",
-        label="LABEL",
+    sf1 = SvelteFlow(
+        info="Standard block usage",
+        label="SvelteFlow1",
         show_label=True,
         interactive=True,
-        submit_btn=True,
         visible=True,
-        canvas_height="200px",
+        toolbar_size="small",
+        canvas_min_height="500px",
     )
     with gr.Accordion("flow"):
-        sf = SvelteFlow(
-            # value=example,
-            info="INFO",
-            label="LABEL",
+        sf2 = SvelteFlow(
+            info="usage inside an accordion",
+            label="SvelteFlow2",
             show_label=True,
             interactive=True,
-            submit_btn=True,
             visible=True,
-            canvas_height="1000px",
+            toolbar_size="small",
+            canvas_min_height="500px",
         )
     json = gr.JSON()
     txt = gr.Textbox(value="0")
 
-    btn.click(lambda: example, None, sf)
-    sf.change(
-        lambda x: str(int(x) + 1),
-        txt,
-        txt,
-    )
-
-    def tmp(x_):
-        print(x_)
-        return x_
-
-    sf.change(tmp, sf, json)
+    btn.click(lambda: example, None, sf1)
+    btn.click(lambda: example, None, sf2)
+    sf1.change(lambda x: str(int(x) + 1), txt, txt)
+    sf2.change(lambda x: str(int(x) + 1), txt, txt)
+    sf1.change(lambda x: x, sf1, json)
+    sf2.change(lambda x: x, sf2, json)
 
 
 if __name__ == "__main__":
@@ -206,19 +198,6 @@ bool | None
 </tr>
 
 <tr>
-<td align="left"><code>submit_btn</code></td>
-<td align="left" style="width: 25%;">
-
-```python
-bool
-```
-
-</td>
-<td align="left"><code>False</code></td>
-<td align="left">None</td>
-</tr>
-
-<tr>
 <td align="left"><code>visible</code></td>
 <td align="left" style="width: 25%;">
 
@@ -284,7 +263,46 @@ int | str | tuple[int | str, ...] | None
 </tr>
 
 <tr>
-<td align="left"><code>canvas_height</code></td>
+<td align="left"><code>toolbar_size</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+Literal["extra-small", "small", "medium", "large"]
+```
+
+</td>
+<td align="left"><code>"medium"</code></td>
+<td align="left">None</td>
+</tr>
+
+<tr>
+<td align="left"><code>toolbar_enable_save_load</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+bool
+```
+
+</td>
+<td align="left"><code>False</code></td>
+<td align="left">None</td>
+</tr>
+
+<tr>
+<td align="left"><code>toolbar_enable_add</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+bool
+```
+
+</td>
+<td align="left"><code>False</code></td>
+<td align="left">None</td>
+</tr>
+
+<tr>
+<td align="left"><code>canvas_min_height</code></td>
 <td align="left" style="width: 25%;">
 
 ```python
@@ -293,7 +311,7 @@ str
 
 </td>
 <td align="left"><code>"500px"</code></td>
-<td align="left">pixel height of the svelteflow canvas.</td>
+<td align="left">min pixel height of the svelteflow canvas.</td>
 </tr>
 </tbody></table>
 

@@ -27,8 +27,8 @@ export interface CustomNode extends SvelteFlowNode {
 }
 
 export interface CollapsibleEdgeData {
-  originalSourceHandle?: string;
-  originalTargetHandle?: string;
+  originalSourceHandle?: string | null;
+  originalTargetHandle?: string | null;
   [key: string]: unknown;
 }
 

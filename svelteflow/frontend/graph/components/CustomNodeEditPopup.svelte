@@ -8,7 +8,6 @@
   let name = node.data.name;
   let description = node.data.description;
   // let attributes = JSON.parse(JSON.stringify(node.data.attributes));
-  // let attributes = node.data.attributes; // no deep clone
   let attributes = [...node.data.attributes]; // local copy
 
   const dispatch = createEventDispatcher();
