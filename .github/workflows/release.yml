@@ -5,6 +5,9 @@ on:
     tags:
       - "v*.*.*" # triggers only on semantic version tags
 
+permissions:
+  contents: write # allow creating releases
+
 jobs:
   build:
     name: Build component (Python ${{ matrix.python-version }})
