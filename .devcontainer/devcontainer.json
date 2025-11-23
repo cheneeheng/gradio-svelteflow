@@ -24,7 +24,8 @@
         "google.geminicodeassist",
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
-        "svelte.svelte-vscode"
+        "svelte.svelte-vscode",
+        "github.vscode-github-actions"
       ]
     }
   },
