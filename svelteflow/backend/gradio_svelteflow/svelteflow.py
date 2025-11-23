@@ -36,12 +36,16 @@ class SvelteFlow(Component):
         scale: int | None = None,
         min_width: int = 160,
         interactive: bool | None = None,
-        submit_btn: bool = False,
         visible: bool | Literal["hidden"] = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         key: int | str | tuple[int | str, ...] | None = None,
+        toolbar_size: Literal[
+            "extra-small", "small", "medium", "large"
+        ] = "medium",
+        toolbar_enable_save_load: bool = False,
+        toolbar_enable_add: bool = False,
         canvas_min_height: str = "500px",
     ):
         """
@@ -85,8 +89,10 @@ class SvelteFlow(Component):
                 based on the values provided during constructor.
             canvas_min_height: min pixel height of the svelteflow canvas.
         """
+        self.toolbar_size = toolbar_size
+        self.toolbar_enable_save_load = toolbar_enable_save_load
+        self.toolbar_enable_add = toolbar_enable_add
         self.canvas_min_height = canvas_min_height
-        self.submit_btn = submit_btn
         super().__init__(
             label=label,
             info=info,

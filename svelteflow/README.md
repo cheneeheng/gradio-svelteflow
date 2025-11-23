@@ -36,8 +36,8 @@ with gr.Blocks() as demo:
         label="SvelteFlow1",
         show_label=True,
         interactive=True,
-        submit_btn=True,
         visible=True,
+        toolbar_size="small",
         canvas_min_height="500px",
     )
     with gr.Accordion("flow"):
@@ -46,8 +46,8 @@ with gr.Blocks() as demo:
             label="SvelteFlow2",
             show_label=True,
             interactive=True,
-            submit_btn=True,
             visible=True,
+            toolbar_size="small",
             canvas_min_height="500px",
         )
     json = gr.JSON()
@@ -198,19 +198,6 @@ bool | None
 </tr>
 
 <tr>
-<td align="left"><code>submit_btn</code></td>
-<td align="left" style="width: 25%;">
-
-```python
-bool
-```
-
-</td>
-<td align="left"><code>False</code></td>
-<td align="left">None</td>
-</tr>
-
-<tr>
 <td align="left"><code>visible</code></td>
 <td align="left" style="width: 25%;">
 
@@ -273,6 +260,45 @@ int | str | tuple[int | str, ...] | None
 </td>
 <td align="left"><code>None</code></td>
 <td align="left">in a gr.render, Components with the same key across re-renders are treated as the same component,</td>
+</tr>
+
+<tr>
+<td align="left"><code>toolbar_size</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+Literal["extra-small", "small", "medium", "large"]
+```
+
+</td>
+<td align="left"><code>"medium"</code></td>
+<td align="left">None</td>
+</tr>
+
+<tr>
+<td align="left"><code>toolbar_enable_save_load</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+bool
+```
+
+</td>
+<td align="left"><code>False</code></td>
+<td align="left">None</td>
+</tr>
+
+<tr>
+<td align="left"><code>toolbar_enable_add</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+bool
+```
+
+</td>
+<td align="left"><code>False</code></td>
+<td align="left">None</td>
 </tr>
 
 <tr>

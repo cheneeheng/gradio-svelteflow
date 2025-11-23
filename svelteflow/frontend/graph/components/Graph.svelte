@@ -48,9 +48,14 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: { nodes: CustomNode[]; edges: CustomEdge[] } = {
+  export let value: {
+    nodes: CustomNode[];
+    edges: CustomEdge[];
+    loaded: boolean;
+  } = {
     nodes: [],
     edges: [],
+    loaded: false,
   };
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;

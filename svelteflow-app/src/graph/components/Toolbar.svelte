@@ -89,60 +89,31 @@
       style="font-size: var(--toolbar-font-size);"
     />
   </div>
-  <button
-    class="toolbar-button"
-    on:click={handleAddNode}
-    title="Add a new node"
-    style="padding: var(--toolbar-padding);"
+  <button class="toolbar-button" on:click={handleAddNode} title="Add a new node"
     ><Plus size={currentIconSize} /></button
   >
-  <button
-    class="toolbar-button"
-    on:click={handleSaveGraph}
-    title="Save graph"
-    style="padding: var(--toolbar-padding);"
+  <button class="toolbar-button" on:click={handleSaveGraph} title="Save graph"
     ><Save size={currentIconSize} /></button
   >
-  <button
-    class="toolbar-button"
-    on:click={triggerLoad}
-    title="Load graph"
-    style="padding: var(--toolbar-padding);"
+  <button class="toolbar-button" on:click={triggerLoad} title="Load graph"
     ><FolderOpen size={currentIconSize} /></button
   >
   <button
     class="toolbar-button"
     on:click={() => handleLayout(layoutDirection)}
-    title="Relayout nodes"
-    style="padding: var(--toolbar-padding);"
-    ><LayoutDashboard size={currentIconSize} /></button
+    title="Relayout nodes"><LayoutDashboard size={currentIconSize} /></button
   >
-  <select
-    bind:value={layoutDirection}
-    title="Layout direction"
-    style="padding: var(--toolbar-padding); font-size: var(--toolbar-font-size);"
-  >
+  <select bind:value={layoutDirection} title="Layout direction">
     <option value="TB">Vertical</option>
     <option value="LR">Horizontal</option>
   </select>
-  <button
-    class="toolbar-button"
-    title="Settings"
-    style="padding: var(--toolbar-padding);"
+  <button class="toolbar-button" title="Settings"
     ><Settings size={currentIconSize} /></button
   >
-  <button
-    class="toolbar-button"
-    title="More options"
-    style="padding: var(--toolbar-padding);"
+  <button class="toolbar-button" title="More options"
     ><Ellipsis size={currentIconSize} /></button
   >
-  <button
-    class="toolbar-button"
-    on:click={toggleTheme}
-    title="Toggle theme"
-    style="padding: var(--toolbar-padding);"
-  >
+  <button class="toolbar-button" on:click={toggleTheme} title="Toggle theme">
     {#if $theme === "light"}
       <Moon size={currentIconSize} />
     {:else}
@@ -174,15 +145,14 @@
     background: var(--input-background);
     border: 1px solid var(--input-border);
     border-radius: 6px;
-    padding: 0 var(--toolbar-padding);
   }
 
   .search-bar input {
     border: none;
     background: transparent;
-    padding: var(--toolbar-padding);
     color: var(--text-color);
     font-size: var(--toolbar-font-size);
+    line-height: 1; /* ensures line box = font size */
   }
 
   .search-bar input:focus {
@@ -206,11 +176,13 @@
   }
 
   select {
-    background: var(--input-background);
+    background-color: var(--input-background);
     color: var(--text-color);
     border: 1px solid var(--input-border);
     border-radius: 6px;
     padding: var(--toolbar-padding);
     font-size: var(--toolbar-font-size);
+    line-height: 1; /* ensures line box = font size */
+    padding-right: 1em;
   }
 </style>

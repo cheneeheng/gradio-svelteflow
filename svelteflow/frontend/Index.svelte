@@ -29,21 +29,26 @@
   export let elem_id = "";
   export let elem_classes: string[] = [];
   export let visible: boolean | "hidden" = true;
-  export let value: { nodes: CustomNode[]; edges: CustomEdge[] } | null = null;
+  export let value: {
+    nodes: CustomNode[];
+    edges: CustomEdge[];
+    loaded: boolean;
+  } | null = null;
   export let show_label: boolean = false;
   export let scale: number | null = null;
   export let min_width: number | undefined = undefined;
   export let loading_status: LoadingStatus | undefined = undefined;
   export let interactive: boolean = false;
-  export let submit_btn: boolean = false;
   export let show_fullscreen_button = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
-    "small";
+    "medium";
+  export let toolbar_enable_save_load: boolean = false;
+  export let toolbar_enable_add: boolean = false;
   export let canvas_min_height: string = "500px";
 
   let fullscreen = false;
 
-  $: graph_value = value ?? { nodes: [], edges: [] };
+  $: graph_value = value ?? { nodes: [], edges: [], loaded: false };
 </script>
 
 <Block
@@ -83,6 +88,8 @@
     bind:value={graph_value}
     {interactive}
     {toolbar_size}
+    {toolbar_enable_save_load}
+    {toolbar_enable_add}
     {canvas_min_height}
   />
 </Block>

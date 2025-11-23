@@ -6,11 +6,11 @@
   import type { Gradio } from "@gradio/utils";
   import {
     Ellipsis,
-    // FolderOpen,
+    FolderOpen,
     LayoutDashboard,
     Moon,
-    // Plus,
-    // Save,
+    Plus,
+    Save,
     Search,
     Settings,
     Sun,
@@ -20,9 +20,9 @@
   import { theme } from "../stores/themeStore";
   import type { CustomEdge, CustomNode } from "../types/schemas";
   import { handleLayout } from "../utils/graph/layout";
-  // import { triggerLoad } from "../utils/graph/load";
+  import { triggerLoad } from "../utils/graph/load";
   import { handleAddNode } from "../utils/graph/node";
-  // import { handleSaveGraph } from "../utils/graph/save";
+  import { handleSaveGraph } from "../utils/graph/save";
   import { debouncedSearch } from "../utils/graph/search";
   import type { LayoutDirection } from "../utils/layout";
   import { toggleTheme } from "../utils/theme";
@@ -36,11 +36,18 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: { nodes: CustomNode[]; edges: CustomEdge[] } = {
+  export let value: {
+    nodes: CustomNode[];
+    edges: CustomEdge[];
+    loaded: boolean;
+  } = {
     nodes: [],
     edges: [],
+    loaded: false,
   };
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
+  export let enable_save_load: boolean = false;
+  export let enable_add: boolean = false;
 
   // ----------
   // Local vars
@@ -66,6 +73,14 @@
   function handleAddNodeWrapper() {
     handleAddNode();
     value.nodes = get(customNodes);
+    gradio.dispatch("change", value);
+  }
+
+  function triggerLoadWrapper() {
+    triggerLoad();
+    value.nodes = get(customNodes);
+    value.edges = get(customEdges);
+    value.loaded = true;
     gradio.dispatch("change", value);
   }
 
@@ -115,60 +130,39 @@
       style="font-size: var(--toolbar-font-size);"
     />
   </div>
-  <!-- <button
-    class="toolbar-button"
-    on:click={handleAddNode}
-    title="Add a new node"
-    style="padding: var(--toolbar-padding);"
-    ><Plus size={currentIconSize} /></button
-  > -->
-  <!-- <button
-    class="toolbar-button"
-    on:click={handleSaveGraph}
-    title="Save graph"
-    style="padding: var(--toolbar-padding);"
-    ><Save size={currentIconSize} /></button
-  > -->
-  <!-- <button
-    class="toolbar-button"
-    on:click={triggerLoad}
-    title="Load graph"
-    style="padding: var(--toolbar-padding);"
-    ><FolderOpen size={currentIconSize} /></button
-  > -->
+  {#if enable_add}
+    <button
+      class="toolbar-button"
+      on:click={handleAddNodeWrapper}
+      title="Add a new node"><Plus size={currentIconSize} /></button
+    >
+  {/if}
+  {#if enable_save_load}
+    <button class="toolbar-button" on:click={handleSaveGraph} title="Save graph"
+      ><Save size={currentIconSize} /></button
+    >
+    <button
+      class="toolbar-button"
+      on:click={triggerLoadWrapper}
+      title="Load graph"><FolderOpen size={currentIconSize} /></button
+    >
+  {/if}
   <button
     class="toolbar-button"
     on:click={() => handleLayout(layoutDirection)}
-    title="Relayout nodes"
-    style="padding: var(--toolbar-padding);"
-    ><LayoutDashboard size={currentIconSize} /></button
+    title="Relayout nodes"><LayoutDashboard size={currentIconSize} /></button
   >
-  <select
-    bind:value={layoutDirection}
-    title="Layout direction"
-    style="padding: var(--toolbar-padding); font-size: var(--toolbar-font-size);"
-  >
+  <select bind:value={layoutDirection} title="Layout direction">
     <option value="TB">Vertical</option>
     <option value="LR">Horizontal</option>
   </select>
-  <button
-    class="toolbar-button"
-    title="Settings"
-    style="padding: var(--toolbar-padding);"
+  <button class="toolbar-button" title="Settings"
     ><Settings size={currentIconSize} /></button
   >
-  <button
-    class="toolbar-button"
-    title="More options"
-    style="padding: var(--toolbar-padding);"
+  <button class="toolbar-button" title="More options"
     ><Ellipsis size={currentIconSize} /></button
   >
-  <button
-    class="toolbar-button"
-    on:click={toggleTheme}
-    title="Toggle theme"
-    style="padding: var(--toolbar-padding);"
-  >
+  <button class="toolbar-button" on:click={toggleTheme} title="Toggle theme">
     {#if $theme === "light"}
       <Moon size={currentIconSize} />
     {:else}
@@ -200,15 +194,14 @@
     background: var(--input-background);
     border: 1px solid var(--input-border);
     border-radius: 6px;
-    padding: 0 var(--toolbar-padding);
   }
 
   .search-bar input {
     border: none;
     background: transparent;
-    padding: var(--toolbar-padding);
     color: var(--text-color);
     font-size: var(--toolbar-font-size);
+    line-height: 1; /* ensures line box = font size */
   }
 
   .search-bar input:focus {
@@ -232,11 +225,13 @@
   }
 
   select {
-    background: var(--input-background);
+    background-color: var(--input-background);
     color: var(--text-color);
     border: 1px solid var(--input-border);
     border-radius: 6px;
     padding: var(--toolbar-padding);
     font-size: var(--toolbar-font-size);
+    line-height: 1; /* ensures line box = font size */
+    padding-right: 1em;
   }
 </style>

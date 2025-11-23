@@ -36,13 +36,20 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: { nodes: CustomNode[]; edges: CustomEdge[] } = {
+  export let value: {
+    nodes: CustomNode[];
+    edges: CustomEdge[];
+    loaded: boolean;
+  } = {
     nodes: [],
     edges: [],
+    loaded: false,
   };
   export let interactive: boolean = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
     "small";
+  export let toolbar_enable_save_load: boolean = false;
+  export let toolbar_enable_add: boolean = false;
   export let canvas_min_height: string = "500px";
 
   // ----------
@@ -106,7 +113,13 @@
     />
   {/if}
 
-  <Toolbar {gradio} bind:value size={toolbar_size} />
+  <Toolbar
+    {gradio}
+    bind:value
+    size={toolbar_size}
+    enable_save_load={toolbar_enable_save_load}
+    enable_add={toolbar_enable_add}
+  />
   <Graph {gradio} bind:value />
 </div>
 

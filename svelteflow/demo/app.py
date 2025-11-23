@@ -11,8 +11,8 @@ with gr.Blocks() as demo:
         label="SvelteFlow1",
         show_label=True,
         interactive=True,
-        submit_btn=True,
         visible=True,
+        toolbar_size="small",
         canvas_min_height="500px",
     )
     with gr.Accordion("flow"):
@@ -21,8 +21,8 @@ with gr.Blocks() as demo:
             label="SvelteFlow2",
             show_label=True,
             interactive=True,
-            submit_btn=True,
             visible=True,
+            toolbar_size="small",
             canvas_min_height="500px",
         )
     json = gr.JSON()
