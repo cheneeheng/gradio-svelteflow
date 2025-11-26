@@ -183,6 +183,6 @@
     padding: var(--toolbar-padding);
     font-size: var(--toolbar-font-size);
     line-height: 1; /* ensures line box = font size */
-    padding-right: 1em;
+    padding-right: 2em;
   }
 </style>

@@ -112,8 +112,6 @@
         break;
     }
   }
-
-  $: handleLayoutWrapper(layoutDirection);
 </script>
 
 <div
@@ -149,7 +147,7 @@
   {/if}
   <button
     class="toolbar-button"
-    on:click={() => handleLayout(layoutDirection)}
+    on:click={() => handleLayoutWrapper(layoutDirection)}
     title="Relayout nodes"><LayoutDashboard size={currentIconSize} /></button
   >
   <select bind:value={layoutDirection} title="Layout direction">
@@ -232,6 +230,6 @@
     padding: var(--toolbar-padding);
     font-size: var(--toolbar-font-size);
     line-height: 1; /* ensures line box = font size */
-    padding-right: 1em;
+    padding-right: 2em;
   }
 </style>

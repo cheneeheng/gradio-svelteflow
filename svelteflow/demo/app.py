@@ -14,6 +14,7 @@ with gr.Blocks() as demo:
         visible=True,
         toolbar_size="small",
         canvas_min_height="500px",
+        toolbar_enable_save_load=True,
     )
     with gr.Accordion("flow"):
         sf2 = SvelteFlow(

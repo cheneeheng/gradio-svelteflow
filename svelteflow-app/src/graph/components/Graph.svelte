@@ -84,7 +84,7 @@
   deleteKey={["Delete", "Backspace"]}
   {minZoom}
   {maxZoom}
-  style="height: 100vh; background: var(--background);"
+  style="flex: 1"
 >
   <MiniMap />
   <Controls />
