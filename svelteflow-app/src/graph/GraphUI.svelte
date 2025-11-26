@@ -2,16 +2,14 @@
   // ----------
   // Imports
   // ----------
-  import { onMount } from "svelte";
+  import { onMount, setContext } from "svelte";
   import CustomEdgeEditPopup from "./components/CustomEdgeEditPopup.svelte";
   import CustomNodeEditPopup from "./components/CustomNodeEditPopup.svelte";
+  import Dialogs from "./components/Dialogs.svelte";
   import Graph from "./components/Graph.svelte";
   import Toolbar from "./components/Toolbar.svelte";
-  import {
-    editingEdge,
-    editingNode,
-    interactive as interactiveStore,
-  } from "./stores/graphStore";
+  import { storeKey } from "./stores/context";
+  import { createGraphStores } from "./stores/instanceStore";
   import { theme } from "./stores/themeStore";
   import { handleKeydown } from "./utils/graph/canvas";
   import {
@@ -31,6 +29,13 @@
   // ----------
   // Local vars
   // ----------
+  const stores = createGraphStores();
+  setContext(storeKey, stores);
+  const {
+    editingEdge,
+    editingNode,
+    interactive: interactiveStore,
+  } = stores;
 
   // ----------
   // Local functions
@@ -52,22 +57,23 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={(e) => handleKeydown(e, stores)} />
 
 <div class="app-container">
+  <Dialogs />
   {#if $editingNode}
     <CustomNodeEditPopup
       node={$editingNode}
-      on:save={handleNodeEditPopupSave}
-      on:cancel={handleNodeEditPopupCancel}
+      on:save={(e) => handleNodeEditPopupSave(e, stores)}
+      on:cancel={() => handleNodeEditPopupCancel(stores)}
     />
   {/if}
 
   {#if $editingEdge}
     <CustomEdgeEditPopup
       edge={$editingEdge}
-      on:save={handleEdgeEditPopupSave}
-      on:cancel={handleEdgeEditPopupCancel}
+      on:save={(e) => handleEdgeEditPopupSave(e, stores)}
+      on:cancel={() => handleEdgeEditPopupCancel(stores)}
     />
   {/if}
 
