@@ -13,15 +13,16 @@
     Settings,
     Sun,
   } from "lucide-svelte";
-  import { searchQuery } from "../stores/graphStore";
+  import { getContext } from "svelte";
+  import { storeKey } from "../stores/context";
+  import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
-  import { handleLayout } from "../utils/graph/layout";
-  import { triggerLoad } from "../utils/graph/load";
   import { handleAddNode } from "../utils/graph/node";
-  import { handleSaveGraph } from "../utils/graph/save";
-  import { debouncedSearch } from "../utils/graph/search";
-  import type { LayoutDirection } from "../utils/layout";
-  import { toggleTheme } from "../utils/theme";
+  import { handleLayout } from "../utils/layout";
+  import { triggerLoad } from "../utils/toolbar/load";
+  import { handleSaveGraph } from "../utils/toolbar/save";
+  import { debouncedSearch } from "../utils/toolbar/search";
+  import { toggleTheme } from "../utils/toolbar/theme";
 
   // ----------
   // Exports
@@ -31,13 +32,14 @@
   // ----------
   // Local vars
   // ----------
+  const stores = getContext<GraphStores>(storeKey);
+  const { searchQuery, layoutDirection } = stores;
+  const search = debouncedSearch(stores);
+
   // for toolbar sizing
   let currentIconSize: number;
   let currentPadding: string;
   let currentFontSize: string;
-
-  // layout direction
-  let layoutDirection: LayoutDirection = "LR";
 
   // ----------
   // Local functions
@@ -71,8 +73,6 @@
         break;
     }
   }
-
-  $: handleLayout(layoutDirection);
 </script>
 
 <div
@@ -84,26 +84,32 @@
     <input
       type="text"
       bind:value={$searchQuery}
-      on:input={debouncedSearch}
+      on:input={search}
       placeholder="Search nodes..."
       style="font-size: var(--toolbar-font-size);"
     />
   </div>
-  <button class="toolbar-button" on:click={handleAddNode} title="Add a new node"
-    ><Plus size={currentIconSize} /></button
-  >
-  <button class="toolbar-button" on:click={handleSaveGraph} title="Save graph"
-    ><Save size={currentIconSize} /></button
-  >
-  <button class="toolbar-button" on:click={triggerLoad} title="Load graph"
-    ><FolderOpen size={currentIconSize} /></button
+  <button
+    class="toolbar-button"
+    on:click={() => handleAddNode(stores)}
+    title="Add a new node"><Plus size={currentIconSize} /></button
   >
   <button
     class="toolbar-button"
-    on:click={() => handleLayout(layoutDirection)}
+    on:click={async () => await handleSaveGraph(stores)}
+    title="Save graph"><Save size={currentIconSize} /></button
+  >
+  <button
+    class="toolbar-button"
+    on:click={() => triggerLoad(stores)}
+    title="Load graph"><FolderOpen size={currentIconSize} /></button
+  >
+  <button
+    class="toolbar-button"
+    on:click={() => handleLayout($layoutDirection, stores)}
     title="Relayout nodes"><LayoutDashboard size={currentIconSize} /></button
   >
-  <select bind:value={layoutDirection} title="Layout direction">
+  <select bind:value={$layoutDirection} title="Layout direction">
     <option value="TB">Vertical</option>
     <option value="LR">Horizontal</option>
   </select>
@@ -183,6 +189,6 @@
     padding: var(--toolbar-padding);
     font-size: var(--toolbar-font-size);
     line-height: 1; /* ensures line box = font size */
-    padding-right: 1em;
+    padding-right: 2em;
   }
 </style>

@@ -1,18 +1,17 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-  import type { Gradio } from "@gradio/utils";
   import {
     Block,
     BlockTitle,
     FullscreenButton,
     IconButtonWrapper,
   } from "@gradio/atoms";
-  import { StatusTracker } from "@gradio/statustracker";
   import type { LoadingStatus } from "@gradio/statustracker";
+  import { StatusTracker } from "@gradio/statustracker";
+  import type { Gradio } from "@gradio/utils";
   import GraphUI from "./graph/GraphUI.svelte";
-  import type { CustomNode, CustomEdge } from "./graph/types/schemas";
-
+  import type { CustomEdge, CustomNode } from "./graph/types/schemas";
   // Hack: Polyfill process and Buffer at runtime
   import { Buffer } from "buffer";
   (globalThis as any).process = (globalThis as any).process || { env: {} };

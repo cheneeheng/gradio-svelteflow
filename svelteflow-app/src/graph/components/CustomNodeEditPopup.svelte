@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-  import type { CustomNode, Attribute } from "../types/schemas";
   import { Plus, Trash2 } from "lucide-svelte";
+  import { createEventDispatcher } from "svelte";
+  import type { CustomNode } from "../types/schemas";
 
   export let node: CustomNode;
 
@@ -15,7 +15,7 @@
   function addAttribute() {
     attributes = [
       ...attributes,
-      { key: "", value: "", visible: true, connectable: false, type: "input" },
+      { key: "", value: "", visible: true, connectable: true, type: "input" },
     ];
   }
 
@@ -197,29 +197,6 @@
     outline: none;
     border-color: var(--accent-color, #007bff);
     box-shadow: 0 0 0 2px var(--accent-color-light, rgba(0, 123, 255, 0.25));
-  }
-  .attributes-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    overflow-y: auto;
-    max-height: 40vh;
-    padding: 0.5rem;
-    margin: -0.5rem;
-  }
-  .attribute-item {
-    display: grid;
-    grid-template-columns: 1fr 1fr 100px 80px 80px auto;
-    gap: 1rem;
-    align-items: center;
-  }
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    cursor: pointer;
   }
   .remove-btn {
     background: none;

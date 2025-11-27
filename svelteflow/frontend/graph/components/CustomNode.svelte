@@ -1,8 +1,10 @@
 <script lang="ts">
   import { Handle, Position, useUpdateNodeInternals } from "@xyflow/svelte";
-  import { derived } from "svelte/store";
-  import { clickedNodes, searchedNodes } from "../stores/highlightStore";
   import { ChevronDown, ChevronUp } from "lucide-svelte";
+  import { getContext } from "svelte";
+  import { derived } from "svelte/store";
+  import { storeKey } from "../stores/context";
+  import type { GraphStores } from "../stores/instanceStore";
   import type { Attribute } from "../types/schemas";
 
   export let attributes: Attribute[] = [];
@@ -21,6 +23,9 @@
   export let positionAbsoluteY;
 
   $: ({ name, description, attributes, handles } = data);
+
+  const stores = getContext<GraphStores>(storeKey);
+  const { clickedNodes, searchedNodes } = stores;
 
   const updateNodeInternals = useUpdateNodeInternals();
 

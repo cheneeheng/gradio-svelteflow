@@ -1,19 +1,15 @@
 import { get } from "svelte/store";
-import {
-    customNodes,
-    searchQuery
-} from "../../stores/graphStore";
-import {
-    clickedEdges,
-    clickedNodes,
-    searchedNodes,
-} from "../../stores/highlightStore";
-import type {
-    CustomNode
-} from "../../types/schemas";
+import type { GraphStores } from "../../stores/instanceStore";
+import type { CustomNode } from "../../types/schemas";
 import { debounce } from "../debounce";
 
-function handleSearchInternal() {
+function handleSearchInternal({
+  clickedNodes,
+  clickedEdges,
+  searchQuery,
+  searchedNodes,
+  customNodes,
+}: GraphStores) {
   clickedNodes.set([]);
   clickedEdges.set([]);
   const query = get(searchQuery);
@@ -29,4 +25,5 @@ function handleSearchInternal() {
   searchedNodes.set(matchingNodes.map((node) => node.id));
 }
 
-export const debouncedSearch = debounce(handleSearchInternal, 300);
+export const debouncedSearch = (stores: GraphStores) =>
+  debounce(() => handleSearchInternal(stores), 300);

@@ -1,29 +1,19 @@
 import { type Node } from "@xyflow/svelte";
 import { get } from "svelte/store";
-import {
-  customEdges,
-  customNodes,
-  editingNode,
-  flowInstance,
-  interactive,
-  viewport,
-} from "../../stores/graphStore";
-import {
-  clickedEdges,
-  clickedNodes,
-  searchedNodes,
-} from "../../stores/highlightStore";
+import type { GraphStores } from "../../stores/instanceStore";
 import type {
   CollapsibleEdgeData,
   CustomEdge,
   CustomNode,
 } from "../../types/schemas";
+import { handleLayout } from "../layout";
 import { uuidv4 } from "../uuid";
 
-let clickTimer: number | null = null;
-let isDragging = false;
-
-export function handleAddNode() {
+export function handleAddNode({
+  flowInstance,
+  viewport,
+  customNodes,
+}: GraphStores) {
   const instance = get(flowInstance);
   const container = (instance?.$el as HTMLElement) ?? null;
   const v = get(viewport);
@@ -48,7 +38,11 @@ export function handleAddNode() {
 }
 
 // TODO: Rewrite to remove return, and inplace value mutation in map()
-function handleNodeCollapse(nodeId: string, isCollapsed: boolean) {
+function handleNodeCollapse(
+  nodeId: string,
+  isCollapsed: boolean,
+  { customEdges }: GraphStores
+) {
   customEdges.update((es) => {
     return es.map((edge) => {
       const data = edge.data as CollapsibleEdgeData;
@@ -75,11 +69,18 @@ function handleNodeCollapse(nodeId: string, isCollapsed: boolean) {
   });
 }
 
-export function handleNodeDragStart() {
-  isDragging = true;
+export function handleNodeDragStart(event: CustomEvent, stores: GraphStores) {
+  stores.isDragging = true;
 }
 
-function highlightNeighbors(node: CustomNode) {
+function highlightNeighbors(node: CustomNode, stores: GraphStores) {
+  const {
+    interactive,
+    searchedNodes,
+    customEdges,
+    clickedNodes,
+    clickedEdges,
+  } = stores;
   if (!get(interactive)) return;
   searchedNodes.set([]);
   const connectedEdges = get(customEdges).filter(
@@ -98,49 +99,56 @@ export function handleNodeDragStop(
     targetNode: Node<Record<string, unknown>, string> | null;
     nodes: Node<Record<string, unknown>, string>[];
     event: MouseEvent | TouchEvent;
-  }>
+  }>,
+  stores: GraphStores
 ) {
   const clickedNode = event.detail.targetNode as CustomNode;
-  highlightNeighbors(clickedNode);
-  setTimeout(() => (isDragging = false), 10);
+  highlightNeighbors(clickedNode, stores);
+  setTimeout(() => (stores.isDragging = false), 10);
 }
 
 // Have to use Node here for SvelteFlow component
-// TODO: Change to return explicit flag type
 export function handleNodeClick(
   customEvent: CustomEvent<{
     node: Node<Record<string, unknown>, string>;
     event: MouseEvent | TouchEvent;
-  }>
-): boolean | void {
-  if (isDragging) return;
+  }>,
+  stores: GraphStores
+): { action: "collapse" | "expand" | "edit" | "select" } | void {
+  if (stores.isDragging) return;
   const target = customEvent.detail.event.target as HTMLElement;
   const node = customEvent.detail.node as CustomNode;
 
   if (target.closest(".collapse-toggle-btn")) {
-    customNodes.update((nds) =>
+    const isCollapsed = !node.data.collapsed;
+    stores.customNodes.update((nds) =>
       nds.map((n) => {
         if (n.id === node.id) {
-          return { ...n, data: { ...n.data, collapsed: !n.data.collapsed } };
+          return { ...n, data: { ...n.data, collapsed: isCollapsed } };
         }
         return n;
       })
     );
-    handleNodeCollapse(node.id, !node.data.collapsed);
-    return true;
+    handleNodeCollapse(node.id, isCollapsed, stores);
+    setTimeout(() => {
+      handleLayout(get(stores.layoutDirection), stores);
+    }, 0);
+    return { action: isCollapsed ? "collapse" : "expand" };
   }
 
-  if (clickTimer) {
-    clearTimeout(clickTimer);
-    clickTimer = null;
-    handleNodeDoubleClick(customEvent);
+  if (stores.clickTimer) {
+    clearTimeout(stores.clickTimer);
+    stores.clickTimer = null;
+    handleNodeDoubleClick(customEvent, stores);
+    return { action: "edit" };
   } else {
-    clickTimer = setTimeout(() => {
-      if (get(interactive)) {
-        highlightNeighbors(node);
+    stores.clickTimer = setTimeout(() => {
+      if (get(stores.interactive)) {
+        highlightNeighbors(node, stores);
       }
-      clickTimer = null;
+      stores.clickTimer = null;
     }, 250);
+    return { action: "select" };
   }
 }
 
@@ -149,7 +157,8 @@ function handleNodeDoubleClick(
   customEvent: CustomEvent<{
     node: Node<Record<string, unknown>, string>;
     event: MouseEvent | TouchEvent;
-  }>
+  }>,
+  { interactive, editingNode }: GraphStores
 ) {
   const clickedNode = customEvent.detail.node as CustomNode;
   if (get(interactive) && customEvent.detail.event instanceof MouseEvent) {

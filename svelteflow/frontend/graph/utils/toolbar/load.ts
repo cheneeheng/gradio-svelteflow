@@ -1,8 +1,9 @@
-import { customEdges, customNodes, viewport } from "../../stores/graphStore";
+import type { GraphStores } from "../../stores/instanceStore";
 
 // customEdges and customNodes are saved under "nodes" and "edges" keys in the json file
 // TODO: for gradio, move the alert to gradio.Error
-export function handleLoadGraph(event: Event) {
+export function handleLoadGraph(event: Event, stores: GraphStores) {
+  const { customNodes, customEdges, viewport, dialog } = stores;
   const input = event.target as HTMLInputElement;
   if (!input.files?.length) return;
   const file = input.files[0];
@@ -17,20 +18,30 @@ export function handleLoadGraph(event: Event) {
           viewport.set(graph.viewport);
         }
       } else {
-        alert("Invalid graph file format.");
+        dialog.set({
+          type: "alert",
+          title: "Invalid Graph",
+          message: "The loaded file has an invalid graph format.",
+          onDismiss: () => dialog.set(null),
+        });
       }
     } catch (e) {
-      alert("Error loading graph.");
+      dialog.set({
+        type: "alert",
+        title: "Load Error",
+        message: "An error occurred while loading the graph.",
+        onDismiss: () => dialog.set(null),
+      });
       console.error(e);
     }
   };
   reader.readAsText(file);
 }
 
-export function triggerLoad() {
+export function triggerLoad(stores: GraphStores) {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = ".json";
-  input.onchange = handleLoadGraph;
+  input.onchange = (e) => handleLoadGraph(e, stores);
   input.click();
 }

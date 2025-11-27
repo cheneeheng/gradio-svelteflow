@@ -1,10 +1,9 @@
 import dagre from "dagre";
 import type { Edge, Node } from "@xyflow/svelte";
+import { get } from "svelte/store";
+import type { GraphStores } from "../stores/instanceStore";
 
 export type LayoutDirection = "TB" | "LR";
-
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 // All nodes are treated as 180×100 rectangles when Dagre calculates the layout.
 // TODO: Make them dynamic
@@ -25,6 +24,8 @@ export function getLayoutedElements<N extends Node, E extends Edge>(
   edges: E[],
   direction: LayoutDirection = "LR"
 ): { nodes: N[]; edges: E[] } {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
   // const isHorizontal = direction === "LR";
   dagreGraph.setGraph({
     rankdir: direction,
@@ -33,7 +34,10 @@ export function getLayoutedElements<N extends Node, E extends Edge>(
   });
 
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    dagreGraph.setNode(node.id, {
+      width: node.width ?? nodeWidth,
+      height: node.height ?? nodeHeight,
+    });
   });
 
   edges.forEach((edge) => {
@@ -45,10 +49,25 @@ export function getLayoutedElements<N extends Node, E extends Edge>(
   nodes.forEach((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
     node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2,
-      y: nodeWithPosition.y - nodeHeight / 2,
+      x: nodeWithPosition.x - (node.width ?? nodeWidth) / 2,
+      y: nodeWithPosition.y - (node.height ?? nodeHeight) / 2,
     };
   });
 
   return { nodes, edges };
+}
+
+export function handleLayout(
+  layoutDirection: LayoutDirection,
+  { customNodes, customEdges }: GraphStores
+) {
+  const currentNodes = get(customNodes);
+  const currentEdges = get(customEdges);
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+    currentNodes,
+    currentEdges,
+    layoutDirection
+  );
+  customNodes.set([...layoutedNodes]);
+  customEdges.set([...layoutedEdges]);
 }

@@ -1,18 +1,20 @@
 import { get } from "svelte/store";
-import {
-  customEdges,
-  customNodes,
-  editingEdge,
-  editingNode,
-} from "../../stores/graphStore";
-import {
-  clickedEdges,
-  clickedNodes,
-  searchedNodes,
-} from "../../stores/highlightStore";
+import type { GraphStores } from "../../stores/instanceStore";
 import type { Attribute, CustomEdge, CustomNode } from "../../types/schemas";
 
-export function handleNodeEditPopupSave(event: CustomEvent<CustomNode>) {
+export function handleNodeEditPopupSave(
+  event: CustomEvent<CustomNode>,
+  stores: GraphStores
+) {
+  const {
+    customNodes,
+    customEdges,
+    editingNode,
+    clickedNodes,
+    clickedEdges,
+    searchedNodes,
+    dialog,
+  } = stores;
   const updatedNode = event.detail;
   // 1. Validate unique node name
   const currentNodes = get(customNodes);
@@ -22,9 +24,12 @@ export function handleNodeEditPopupSave(event: CustomEvent<CustomNode>) {
       (n.data as CustomNode["data"]).name === updatedNode.data.name
   );
   if (isNameDuplicate) {
-    alert(
-      `Node name "${updatedNode.data.name}" already exists. Please choose a unique name.`
-    );
+    dialog.set({
+      type: "alert",
+      title: "Validation Error",
+      message: `Node name "${updatedNode.data.name}" already exists. Please choose a unique name.`,
+      onDismiss: () => dialog.set(null),
+    });
     return;
   }
   // 2. Validate unique attribute keys per node
@@ -32,9 +37,13 @@ export function handleNodeEditPopupSave(event: CustomEvent<CustomNode>) {
   const hasDuplicateAttributeKeys =
     new Set(attributeKeys).size !== attributeKeys.length;
   if (hasDuplicateAttributeKeys) {
-    alert(
-      "Duplicate attribute keys found. Please ensure all attribute keys are unique within the node."
-    );
+    dialog.set({
+      type: "alert",
+      title: "Validation Error",
+      message:
+        "Duplicate attribute keys found. Please ensure all attribute keys are unique within the node.",
+      onDismiss: () => dialog.set(null),
+    });
     return;
   }
 
@@ -71,14 +80,28 @@ export function handleNodeEditPopupSave(event: CustomEvent<CustomNode>) {
   searchedNodes.set([]);
 }
 
-export function handleNodeEditPopupCancel() {
+export function handleNodeEditPopupCancel({
+  editingNode,
+  clickedNodes,
+  clickedEdges,
+  searchedNodes,
+}: GraphStores) {
   editingNode.set(null);
   clickedNodes.set([]);
   clickedEdges.set([]);
   searchedNodes.set([]);
 }
 
-export function handleEdgeEditPopupSave(event: CustomEvent<CustomEdge>) {
+export function handleEdgeEditPopupSave(
+  event: CustomEvent<CustomEdge>,
+  {
+    customEdges,
+    editingEdge,
+    clickedNodes,
+    clickedEdges,
+    searchedNodes,
+  }: GraphStores
+) {
   const updatedEdge = event.detail;
   customEdges.update((currentEdges) =>
     currentEdges.map((e) => (e.id === updatedEdge.id ? updatedEdge : e))
@@ -89,7 +112,12 @@ export function handleEdgeEditPopupSave(event: CustomEvent<CustomEdge>) {
   searchedNodes.set([]);
 }
 
-export function handleEdgeEditPopupCancel() {
+export function handleEdgeEditPopupCancel({
+  editingEdge,
+  clickedNodes,
+  clickedEdges,
+  searchedNodes,
+}: GraphStores) {
   editingEdge.set(null);
   clickedNodes.set([]);
   clickedEdges.set([]);

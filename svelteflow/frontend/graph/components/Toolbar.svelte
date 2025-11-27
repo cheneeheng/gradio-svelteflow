@@ -15,17 +15,18 @@
     Settings,
     Sun,
   } from "lucide-svelte";
+  import { getContext } from "svelte";
   import { get } from "svelte/store";
-  import { customEdges, customNodes, searchQuery } from "../stores/graphStore";
+  import { storeKey } from "../stores/context";
+  import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import type { CustomEdge, CustomNode } from "../types/schemas";
-  import { handleLayout } from "../utils/graph/layout";
-  import { triggerLoad } from "../utils/graph/load";
   import { handleAddNode } from "../utils/graph/node";
-  import { handleSaveGraph } from "../utils/graph/save";
-  import { debouncedSearch } from "../utils/graph/search";
-  import type { LayoutDirection } from "../utils/layout";
-  import { toggleTheme } from "../utils/theme";
+  import { handleLayout, type LayoutDirection } from "../utils/layout";
+  import { triggerLoad } from "../utils/toolbar/load";
+  import { handleSaveGraph } from "../utils/toolbar/save";
+  import { debouncedSearch } from "../utils/toolbar/search";
+  import { toggleTheme } from "../utils/toolbar/theme";
 
   // ----------
   // Exports
@@ -52,34 +53,38 @@
   // ----------
   // Local vars
   // ----------
+  const stores = getContext<GraphStores>(storeKey);
+  const { searchQuery, layoutDirection } = stores;
+  const search = debouncedSearch(stores);
+
   // for toolbar sizing
   let currentIconSize: number;
   let currentPadding: string;
   let currentFontSize: string;
 
-  // layout direction
-  let layoutDirection: LayoutDirection = "LR";
-
   // ----------
   // Local functions
   // ----------
-  function handleLayoutWrapper(layoutDirection: LayoutDirection) {
-    handleLayout(layoutDirection);
-    value.nodes = get(customNodes);
-    value.edges = get(customEdges);
+  function handleLayoutWrapper(
+    layoutDirection: LayoutDirection,
+    stores: GraphStores
+  ) {
+    handleLayout(layoutDirection, stores);
+    value.nodes = get(stores.customNodes);
+    value.edges = get(stores.customEdges);
     gradio.dispatch("change", value);
   }
 
-  function handleAddNodeWrapper() {
-    handleAddNode();
-    value.nodes = get(customNodes);
+  function handleAddNodeWrapper(stores: GraphStores) {
+    handleAddNode(stores);
+    value.nodes = get(stores.customNodes);
     gradio.dispatch("change", value);
   }
 
-  function triggerLoadWrapper() {
-    triggerLoad();
-    value.nodes = get(customNodes);
-    value.edges = get(customEdges);
+  function triggerLoadWrapper(stores: GraphStores) {
+    triggerLoad(stores);
+    value.nodes = get(stores.customNodes);
+    value.edges = get(stores.customEdges);
     value.loaded = true;
     gradio.dispatch("change", value);
   }
@@ -112,8 +117,6 @@
         break;
     }
   }
-
-  $: handleLayoutWrapper(layoutDirection);
 </script>
 
 <div
@@ -125,7 +128,7 @@
     <input
       type="text"
       bind:value={$searchQuery}
-      on:input={debouncedSearch}
+      on:input={search}
       placeholder="Search nodes..."
       style="font-size: var(--toolbar-font-size);"
     />
@@ -133,26 +136,28 @@
   {#if enable_add}
     <button
       class="toolbar-button"
-      on:click={handleAddNodeWrapper}
+      on:click={() => handleAddNodeWrapper(stores)}
       title="Add a new node"><Plus size={currentIconSize} /></button
     >
   {/if}
   {#if enable_save_load}
-    <button class="toolbar-button" on:click={handleSaveGraph} title="Save graph"
-      ><Save size={currentIconSize} /></button
+    <button
+      class="toolbar-button"
+      on:click={async () => await handleSaveGraph(stores)}
+      title="Save graph"><Save size={currentIconSize} /></button
     >
     <button
       class="toolbar-button"
-      on:click={triggerLoadWrapper}
+      on:click={() => triggerLoadWrapper(stores)}
       title="Load graph"><FolderOpen size={currentIconSize} /></button
     >
   {/if}
   <button
     class="toolbar-button"
-    on:click={() => handleLayout(layoutDirection)}
+    on:click={() => handleLayoutWrapper($layoutDirection, stores)}
     title="Relayout nodes"><LayoutDashboard size={currentIconSize} /></button
   >
-  <select bind:value={layoutDirection} title="Layout direction">
+  <select bind:value={$layoutDirection} title="Layout direction">
     <option value="TB">Vertical</option>
     <option value="LR">Horizontal</option>
   </select>
@@ -232,6 +237,6 @@
     padding: var(--toolbar-padding);
     font-size: var(--toolbar-font-size);
     line-height: 1; /* ensures line box = font size */
-    padding-right: 1em;
+    padding-right: 2em;
   }
 </style>
