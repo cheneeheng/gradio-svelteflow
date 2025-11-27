@@ -10,7 +10,7 @@ app_file: space.py
 ---
 
 # `gradio_svelteflow`
-<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.2%20-%20orange">  
+<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.3%20-%20orange">  
 
 Gradio component to render graphs using svelteflow.
 
@@ -39,6 +39,7 @@ with gr.Blocks() as demo:
         visible=True,
         toolbar_size="small",
         canvas_min_height="500px",
+        toolbar_enable_save_load=True,
     )
     with gr.Accordion("flow"):
         sf2 = SvelteFlow(

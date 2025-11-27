@@ -1,11 +1,12 @@
+import { SvelteFlow } from "@xyflow/svelte";
 import type { Viewport } from "@xyflow/system";
 import { writable, type Writable } from "svelte/store";
 import type { CustomEdge, CustomNode } from "../types/schemas";
-import { SvelteFlow } from "@xyflow/svelte";
 import type { LayoutDirection } from "../utils/layout";
 import { createUIStores } from "./uiStore";
 
 export function createGraphStores() {
+  const instanceId = writable<string | null>(null);
   const customNodes: Writable<CustomNode[]> = writable<CustomNode[]>([]);
   const customEdges: Writable<CustomEdge[]> = writable<CustomEdge[]>([]);
   const viewport: Writable<Viewport> = writable({ x: 0, y: 0, zoom: 1 });
@@ -21,12 +22,13 @@ export function createGraphStores() {
   const searchedNodes = writable<string[]>([]);
 
   // non-store state
-  let clickTimer: NodeJS.Timeout | null = null;
+  let clickTimer: ReturnType<typeof setTimeout> | null = null;
   let isDragging: boolean = false;
 
   const uiStores = createUIStores();
 
   return {
+    instanceId,
     customNodes,
     customEdges,
     viewport,

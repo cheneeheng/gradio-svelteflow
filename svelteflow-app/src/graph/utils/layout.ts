@@ -5,8 +5,6 @@ import type { GraphStores } from "../stores/instanceStore";
 
 export type LayoutDirection = "TB" | "LR";
 
-
-
 // All nodes are treated as 180×100 rectangles when Dagre calculates the layout.
 // TODO: Make them dynamic
 const nodeWidth = 180;

@@ -18,6 +18,7 @@
     handleNodeEditPopupCancel,
     handleNodeEditPopupSave,
   } from "./utils/graph/popup";
+  import { uuidv4 } from "./utils/uuid";
 
   // ----------
   // Exports
@@ -30,6 +31,7 @@
   // Local vars
   // ----------
   const stores = createGraphStores();
+  stores.instanceId.set(uuidv4());
   setContext(storeKey, stores);
   const { editingEdge, editingNode, interactive: interactiveStore } = stores;
 

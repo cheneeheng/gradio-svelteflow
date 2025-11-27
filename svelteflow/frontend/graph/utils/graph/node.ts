@@ -69,16 +69,18 @@ function handleNodeCollapse(
   });
 }
 
-export function handleNodeDragStart(
-  event: CustomEvent,
-  stores: GraphStores
-) {
+export function handleNodeDragStart(event: CustomEvent, stores: GraphStores) {
   stores.isDragging = true;
 }
 
 function highlightNeighbors(node: CustomNode, stores: GraphStores) {
-  const { interactive, searchedNodes, customEdges, clickedNodes, clickedEdges } =
-    stores;
+  const {
+    interactive,
+    searchedNodes,
+    customEdges,
+    clickedNodes,
+    clickedEdges,
+  } = stores;
   if (!get(interactive)) return;
   searchedNodes.set([]);
   const connectedEdges = get(customEdges).filter(

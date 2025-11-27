@@ -16,6 +16,7 @@
   import { getContext, onMount } from "svelte";
   import { get, type Writable } from "svelte/store";
   import { storeKey } from "../stores/context";
+  import { activeStoreId } from "../stores/activeStore";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
@@ -60,7 +61,8 @@
   // Local vars
   // ----------
   const stores = getContext<GraphStores>(storeKey);
-  const { customEdges, customNodes, flowInstance, interactive } = stores;
+  const { customEdges, customNodes, flowInstance, interactive, instanceId } =
+    stores;
 
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
@@ -125,9 +127,18 @@
   elementsSelectable={$interactive}
   on:nodedragstart={(e) => handleNodeDragStart(e, stores)}
   on:nodedragstop={(e) => handleNodeDragStop(e, stores)}
-  on:nodeclick={(e) => handleNodeClickWrapper(e, stores)}
-  on:edgeclick={(e) => handleEdgeClick(e, stores)}
-  on:paneclick={() => handlePaneClick(stores)}
+  on:nodeclick={(e) => {
+    activeStoreId.set(get(instanceId));
+    handleNodeClickWrapper(e, stores);
+  }}
+  on:edgeclick={(e) => {
+    activeStoreId.set(get(instanceId));
+    handleEdgeClick(e, stores);
+  }}
+  on:paneclick={() => {
+    activeStoreId.set(get(instanceId));
+    handlePaneClick(stores);
+  }}
   onconnect={(e) => handleConnectWrapper(e, stores)}
   ondelete={() => handleDeleteWrapper(stores)}
   onbeforedelete={(e) => handleBeforeDelete(e, stores)}

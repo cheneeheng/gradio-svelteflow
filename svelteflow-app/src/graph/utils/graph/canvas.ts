@@ -48,6 +48,7 @@ export function handleConnect(
 }
 
 // Have to use Node and Edge here for SvelteFlow component
+import { activeStoreId } from "../../stores/activeStore";
 export async function handleBeforeDelete(
   {
     nodes: nodesToDelete,
@@ -58,13 +59,22 @@ export async function handleBeforeDelete(
   },
   stores: GraphStores
 ): Promise<boolean> {
+  if (get(activeStoreId) !== get(stores.instanceId)) {
+    return false;
+  }
+  if (nodesToDelete.length === 0 && toDeleteEdges.length === 0) {
+    return false;
+  }
   const nodeNames = nodesToDelete
     .map((n) => (n.data as CustomNode["data"]).name)
     .join(", ");
   const edgeIds = toDeleteEdges.map((e) => e.id).join(", ");
   let message = "Are you sure you want to delete ";
   if (nodesToDelete.length > 0) message += `node(s) ${nodeNames}`;
-  if (toDeleteEdges.length > 0) message += `edge(s) ${edgeIds}`;
+  if (toDeleteEdges.length > 0) {
+    if (nodesToDelete.length > 0) message += " and ";
+    message += `edge(s) ${edgeIds}`;
+  }
 
   return new Promise((resolve) => {
     stores.dialog.set({

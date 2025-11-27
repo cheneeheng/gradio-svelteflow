@@ -5,8 +5,9 @@
   import { Background, Controls, MiniMap, SvelteFlow } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import { getContext, onMount } from "svelte";
-  import type { Writable } from "svelte/store";
+  import { get, type Writable } from "svelte/store";
   import { storeKey } from "../stores/context";
+  import { activeStoreId } from "../stores/activeStore";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
@@ -36,7 +37,8 @@
   // Local vars
   // ----------
   const stores = getContext<GraphStores>(storeKey);
-  const { customEdges, customNodes, flowInstance, interactive } = stores;
+  const { customEdges, customNodes, flowInstance, interactive, instanceId } =
+    stores;
 
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
@@ -61,7 +63,6 @@
   });
 </script>
 
-<!-- TODO: make the height adjustable -->
 <SvelteFlow
   bind:this={flowInstanceLocal}
   bind:nodes={nodesLocal}
@@ -74,9 +75,18 @@
   elementsSelectable={$interactive}
   on:nodedragstart={(e) => handleNodeDragStart(e, stores)}
   on:nodedragstop={(e) => handleNodeDragStop(e, stores)}
-  on:nodeclick={(e) => handleNodeClick(e, stores)}
-  on:edgeclick={(e) => handleEdgeClick(e, stores)}
-  on:paneclick={() => handlePaneClick(stores)}
+  on:nodeclick={(e) => {
+    activeStoreId.set(get(instanceId));
+    handleNodeClick(e, stores);
+  }}
+  on:edgeclick={(e) => {
+    activeStoreId.set(get(instanceId));
+    handleEdgeClick(e, stores);
+  }}
+  on:paneclick={() => {
+    activeStoreId.set(get(instanceId));
+    handlePaneClick(stores);
+  }}
   onconnect={(e) => handleConnect(e, stores)}
   ondelete={() => handleDelete(stores)}
   onbeforedelete={(e) => handleBeforeDelete(e, stores)}

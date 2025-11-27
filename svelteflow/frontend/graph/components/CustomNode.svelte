@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Handle, Position, useUpdateNodeInternals } from "@xyflow/svelte";
   import { ChevronDown, ChevronUp } from "lucide-svelte";
-  import { derived } from "svelte/store";
   import { getContext } from "svelte";
+  import { derived } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import type { Attribute } from "../types/schemas";

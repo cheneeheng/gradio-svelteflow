@@ -1,11 +1,9 @@
-import dagre from "dagre";
 import type { Edge, Node } from "@xyflow/svelte";
+import dagre from "dagre";
 import { get } from "svelte/store";
 import type { GraphStores } from "../stores/instanceStore";
 
 export type LayoutDirection = "TB" | "LR";
-
-
 
 // All nodes are treated as 180×100 rectangles when Dagre calculates the layout.
 // TODO: Make them dynamic

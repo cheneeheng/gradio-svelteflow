@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { BaseEdge, getBezierPath, MarkerType } from "@xyflow/svelte";
-  import { derived } from "svelte/store";
+  import { BaseEdge, getBezierPath } from "@xyflow/svelte";
   import { getContext } from "svelte";
+  import { derived } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
 
@@ -30,7 +30,7 @@
   export let selected = false;
 
   const stores = getContext<GraphStores>(storeKey);
-  const { clickedEdges } = stores;
+  const { clickedEdges, instanceId } = stores;
 
   const highlightType = derived(clickedEdges, ($clickedEdges) => {
     if ($clickedEdges.includes(id)) return "click";
@@ -67,7 +67,7 @@
 <svg>
   <defs>
     <marker
-      id="arrow-marker-{id}"
+      id="arrow-marker-{$instanceId}-{id}"
       markerWidth="8"
       markerHeight="8"
       viewBox="-10 -10 20 20"
@@ -88,7 +88,7 @@
   {labelY}
   labelStyle={mergedLabelStyle}
   {markerStart}
-  markerEnd="url(#arrow-marker-{id})"
+  markerEnd="url(#arrow-marker-{$instanceId}-{id})"
   {interactionWidth}
   {style}
 />
