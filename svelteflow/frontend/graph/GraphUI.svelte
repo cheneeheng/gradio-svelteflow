@@ -4,19 +4,15 @@
   // ----------
   import type { LoadingStatus } from "@gradio/statustracker";
   import type { Gradio } from "@gradio/utils";
-  import { onMount } from "svelte";
+  import { onMount, setContext } from "svelte";
   import { get } from "svelte/store";
   import CustomEdgeEditPopup from "./components/CustomEdgeEditPopup.svelte";
   import CustomNodeEditPopup from "./components/CustomNodeEditPopup.svelte";
+  import Dialogs from "./components/Dialogs.svelte";
   import Graph from "./components/Graph.svelte";
   import Toolbar from "./components/Toolbar.svelte";
-  import {
-    customEdges,
-    customNodes,
-    editingEdge,
-    editingNode,
-    interactive as interactiveStore,
-  } from "./stores/graphStore";
+  import { storeKey } from "./stores/context";
+  import { createGraphStores, type GraphStores } from "./stores/instanceStore";
   import { theme } from "./stores/themeStore";
   import type { CustomEdge, CustomNode } from "./types/schemas";
   import { handleKeydown } from "./utils/graph/canvas";
@@ -55,6 +51,9 @@
   // ----------
   // Local vars
   // ----------
+  const stores = createGraphStores();
+  setContext(storeKey, stores);
+  const { editingEdge, editingNode, interactive: interactiveStore } = stores;
 
   // ----------
   // Local functions
@@ -68,8 +67,8 @@
   });
 
   $: if (value) {
-    customNodes.set(value.nodes);
-    customEdges.set(value.edges);
+    stores.customNodes.set(value.nodes);
+    stores.customEdges.set(value.edges);
   }
 
   $: if (typeof document !== "undefined") {
@@ -80,36 +79,43 @@
     }
   }
 
-  function handleNodeEditPopupSaveWrapper(event: CustomEvent<CustomNode>) {
-    handleNodeEditPopupSave(event);
-    value.nodes = get(customNodes);
-    value.edges = get(customEdges);
+  function handleNodeEditPopupSaveWrapper(
+    event: CustomEvent<CustomNode>,
+    stores: GraphStores
+  ) {
+    handleNodeEditPopupSave(event, stores);
+    value.nodes = get(stores.customNodes);
+    value.edges = get(stores.customEdges);
     gradio.dispatch("change", value);
   }
 
-  function handleEdgeEditPopupSaveWrapper(event: CustomEvent<CustomEdge>) {
-    handleEdgeEditPopupSave(event);
-    value.edges = get(customEdges);
+  function handleEdgeEditPopupSaveWrapper(
+    event: CustomEvent<CustomEdge>,
+    stores: GraphStores
+  ) {
+    handleEdgeEditPopupSave(event, stores);
+    value.edges = get(stores.customEdges);
     gradio.dispatch("change", value);
   }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window on:keydown={(e) => handleKeydown(e, stores)} />
 
 <div class="app-container" style="min-height: {canvas_min_height};">
+  <Dialogs />
   {#if $editingNode}
     <CustomNodeEditPopup
       node={$editingNode}
-      on:save={handleNodeEditPopupSaveWrapper}
-      on:cancel={handleNodeEditPopupCancel}
+      on:save={(e) => handleNodeEditPopupSaveWrapper(e, stores)}
+      on:cancel={() => handleNodeEditPopupCancel(stores)}
     />
   {/if}
 
   {#if $editingEdge}
     <CustomEdgeEditPopup
       edge={$editingEdge}
-      on:save={handleEdgeEditPopupSaveWrapper}
-      on:cancel={handleEdgeEditPopupCancel}
+      on:save={(e) => handleEdgeEditPopupSaveWrapper(e, stores)}
+      on:cancel={() => handleEdgeEditPopupCancel(stores)}
     />
   {/if}
 

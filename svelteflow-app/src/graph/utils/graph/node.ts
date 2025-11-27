@@ -37,6 +37,7 @@ export function handleAddNode({
   customNodes.update((n) => [...n, newNode]);
 }
 
+// TODO: Rewrite to remove return, and inplace value mutation in map()
 function handleNodeCollapse(
   nodeId: string,
   isCollapsed: boolean,
@@ -90,6 +91,7 @@ function highlightNeighbors(node: CustomNode, stores: GraphStores) {
   clickedEdges.set(connectedEdges.map((edge) => edge.id));
 }
 
+// Have to use Node here for SvelteFlow component
 export function handleNodeDragStop(
   event: CustomEvent<{
     targetNode: Node<Record<string, unknown>, string> | null;
@@ -103,6 +105,7 @@ export function handleNodeDragStop(
   setTimeout(() => (stores.isDragging = false), 10);
 }
 
+// Have to use Node here for SvelteFlow component
 export function handleNodeClick(
   customEvent: CustomEvent<{
     node: Node<Record<string, unknown>, string>;
@@ -147,6 +150,7 @@ export function handleNodeClick(
   }
 }
 
+// Have to use Node here for SvelteFlow component
 function handleNodeDoubleClick(
   customEvent: CustomEvent<{
     node: Node<Record<string, unknown>, string>;

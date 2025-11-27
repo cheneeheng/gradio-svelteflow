@@ -1,7 +1,9 @@
 <script lang="ts">
   import { BaseEdge, getBezierPath, MarkerType } from "@xyflow/svelte";
   import { derived } from "svelte/store";
-  import { clickedEdges } from "../stores/highlightStore";
+  import { getContext } from "svelte";
+  import { storeKey } from "../stores/context";
+  import type { GraphStores } from "../stores/instanceStore";
 
   interface PathOptions {
     curvature?: number;
@@ -26,6 +28,9 @@
   export let pathOptions: PathOptions | undefined = undefined;
   export let interactionWidth: number | undefined = undefined;
   export let selected = false;
+
+  const stores = getContext<GraphStores>(storeKey);
+  const { clickedEdges } = stores;
 
   const highlightType = derived(clickedEdges, ($clickedEdges) => {
     if ($clickedEdges.includes(id)) return "click";

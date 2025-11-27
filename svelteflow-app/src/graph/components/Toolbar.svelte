@@ -17,12 +17,12 @@
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
-  import { handleLayout } from "../utils/layout";
-  import { triggerLoad } from "../utils/graph/load";
   import { handleAddNode } from "../utils/graph/node";
-  import { handleSaveGraph } from "../utils/graph/save";
-  import { debouncedSearch } from "../utils/graph/search";
-  import { toggleTheme } from "../utils/theme";
+  import { handleLayout } from "../utils/layout";
+  import { triggerLoad } from "../utils/toolbar/load";
+  import { handleSaveGraph } from "../utils/toolbar/save";
+  import { debouncedSearch } from "../utils/toolbar/search";
+  import { toggleTheme } from "../utils/toolbar/theme";
 
   // ----------
   // Exports
@@ -73,8 +73,6 @@
         break;
     }
   }
-
-  $: handleLayout($layoutDirection, stores);
 </script>
 
 <div

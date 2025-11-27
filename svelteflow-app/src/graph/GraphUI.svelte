@@ -31,11 +31,7 @@
   // ----------
   const stores = createGraphStores();
   setContext(storeKey, stores);
-  const {
-    editingEdge,
-    editingNode,
-    interactive: interactiveStore,
-  } = stores;
+  const { editingEdge, editingNode, interactive: interactiveStore } = stores;
 
   // ----------
   // Local functions

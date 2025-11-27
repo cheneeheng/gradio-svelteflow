@@ -15,7 +15,7 @@
   function addAttribute() {
     attributes = [
       ...attributes,
-      { key: "", value: "", visible: true, connectable: false, type: "input" },
+      { key: "", value: "", visible: true, connectable: true, type: "input" },
     ];
   }
 
