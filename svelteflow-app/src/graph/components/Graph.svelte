@@ -2,16 +2,24 @@
   // ----------
   // Imports
   // ----------
-  import { Background, Controls, MiniMap, SvelteFlow } from "@xyflow/svelte";
+  import {
+    Background,
+    Controls,
+    MiniMap,
+    SvelteFlow,
+    type Node
+  } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
+  import type { Connection } from "@xyflow/system";
   import { getContext, onMount } from "svelte";
   import { get, type Writable } from "svelte/store";
-  import { storeKey } from "../stores/context";
   import { activeStoreId } from "../stores/activeStore";
+  import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
-  import type { CustomEdge, CustomNode } from "../types/schemas";
+  import type { GradioLike, GraphEvents } from "../types/gradio";
+  import type { CustomEdge, CustomNode, GraphValue } from "../types/schemas";
   import {
     handleBeforeDelete,
     handleConnect,
@@ -30,6 +38,13 @@
   // ----------
   // Exports
   // ----------
+  export let gradio: GradioLike<GraphEvents> | undefined = undefined;
+  export let value: GraphValue = {
+    nodes: [],
+    edges: [],
+    loaded: false,
+    zoomToNodeId: null,
+  };
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;
 
@@ -52,6 +67,40 @@
   // ----------
   // Local functions
   // ----------
+  function handleConnectWrapper(connection: Connection, stores: GraphStores) {
+    handleConnect(connection, stores);
+    // value.nodes = get(customNodes);
+    value.edges = get(customEdges);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
+  }
+
+  function handleDeleteWrapper(stores: GraphStores) {
+    handleDelete(stores);
+    value.nodes = get(stores.customNodes);
+    value.edges = get(stores.customEdges);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
+  }
+
+  function handleNodeClickWrapper(
+    customEvent: CustomEvent<{
+      node: Node<Record<string, unknown>, string>;
+      event: MouseEvent | TouchEvent;
+    }>,
+    stores: GraphStores
+  ) {
+    const result = handleNodeClick(customEvent, stores);
+    if (result && result.action === "edit") {
+      value.nodes = get(stores.customNodes);
+      value.edges = get(stores.customEdges);
+      if (gradio) {
+        gradio.dispatch("change", value);
+      }
+    }
+  }
 
   // ----------
   // Reactivity + svelte utils
@@ -77,7 +126,7 @@
   on:nodedragstop={(e) => handleNodeDragStop(e, stores)}
   on:nodeclick={(e) => {
     activeStoreId.set(get(instanceId));
-    handleNodeClick(e, stores);
+    handleNodeClickWrapper(e, stores);
   }}
   on:edgeclick={(e) => {
     activeStoreId.set(get(instanceId));
@@ -87,8 +136,8 @@
     activeStoreId.set(get(instanceId));
     handlePaneClick(stores);
   }}
-  onconnect={(e) => handleConnect(e, stores)}
-  ondelete={() => handleDelete(stores)}
+  onconnect={(e) => handleConnectWrapper(e, stores)}
+  ondelete={() => handleDeleteWrapper(stores)}
   onbeforedelete={(e) => handleBeforeDelete(e, stores)}
   deleteKey={["Delete", "Backspace"]}
   {minZoom}

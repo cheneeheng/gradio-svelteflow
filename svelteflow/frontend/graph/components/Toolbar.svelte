@@ -20,7 +20,7 @@
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
-  import type { CustomEdge, CustomNode } from "../types/schemas";
+  import type { CustomEdge, CustomNode, GraphValue } from "../types/schemas";
   import { handleAddNode } from "../utils/graph/node";
   import { handleLayout, type LayoutDirection } from "../utils/layout";
   import { triggerLoad } from "../utils/toolbar/load";
@@ -37,14 +37,11 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
-    loaded: boolean;
-  } = {
+  export let value: GraphValue = {
     nodes: [],
     edges: [],
     loaded: false,
+    zoomToNodeId: null,
   };
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
   export let enable_save_load: boolean = false;

@@ -1,5 +1,5 @@
-import dagre from "dagre";
 import type { Edge, Node } from "@xyflow/svelte";
+import dagre from "dagre";
 import { get } from "svelte/store";
 import type { GraphStores } from "../stores/instanceStore";
 

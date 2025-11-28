@@ -42,6 +42,13 @@ export interface GraphSchema {
   edges: CustomEdge[];
 }
 
+export interface GraphValue {
+  nodes: CustomNode[];
+  edges: CustomEdge[];
+  loaded: boolean;
+  zoomToNodeId: string | null;
+}
+
 export interface UIState {
   highlightedNodes: string[];
   highlightedEdges: string[];

@@ -14,7 +14,7 @@
   import { storeKey } from "./stores/context";
   import { createGraphStores, type GraphStores } from "./stores/instanceStore";
   import { theme } from "./stores/themeStore";
-  import type { CustomEdge, CustomNode } from "./types/schemas";
+  import type { CustomEdge, CustomNode, GraphValue } from "./types/schemas";
   import { handleKeydown } from "./utils/graph/canvas";
   import {
     handleEdgeEditPopupCancel,
@@ -33,14 +33,11 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
-    loaded: boolean;
-  } = {
+  export let value: GraphValue = {
     nodes: [],
     edges: [],
     loaded: false,
+    zoomToNodeId: null,
   };
   export let interactive: boolean = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =

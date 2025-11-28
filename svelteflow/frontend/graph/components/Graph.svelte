@@ -15,12 +15,12 @@
   import type { Connection } from "@xyflow/system";
   import { getContext, onMount } from "svelte";
   import { get, type Writable } from "svelte/store";
-  import { storeKey } from "../stores/context";
   import { activeStoreId } from "../stores/activeStore";
+  import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
-  import type { CustomEdge, CustomNode } from "../types/schemas";
+  import type { CustomEdge, CustomNode, GraphValue } from "../types/schemas";
   import {
     handleBeforeDelete,
     handleConnect,
@@ -45,14 +45,11 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
-    loaded: boolean;
-  } = {
+  export let value: GraphValue = {
     nodes: [],
     edges: [],
     loaded: false,
+    zoomToNodeId: null,
   };
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;
