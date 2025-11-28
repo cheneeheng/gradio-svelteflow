@@ -27,6 +27,8 @@
   --selection-color: rgba(0, 123, 255, 0.9);
   --search-color: rgba(110, 220, 110, 0.9);
   --badge-background: #e9ecef;
+  --danger-color: #e53e3e;
+  --table-header-background: #f7fafc;
 }
 
 :root.dark {
@@ -59,4 +61,6 @@
   --search-color: rgba(110, 220, 110, 0.9);
   --badge-background: #6c7680;
   /* --badge-background: #495057; */
+  --danger-color: #fc8181;
+  --table-header-background: #2d3748;
 }

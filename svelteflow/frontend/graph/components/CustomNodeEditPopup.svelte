@@ -44,6 +44,7 @@
 <div class="popup-overlay" on:click={cancel}>
   <div class="popup" on:click|stopPropagation>
     <h3>Edit Node</h3>
+
     <div class="form-section">
       <div class="form-group">
         <label for="node-name">Name</label>
@@ -54,70 +55,54 @@
         <textarea id="node-description" bind:value={description} rows="3"
         ></textarea>
       </div>
-      <div class="form-group attributes-section">
-        <h4>Attributes</h4>
-        <table class="attributes-table">
-          <thead>
-            <tr>
-              <th>Key</th>
-              <th>Value</th>
-              <th>Type</th>
-              <th>Visible</th>
-              <th>Connectable</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each attributes as attr, i}
-              <tr>
-                <td>
-                  <input class="key" bind:value={attr.key} placeholder="Key" />
-                </td>
-                <td>
-                  <input
-                    class="value"
-                    bind:value={attr.value}
-                    placeholder="Value"
-                  />
-                </td>
-                <td>
-                  <select bind:value={attr.type}>
-                    <option value="input">Input</option>
-                    <option value="output">Output</option>
-                  </select>
-                </td>
-                <td>
-                  <select bind:value={attr.visible}>
-                    <option value={true}>Yes</option>
-                    <option value={false}>No</option>
-                  </select>
-                </td>
-                <td>
-                  <select bind:value={attr.connectable}>
-                    <option value={true}>Yes</option>
-                    <option value={false}>No</option>
-                  </select>
-                </td>
-                <td>
-                  <button
-                    class="remove-btn"
-                    on:click={() => removeAttribute(i)}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
+    </div>
+
+    <div class="popup-content-scrollable">
+      <div class="attributes-section">
+        <div class="section-title">Attributes</div>
+        <div class="attributes-grid">
+          <!-- Header -->
+          <div class="grid-header">Key</div>
+          <div class="grid-header">Value</div>
+          <div class="grid-header">Type</div>
+          <div class="grid-header">Visible</div>
+          <div class="grid-header">Connectable</div>
+          <div class="grid-header"></div>
+
+          <!-- Attribute Rows -->
+          {#each attributes as attr, i}
+            <input bind:value={attr.key} placeholder="Key" />
+            <input bind:value={attr.value} placeholder="Value" />
+            <select bind:value={attr.type}>
+              <option value="input">Input</option>
+              <option value="output">Output</option>
+            </select>
+            <select bind:value={attr.visible}>
+              <option value={true}>Yes</option>
+              <option value={false}>No</option>
+            </select>
+            <select bind:value={attr.connectable}>
+              <option value={true}>Yes</option>
+              <option value={false}>No</option>
+            </select>
+            <button
+              class="remove-btn"
+              on:click={() => removeAttribute(i)}
+              aria-label="Remove Attribute"
+            >
+              <Trash2 size={16} />
+            </button>
+          {/each}
+        </div>
         <button class="add-attribute-btn" on:click={addAttribute}>
-          <Plus size={18} />
+          <Plus size={16} /> Add Attribute
         </button>
       </div>
     </div>
+
     <div class="button-group">
       <button class="secondary" on:click={cancel}>Cancel</button>
-      <button class="primary" on:click={save}>Save</button>
+      <button class="primary" on:click={save}>Save Changes</button>
     </div>
   </div>
 </div>
@@ -125,151 +110,207 @@
 <style>
   .popup-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 100;
+    /* backdrop-filter: blur(4px); */ /* Removed: cause rendering glitches */
   }
+
   .popup {
     background: var(--popup-background);
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 700px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 680px;
     border: 1px solid var(--popup-border);
-    max-height: 90vh;
+    max-height: 90vh; /* Keeps the popup from exceeding 90% viewport height */
     display: flex;
     flex-direction: column;
+    gap: 1.5rem;
   }
+
   h3 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    font-size: 1.75rem;
-    font-weight: 700;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
     color: var(--text-color);
-    border-bottom: 1px solid var(--popup-border);
-    padding-bottom: 1rem;
+    text-align: center;
   }
+
+  .popup-content-scrollable {
+    flex-grow: 1; /* Allows this section to fill available space */
+    overflow-y: auto; /* Enables vertical scrolling when content overflows */
+    padding-right: 0.5rem; /* Add some padding for scrollbar */
+    display: flex;
+    flex-direction: column;
+    /* gap: 1.5rem; Spacing between form-section and attributes-section */
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
   .form-section {
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto; /* Enables vertical scrolling when content overflows */
+    padding-right: 0.5rem; /* Add some padding for scrollbar */
+    max-height: 50vh; /* Keeps the form-section from exceeding 50% viewport height */
   }
+
   .attributes-section {
-    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
   }
+
   .form-group {
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
+
   label {
     display: block;
-    margin-bottom: 0.5rem;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--text-color);
   }
+
   input,
   select,
   textarea {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
     border: 1px solid var(--input-border);
     background: var(--input-background);
     color: var(--input-text);
-    box-sizing: border-box;
-    font-size: 1rem;
+    font-size: 0.9rem;
     transition:
       border-color 0.2s,
       box-shadow 0.2s;
   }
+
   textarea {
     resize: vertical;
     font-family: inherit;
+    min-height: 80px;
   }
+
   input:focus,
   select:focus,
   textarea:focus {
     outline: none;
-    border-color: var(--accent-color, #007bff);
-    box-shadow: 0 0 0 2px var(--accent-color-light, rgba(0, 123, 255, 0.25));
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-color-light);
   }
-  .remove-btn {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    opacity: 0.6;
-    cursor: pointer;
-    padding: 0;
-    transition: opacity 0.2s;
-  }
-  .remove-btn:hover {
-    opacity: 1;
-    color: #ff4d4d;
-  }
-  .add-attribute-btn {
-    margin-top: 1rem;
-    background: var(--button-secondary-background, var(--input-background));
-    border: 1px dashed var(--button-border);
-    color: var(--button-secondary-text, var(--text-color));
-    padding: 0.75rem;
-    width: 100%;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition:
-      background-color 0.2s,
-      border-color 0.2s;
-    display: flex;
+
+  .attributes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 0.75fr 0.75fr 0.75fr auto;
+    gap: 0.75rem;
     align-items: center;
-    justify-content: center;
   }
-  .add-attribute-btn:hover {
-    background: var(--button-secondary-hover-background, var(--background));
-    border-color: var(--accent-color, #007bff);
+
+  .grid-header {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+    opacity: 0.7;
+    padding-bottom: 0.25rem;
   }
+
   .button-group {
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
+    gap: 0.75rem;
     margin-top: auto;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--popup-border);
   }
+
   button {
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
+    padding: 0.65rem 1.2rem;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
-    font-weight: 700;
-    font-size: 1rem;
+    font-weight: 500;
+    font-size: 0.9rem;
     transition:
       background-color 0.2s,
       transform 0.1s;
   }
+
   button:active {
     transform: translateY(1px);
   }
+
   .primary {
-    background: var(--accent-color, #007bff);
-    color: white;
+    background: var(--accent-color);
+    color: #fff;
   }
+
   .primary:hover {
-    background: var(--accent-color-dark, #0056b3);
+    background: var(--accent-color-dark);
   }
+
   .secondary {
-    background: var(--button-secondary-background, var(--button-background));
-    color: var(--button-secondary-text, var(--button-text));
+    background: var(--button-secondary-background);
+    color: var(--button-secondary-text);
     border: 1px solid var(--button-border);
   }
+
   .secondary:hover {
-    background: var(
-      --button-secondary-hover-background,
-      var(--button-hover-background)
-    );
+    background: var(--button-secondary-hover-background);
+  }
+
+  .remove-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .remove-btn:hover {
+    color: var(--danger-color);
+    background-color: var(--danger-color-light);
+  }
+
+  .add-attribute-btn {
+    background: var(--button-secondary-background);
+    border: 1px solid var(--button-border);
+    color: var(--button-secondary-text);
+    padding: 0.65rem;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .add-attribute-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: var(--accent-color-light);
   }
 </style>
