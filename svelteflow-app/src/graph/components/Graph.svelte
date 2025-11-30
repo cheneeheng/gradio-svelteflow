@@ -7,11 +7,12 @@
     Controls,
     MiniMap,
     SvelteFlow,
-    type Node
+    useSvelteFlow,
+    type Node,
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import type { Connection } from "@xyflow/system";
-  import { getContext, onMount } from "svelte";
+  import { getContext, onMount, tick } from "svelte";
   import { get, type Writable } from "svelte/store";
   import { activeStoreId } from "../stores/activeStore";
   import { storeKey } from "../stores/context";
@@ -43,7 +44,7 @@
     nodes: [],
     edges: [],
     loaded: false,
-    zoomToNodeId: null,
+    zoomToNodeName: null,
   };
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;
@@ -110,6 +111,28 @@
       flowInstance.set(flowInstanceLocal); // register instance in store
     }
   });
+
+  const { fitView } = useSvelteFlow();
+
+  $: if (value.zoomToNodeName && get(flowInstance)) {
+    const newNodes = get(stores.customNodes).map((n) => ({
+      ...n,
+      selected: n.data.name === value.zoomToNodeName,
+    }));
+    stores.customNodes.set(newNodes);
+
+    const node = newNodes.find((n) => n.data.name === value.zoomToNodeName);
+    if (node) {
+      fitView({
+        nodes: [{ id: node.id }],
+        duration: 800,
+      });
+      // Reset zoomToNodeName after this reactive cycle
+      tick().then(() => {
+        value.zoomToNodeName = null;
+      });
+    }
+  }
 </script>
 
 <SvelteFlow

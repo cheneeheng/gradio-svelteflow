@@ -6,6 +6,7 @@ example = SvelteFlow().example_value()
 
 with gr.Blocks() as demo:
     btn = gr.Button("Example")
+    btn_zoomin = gr.Button("Zoom In")
     sf1 = SvelteFlow(
         info="Standard block usage",
         label="SvelteFlow1",
@@ -31,8 +32,17 @@ with gr.Blocks() as demo:
 
     btn.click(lambda: example, None, sf1)
     btn.click(lambda: example, None, sf2)
+
+    def set_zoomToNodeName(value_):
+        value_["zoomToNodeName"] = "Node-adae"
+        return value_
+
+    btn_zoomin.click(set_zoomToNodeName, sf1, sf1)
+    btn_zoomin.click(set_zoomToNodeName, sf2, sf2)
+
     sf1.change(lambda x: str(int(x) + 1), txt, txt)
     sf2.change(lambda x: str(int(x) + 1), txt, txt)
+
     sf1.change(lambda x: x, sf1, json)
     sf2.change(lambda x: x, sf2, json)
 

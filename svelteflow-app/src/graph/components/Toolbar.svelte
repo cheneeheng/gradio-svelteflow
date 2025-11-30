@@ -35,7 +35,7 @@
     nodes: [],
     edges: [],
     loaded: false,
-    zoomToNodeId: null,
+    zoomToNodeName: null,
   };
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
   export let enable_save_load: boolean = false;

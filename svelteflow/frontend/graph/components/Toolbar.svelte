@@ -41,7 +41,7 @@
     nodes: [],
     edges: [],
     loaded: false,
-    zoomToNodeId: null,
+    zoomToNodeName: null,
   };
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
   export let enable_save_load: boolean = false;
@@ -69,13 +69,17 @@
     handleLayout(layoutDirection, stores);
     value.nodes = get(stores.customNodes);
     value.edges = get(stores.customEdges);
-    gradio.dispatch("change", value);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
   }
 
   function handleAddNodeWrapper(stores: GraphStores) {
     handleAddNode(stores);
     value.nodes = get(stores.customNodes);
-    gradio.dispatch("change", value);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
   }
 
   function triggerLoadWrapper(stores: GraphStores) {
@@ -83,7 +87,9 @@
     value.nodes = get(stores.customNodes);
     value.edges = get(stores.customEdges);
     value.loaded = true;
-    gradio.dispatch("change", value);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
   }
 
   // ----------

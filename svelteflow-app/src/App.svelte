@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { SvelteFlowProvider } from "@xyflow/svelte";
   import GraphUI from "./graph/GraphUI.svelte";
 
   let zoomId = "";
@@ -7,20 +6,20 @@
     nodes: [],
     edges: [],
     loaded: false,
-    zoomToNodeId: null,
+    zoomToNodeName: null,
   };
   let graphValue2 = {
     nodes: [],
     edges: [],
     loaded: false,
-    zoomToNodeId: null,
+    zoomToNodeName: null,
   };
   // Apply button handler
   function applyZoom() {
     const trimmed = zoomId.trim();
     graphValue1 = {
       ...graphValue1,
-      zoomToNodeId: trimmed === "" ? null : trimmed,
+      zoomToNodeName: trimmed === "" ? null : trimmed,
     };
   }
   // Clear button handler
@@ -28,7 +27,7 @@
     zoomId = "";
     graphValue1 = {
       ...graphValue1,
-      zoomToNodeId: null,
+      zoomToNodeName: null,
     };
   }
 </script>
@@ -47,22 +46,18 @@
     <button type="button" on:click={applyZoom}>Apply</button>
     <button type="button" on:click={clearZoom}>Clear</button>
   </div>
-  <SvelteFlowProvider>
-    <GraphUI
-      toolbar_enable_save_load={true}
-      toolbar_enable_add={true}
-      canvas_min_height="0px"
-      bind:value={graphValue1}
-    />
-  </SvelteFlowProvider>
-  <SvelteFlowProvider>
-    <GraphUI
-      toolbar_enable_save_load={true}
-      toolbar_enable_add={true}
-      canvas_min_height="0px"
-      bind:value={graphValue2}
-    />
-  </SvelteFlowProvider>
+  <GraphUI
+    toolbar_enable_save_load={true}
+    toolbar_enable_add={true}
+    canvas_min_height="0px"
+    bind:value={graphValue1}
+  />
+  <GraphUI
+    toolbar_enable_save_load={true}
+    toolbar_enable_add={true}
+    canvas_min_height="0px"
+    bind:value={graphValue2}
+  />
 </div>
 <!-- 
 <div style="height: 300px; width: 800px">

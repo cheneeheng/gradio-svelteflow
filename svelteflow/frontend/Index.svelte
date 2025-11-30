@@ -10,6 +10,7 @@
   import type { LoadingStatus } from "@gradio/statustracker";
   import { StatusTracker } from "@gradio/statustracker";
   import type { Gradio } from "@gradio/utils";
+  import { SvelteFlowProvider } from "@xyflow/svelte";
   import GraphUI from "./graph/GraphUI.svelte";
   import type {
     CustomEdge,
@@ -47,7 +48,12 @@
 
   let fullscreen = false;
 
-  $: graph_value = value ?? { nodes: [], edges: [], loaded: false };
+  $: graph_value = value ?? {
+    nodes: [],
+    edges: [],
+    loaded: false,
+    zoomToNodeName: null,
+  };
 </script>
 
 <Block
@@ -82,13 +88,15 @@
     />
   {/if}
 
-  <GraphUI
-    {gradio}
-    bind:value={graph_value}
-    {interactive}
-    {toolbar_size}
-    {toolbar_enable_save_load}
-    {toolbar_enable_add}
-    {canvas_min_height}
-  />
+  <SvelteFlowProvider>
+    <GraphUI
+      {gradio}
+      bind:value={graph_value}
+      {interactive}
+      {toolbar_size}
+      {toolbar_enable_save_load}
+      {toolbar_enable_add}
+      {canvas_min_height}
+    />
+  </SvelteFlowProvider>
 </Block>

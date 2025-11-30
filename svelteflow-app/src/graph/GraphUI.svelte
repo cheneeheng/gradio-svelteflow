@@ -2,8 +2,8 @@
   // ----------
   // Imports
   // ----------
-  import { useSvelteFlow } from "@xyflow/svelte";
-  import { onMount, setContext, tick } from "svelte";
+  import { SvelteFlowProvider } from "@xyflow/svelte";
+  import { onMount, setContext } from "svelte";
   import { get } from "svelte/store";
   import CustomEdgeEditPopup from "./components/CustomEdgeEditPopup.svelte";
   import CustomNodeEditPopup from "./components/CustomNodeEditPopup.svelte";
@@ -32,7 +32,7 @@
     nodes: [],
     edges: [],
     loaded: false,
-    zoomToNodeId: null,
+    zoomToNodeName: null,
   };
   export let interactive: boolean = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
@@ -74,28 +74,6 @@
   $: if (value) {
     stores.customNodes.set(value.nodes);
     stores.customEdges.set(value.edges);
-  }
-
-  const { fitView } = useSvelteFlow();
-
-  $: if (value.zoomToNodeId && $flowInstance) {
-    const newNodes = get(stores.customNodes).map((n) => ({
-      ...n,
-      selected: n.id === value.zoomToNodeId,
-    }));
-    stores.customNodes.set(newNodes);
-
-    const node = newNodes.find((n) => n.id === value.zoomToNodeId);
-    if (node) {
-      fitView({
-        nodes: [{ id: value.zoomToNodeId }],
-        duration: 800,
-      });
-      // Reset zoomToNodeId after this reactive cycle
-      tick().then(() => {
-        value.zoomToNodeId = null;
-      });
-    }
   }
 
   $: if (typeof document !== "undefined") {
@@ -157,7 +135,9 @@
     enable_save_load={toolbar_enable_save_load}
     enable_add={toolbar_enable_add}
   />
-  <Graph {gradio} bind:value />
+  <SvelteFlowProvider>
+    <Graph {gradio} bind:value />
+  </SvelteFlowProvider>
 </div>
 
 <style>

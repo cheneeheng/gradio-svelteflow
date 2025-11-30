@@ -46,7 +46,7 @@ export interface GraphValue {
   nodes: CustomNode[];
   edges: CustomEdge[];
   loaded: boolean;
-  zoomToNodeId: string | null;
+  zoomToNodeName: string | null;
 }
 
 export interface UIState {
