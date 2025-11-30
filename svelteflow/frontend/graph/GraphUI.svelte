@@ -4,6 +4,7 @@
   // ----------
   import type { LoadingStatus } from "@gradio/statustracker";
   import type { Gradio } from "@gradio/utils";
+  import { SvelteFlowProvider } from "@xyflow/svelte";
   import { onMount, setContext } from "svelte";
   import { get } from "svelte/store";
   import CustomEdgeEditPopup from "./components/CustomEdgeEditPopup.svelte";
@@ -14,7 +15,7 @@
   import { storeKey } from "./stores/context";
   import { createGraphStores, type GraphStores } from "./stores/instanceStore";
   import { theme } from "./stores/themeStore";
-  import type { CustomEdge, CustomNode } from "./types/schemas";
+  import type { CustomEdge, CustomNode, GraphValue } from "./types/schemas";
   import { handleKeydown } from "./utils/graph/canvas";
   import {
     handleEdgeEditPopupCancel,
@@ -33,14 +34,11 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
-    loaded: boolean;
-  } = {
+  export let value: GraphValue = {
     nodes: [],
     edges: [],
     loaded: false,
+    zoomToNodeName: null,
   };
   export let interactive: boolean = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
@@ -55,7 +53,12 @@
   const stores = createGraphStores();
   stores.instanceId.set(uuidv4());
   setContext(storeKey, stores);
-  const { editingEdge, editingNode, interactive: interactiveStore } = stores;
+  const {
+    editingEdge,
+    editingNode,
+    interactive: interactiveStore,
+    flowInstance,
+  } = stores;
 
   // ----------
   // Local functions
@@ -64,6 +67,12 @@
   // ----------
   // Reactivity + svelte utils
   // ----------
+  onMount(() => {
+    if (gradio) {
+      document.documentElement.classList.add("gradio-active");
+    }
+  });
+
   onMount(() => {
     interactiveStore.set(interactive);
   });
@@ -88,7 +97,9 @@
     handleNodeEditPopupSave(event, stores);
     value.nodes = get(stores.customNodes);
     value.edges = get(stores.customEdges);
-    gradio.dispatch("change", value);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
   }
 
   function handleEdgeEditPopupSaveWrapper(
@@ -97,7 +108,9 @@
   ) {
     handleEdgeEditPopupSave(event, stores);
     value.edges = get(stores.customEdges);
-    gradio.dispatch("change", value);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
   }
 </script>
 
@@ -128,7 +141,9 @@
     enable_save_load={toolbar_enable_save_load}
     enable_add={toolbar_enable_add}
   />
-  <Graph {gradio} bind:value />
+  <SvelteFlowProvider>
+    <Graph {gradio} bind:value />
+  </SvelteFlowProvider>
 </div>
 
 <style>
@@ -142,9 +157,19 @@
     overflow: auto;
   } */
 
-  :global(html:has(.fullscreen.animating)),
-  :global(body:has(.fullscreen.animating)) {
+  /* Only lock scrolling if Gradio is active */
+  :global(html.gradio-active:has(.fullscreen.animating)),
+  :global(body.gradio-active:has(.fullscreen.animating)) {
     overflow: hidden;
+  }
+
+  /* Fullscreen layout styles */
+  :global(html.gradio-active .fullscreen.animating) {
+    display: flex;
+    flex-direction: column;
+  }
+  :global(html.gradio-active .fullscreen.animating .app-container) {
+    min-height: 0 !important;
   }
 
   .app-container {
@@ -155,14 +180,5 @@
     position: relative;
     display: flex;
     flex-direction: column;
-  }
-
-  :global(.fullscreen.animating) {
-    display: flex;
-    flex-direction: column;
-  }
-
-  :global(.fullscreen.animating .app-container) {
-    min-height: 0 !important;
   }
 </style>

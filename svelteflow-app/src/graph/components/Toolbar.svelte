@@ -14,11 +14,14 @@
     Sun,
   } from "lucide-svelte";
   import { getContext } from "svelte";
+  import { get } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
+  import type { GradioLike, GraphEvents } from "../types/gradio";
+  import type { GraphValue } from "../types/schemas";
   import { handleAddNode } from "../utils/graph/node";
-  import { handleLayout } from "../utils/layout";
+  import { handleLayout, type LayoutDirection } from "../utils/layout";
   import { triggerLoad } from "../utils/toolbar/load";
   import { handleSaveGraph } from "../utils/toolbar/save";
   import { debouncedSearch } from "../utils/toolbar/search";
@@ -27,7 +30,16 @@
   // ----------
   // Exports
   // ----------
+  export let gradio: GradioLike<GraphEvents> | undefined = undefined;
+  export let value: GraphValue = {
+    nodes: [],
+    edges: [],
+    loaded: false,
+    zoomToNodeName: null,
+  };
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
+  export let enable_save_load: boolean = false;
+  export let enable_add: boolean = false;
 
   // ----------
   // Local vars
@@ -44,6 +56,35 @@
   // ----------
   // Local functions
   // ----------
+  function handleLayoutWrapper(
+    layoutDirection: LayoutDirection,
+    stores: GraphStores
+  ) {
+    handleLayout(layoutDirection, stores);
+    value.nodes = get(stores.customNodes);
+    value.edges = get(stores.customEdges);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
+  }
+
+  function handleAddNodeWrapper(stores: GraphStores) {
+    handleAddNode(stores);
+    value.nodes = get(stores.customNodes);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
+  }
+
+  function triggerLoadWrapper(stores: GraphStores) {
+    triggerLoad(stores);
+    value.nodes = get(stores.customNodes);
+    value.edges = get(stores.customEdges);
+    value.loaded = true;
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
+  }
 
   // ----------
   // Reactivity + svelte utils
@@ -89,24 +130,28 @@
       style="font-size: var(--toolbar-font-size);"
     />
   </div>
+  {#if enable_add}
+    <button
+      class="toolbar-button"
+      on:click={() => handleAddNodeWrapper(stores)}
+      title="Add a new node"><Plus size={currentIconSize} /></button
+    >
+  {/if}
+  {#if enable_save_load}
+    <button
+      class="toolbar-button"
+      on:click={async () => await handleSaveGraph(stores)}
+      title="Save graph"><Save size={currentIconSize} /></button
+    >
+    <button
+      class="toolbar-button"
+      on:click={() => triggerLoadWrapper(stores)}
+      title="Load graph"><FolderOpen size={currentIconSize} /></button
+    >
+  {/if}
   <button
     class="toolbar-button"
-    on:click={() => handleAddNode(stores)}
-    title="Add a new node"><Plus size={currentIconSize} /></button
-  >
-  <button
-    class="toolbar-button"
-    on:click={async () => await handleSaveGraph(stores)}
-    title="Save graph"><Save size={currentIconSize} /></button
-  >
-  <button
-    class="toolbar-button"
-    on:click={() => triggerLoad(stores)}
-    title="Load graph"><FolderOpen size={currentIconSize} /></button
-  >
-  <button
-    class="toolbar-button"
-    on:click={() => handleLayout($layoutDirection, stores)}
+    on:click={() => handleLayoutWrapper($layoutDirection, stores)}
     title="Relayout nodes"><LayoutDashboard size={currentIconSize} /></button
   >
   <select bind:value={$layoutDirection} title="Layout direction">

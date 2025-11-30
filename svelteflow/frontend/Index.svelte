@@ -10,8 +10,13 @@
   import type { LoadingStatus } from "@gradio/statustracker";
   import { StatusTracker } from "@gradio/statustracker";
   import type { Gradio } from "@gradio/utils";
+  import { SvelteFlowProvider } from "@xyflow/svelte";
   import GraphUI from "./graph/GraphUI.svelte";
-  import type { CustomEdge, CustomNode } from "./graph/types/schemas";
+  import type {
+    CustomEdge,
+    CustomNode,
+    GraphValue,
+  } from "./graph/types/schemas";
   // Hack: Polyfill process and Buffer at runtime
   import { Buffer } from "buffer";
   (globalThis as any).process = (globalThis as any).process || { env: {} };
@@ -28,11 +33,7 @@
   export let elem_id = "";
   export let elem_classes: string[] = [];
   export let visible: boolean | "hidden" = true;
-  export let value: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
-    loaded: boolean;
-  } | null = null;
+  export let value: GraphValue | null = null;
   export let show_label: boolean = false;
   export let scale: number | null = null;
   export let min_width: number | undefined = undefined;
@@ -47,7 +48,12 @@
 
   let fullscreen = false;
 
-  $: graph_value = value ?? { nodes: [], edges: [], loaded: false };
+  $: graph_value = value ?? {
+    nodes: [],
+    edges: [],
+    loaded: false,
+    zoomToNodeName: null,
+  };
 </script>
 
 <Block
@@ -82,13 +88,15 @@
     />
   {/if}
 
-  <GraphUI
-    {gradio}
-    bind:value={graph_value}
-    {interactive}
-    {toolbar_size}
-    {toolbar_enable_save_load}
-    {toolbar_enable_add}
-    {canvas_min_height}
-  />
+  <SvelteFlowProvider>
+    <GraphUI
+      {gradio}
+      bind:value={graph_value}
+      {interactive}
+      {toolbar_size}
+      {toolbar_enable_save_load}
+      {toolbar_enable_add}
+      {canvas_min_height}
+    />
+  </SvelteFlowProvider>
 </Block>

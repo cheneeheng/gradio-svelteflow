@@ -9,18 +9,19 @@
     Controls,
     MiniMap,
     SvelteFlow,
+    useSvelteFlow,
     type Node,
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import type { Connection } from "@xyflow/system";
-  import { getContext, onMount } from "svelte";
+  import { getContext, onMount, tick } from "svelte";
   import { get, type Writable } from "svelte/store";
-  import { storeKey } from "../stores/context";
   import { activeStoreId } from "../stores/activeStore";
+  import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
-  import type { CustomEdge, CustomNode } from "../types/schemas";
+  import type { CustomEdge, CustomNode, GraphValue } from "../types/schemas";
   import {
     handleBeforeDelete,
     handleConnect,
@@ -45,14 +46,11 @@
     submit: { nodes: CustomNode[]; edges: CustomEdge[] };
     clear_status: LoadingStatus;
   }>;
-  export let value: {
-    nodes: CustomNode[];
-    edges: CustomEdge[];
-    loaded: boolean;
-  } = {
+  export let value: GraphValue = {
     nodes: [],
     edges: [],
     loaded: false,
+    zoomToNodeName: null,
   };
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;
@@ -80,14 +78,18 @@
     handleConnect(connection, stores);
     // value.nodes = get(customNodes);
     value.edges = get(customEdges);
-    gradio.dispatch("change", value);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
   }
 
   function handleDeleteWrapper(stores: GraphStores) {
     handleDelete(stores);
     value.nodes = get(stores.customNodes);
     value.edges = get(stores.customEdges);
-    gradio.dispatch("change", value);
+    if (gradio) {
+      gradio.dispatch("change", value);
+    }
   }
 
   function handleNodeClickWrapper(
@@ -101,7 +103,9 @@
     if (result && result.action === "edit") {
       value.nodes = get(stores.customNodes);
       value.edges = get(stores.customEdges);
-      gradio.dispatch("change", value);
+      if (gradio) {
+        gradio.dispatch("change", value);
+      }
     }
   }
 
@@ -113,6 +117,28 @@
       flowInstance.set(flowInstanceLocal); // register instance in store
     }
   });
+
+  const { fitView } = useSvelteFlow();
+
+  $: if (value.zoomToNodeName && get(flowInstance)) {
+    const newNodes = get(stores.customNodes).map((n) => ({
+      ...n,
+      selected: n.data.name === value.zoomToNodeName,
+    }));
+    stores.customNodes.set(newNodes);
+
+    const node = newNodes.find((n) => n.data.name === value.zoomToNodeName);
+    if (node) {
+      fitView({
+        nodes: [{ id: node.id }],
+        duration: 800,
+      });
+      // Reset zoomToNodeName after this reactive cycle
+      tick().then(() => {
+        value.zoomToNodeName = null;
+      });
+    }
+  }
 </script>
 
 <SvelteFlow

@@ -255,5 +255,7 @@ class SvelteFlow(Component):
                     "type": "custom",
                 }
             ],
-            "viewport": {"x": 0, "y": 0, "zoom": 1},
+            # "viewport": {"x": 0, "y": 0, "zoom": 1},
+            "loaded": False,
+            "zoomToNodeName": None,
         }
