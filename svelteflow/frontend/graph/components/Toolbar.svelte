@@ -2,8 +2,6 @@
   // ----------
   // Imports
   // ----------
-  import type { LoadingStatus } from "@gradio/statustracker";
-  import type { Gradio } from "@gradio/utils";
   import {
     Ellipsis,
     FolderOpen,
@@ -20,7 +18,8 @@
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
-  import type { CustomEdge, CustomNode, GraphValue } from "../types/schemas";
+  import type { GradioLike, GraphEvents } from "../types/gradio";
+  import type { GraphValue } from "../types/schemas";
   import { handleAddNode } from "../utils/graph/node";
   import { handleLayout, type LayoutDirection } from "../utils/layout";
   import { triggerLoad } from "../utils/toolbar/load";
@@ -31,12 +30,7 @@
   // ----------
   // Exports
   // ----------
-  export let gradio: Gradio<{
-    change: { nodes: CustomNode[]; edges: CustomEdge[] };
-    select: { nodes: CustomNode[]; edges: CustomEdge[] };
-    submit: { nodes: CustomNode[]; edges: CustomEdge[] };
-    clear_status: LoadingStatus;
-  }>;
+  export let gradio: GradioLike<GraphEvents> | undefined = undefined;
   export let value: GraphValue = {
     nodes: [],
     edges: [],

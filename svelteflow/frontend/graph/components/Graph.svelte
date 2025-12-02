@@ -2,8 +2,6 @@
   // ----------
   // Imports
   // ----------
-  import type { LoadingStatus } from "@gradio/statustracker";
-  import type { Gradio } from "@gradio/utils";
   import {
     Background,
     Controls,
@@ -21,6 +19,7 @@
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
+  import type { GradioLike, GraphEvents } from "../types/gradio";
   import type { CustomEdge, CustomNode, GraphValue } from "../types/schemas";
   import {
     handleBeforeDelete,
@@ -40,12 +39,7 @@
   // ----------
   // Exports
   // ----------
-  export let gradio: Gradio<{
-    change: { nodes: CustomNode[]; edges: CustomEdge[] };
-    select: { nodes: CustomNode[]; edges: CustomEdge[] };
-    submit: { nodes: CustomNode[]; edges: CustomEdge[] };
-    clear_status: LoadingStatus;
-  }>;
+  export let gradio: GradioLike<GraphEvents> | undefined = undefined;
   export let value: GraphValue = {
     nodes: [],
     edges: [],
