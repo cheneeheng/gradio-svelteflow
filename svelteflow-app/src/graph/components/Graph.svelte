@@ -12,7 +12,7 @@
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import type { Connection } from "@xyflow/system";
-  import { createEventDispatcher, getContext, onMount, tick } from "svelte";
+  import { createEventDispatcher, getContext, onMount } from "svelte";
   import { get, type Writable } from "svelte/store";
   import { activeStoreId } from "../stores/activeStore";
   import { storeKey } from "../stores/context";
@@ -131,19 +131,15 @@
         }))
       );
 
-      // Import fitView from the store's flow instance
-      const instance = get(flowInstance);
-      if (instance && instance.fitView) {
-        instance.fitView({
-          nodes: [{ id: targetNode.id }],
-          duration: 800,
-        });
+      fitView({
+        nodes: [{ id: targetNode.id }],
+        duration: 800,
+      });
 
-        // Notify parent that zoom is complete (they should clear zoomToNodeName)
-        setTimeout(() => {
-          dispatch("zoomComplete");
-        }, 850); // After animation completes
-      }
+      // Notify parent that zoom is complete (they should clear zoomToNodeName)
+      setTimeout(() => {
+        dispatch("zoomComplete");
+      }, 850); // After animation completes
     }
   }
 </script>
