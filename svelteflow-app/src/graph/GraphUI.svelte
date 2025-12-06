@@ -3,7 +3,12 @@
   // Imports
   // ----------
   import { SvelteFlowProvider } from "@xyflow/svelte";
-  import { onMount, setContext } from "svelte";
+  import {
+    createEventDispatcher,
+    onDestroy,
+    onMount,
+    setContext,
+  } from "svelte";
   import { get } from "svelte/store";
   import CustomEdgeEditPopup from "./components/CustomEdgeEditPopup.svelte";
   import CustomNodeEditPopup from "./components/CustomNodeEditPopup.svelte";
@@ -15,6 +20,7 @@
   import { theme } from "./stores/themeStore";
   import type { GradioLike, GraphEvents } from "./types/gradio";
   import type { CustomEdge, CustomNode, GraphValue } from "./types/schemas";
+  import { deepEqual } from "./utils/deepEquals";
   import { handleKeydown } from "./utils/graph/canvas";
   import {
     handleEdgeEditPopupCancel,
@@ -42,11 +48,20 @@
   export let canvas_min_height: string = "500px";
 
   // ----------
+  // Events
+  // ----------
+  const dispatch = createEventDispatcher<{
+    change: GraphValue;
+  }>();
+
+  // ----------
   // Local vars
   // ----------
   const stores = createGraphStores();
-  stores.instanceId.set(uuidv4());
+  const instanceId = uuidv4();
+  stores.instanceId.set(instanceId);
   setContext(storeKey, stores);
+
   const {
     editingEdge,
     editingNode,
@@ -54,9 +69,30 @@
     flowInstance,
   } = stores;
 
+  // Track previous value for deep comparison
+  let prevValueNodes: CustomNode[] = [];
+  let prevValueEdges: CustomEdge[] = [];
+
+  // Cleanup function
+  let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
   // ----------
   // Local functions
   // ----------
+  function emitChange() {
+    const newValue: GraphValue = {
+      nodes: get(stores.customNodes),
+      edges: get(stores.customEdges),
+      loaded: value.loaded,
+      zoomToNodeName: null, // Don't re-emit zoom requests
+    };
+
+    dispatch("change", newValue);
+
+    if (gradio) {
+      gradio.dispatch("change", newValue);
+    }
+  }
 
   // ----------
   // Reactivity + svelte utils
@@ -65,17 +101,49 @@
     if (gradio) {
       document.documentElement.classList.add("gradio-active");
     }
+
+    // Setup keydown handler with proper cleanup
+    keydownHandler = (e: KeyboardEvent) => handleKeydown(e, stores);
+    window.addEventListener("keydown", keydownHandler);
   });
 
-  onMount(() => {
-    interactiveStore.set(interactive);
+  onDestroy(() => {
+    // Cleanup event listeners
+    if (keydownHandler) {
+      window.removeEventListener("keydown", keydownHandler);
+    }
+
+    // Cleanup any pending timers
+    if (stores.clickTimer) {
+      clearTimeout(stores.clickTimer);
+      stores.clickTimer = null;
+    }
+
+    // Remove gradio class
+    if (gradio) {
+      document.documentElement.classList.remove("gradio-active");
+    }
   });
 
-  $: if (value) {
-    stores.customNodes.set(value.nodes);
-    stores.customEdges.set(value.edges);
+  // Update interactive state
+  $: interactiveStore.set(interactive);
+
+  // Sync value to stores only if actually changed (prevent infinite loops)
+  $: {
+    if (!deepEqual(value.nodes, prevValueNodes)) {
+      stores.customNodes.set(value.nodes);
+      prevValueNodes = value.nodes;
+    }
   }
 
+  $: {
+    if (!deepEqual(value.edges, prevValueEdges)) {
+      stores.customEdges.set(value.edges);
+      prevValueEdges = value.edges;
+    }
+  }
+
+  // Handle theme changes
   $: if (typeof document !== "undefined") {
     if ($theme === "dark") {
       document.documentElement.classList.add("dark");
@@ -89,11 +157,7 @@
     stores: GraphStores
   ) {
     handleNodeEditPopupSave(event, stores);
-    value.nodes = get(stores.customNodes);
-    value.edges = get(stores.customEdges);
-    if (gradio) {
-      gradio.dispatch("change", value);
-    }
+    emitChange();
   }
 
   function handleEdgeEditPopupSaveWrapper(
@@ -101,17 +165,13 @@
     stores: GraphStores
   ) {
     handleEdgeEditPopupSave(event, stores);
-    value.edges = get(stores.customEdges);
-    if (gradio) {
-      gradio.dispatch("change", value);
-    }
+    emitChange();
   }
 </script>
 
-<svelte:window on:keydown={(e) => handleKeydown(e, stores)} />
-
 <div class="app-container" style="min-height: {canvas_min_height};">
   <Dialogs />
+
   {#if $editingNode}
     <CustomNodeEditPopup
       node={$editingNode}
@@ -130,13 +190,14 @@
 
   <Toolbar
     {gradio}
-    bind:value
     size={toolbar_size}
     enable_save_load={toolbar_enable_save_load}
     enable_add={toolbar_enable_add}
+    on:change={emitChange}
   />
+
   <SvelteFlowProvider>
-    <Graph {gradio} bind:value />
+    <Graph {gradio} on:change={emitChange} on:zoomComplete />
   </SvelteFlowProvider>
 </div>
 
@@ -162,6 +223,7 @@
     display: flex;
     flex-direction: column;
   }
+
   :global(html.gradio-active .fullscreen.animating .app-container) {
     min-height: 0 !important;
   }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { BaseEdge, getBezierPath } from "@xyflow/svelte";
+  import { BaseEdge, getBezierPath, Position } from "@xyflow/svelte";
   import { getContext } from "svelte";
   import { derived } from "svelte/store";
   import { storeKey } from "../stores/context";
@@ -9,31 +9,49 @@
     curvature?: number;
   }
 
-  export let type;
-  export let id;
-  export let source;
-  export let sourceX;
-  export let sourceY;
-  export let target;
-  export let targetX;
-  export let targetY;
-  export let sourcePosition;
-  export let targetPosition;
-  export let sourceHandle = undefined;
-  export let targetHandle = undefined;
-  export let label: string | undefined = undefined;
-  export let labelStyle: string | undefined = undefined;
+  export let id: string;
+  export let type: string;
+  export let source: string;
+  export let target: string;
+  export let sourceHandle: string | null = null;
+  export let targetHandle: string | null = null;
+  export let animated: boolean = false;
+  export let hidden: boolean = false;
+  export let deletable: boolean = false;
+  export let selectable: boolean = false;
+  export let data: Record<string, unknown> = {};
+  export let selected: boolean = false;
   export let markerStart: string | undefined = undefined;
   export let markerEnd: string | undefined = undefined;
-  export let pathOptions: PathOptions | undefined = undefined;
+  export let zIndex: number;
+  export let ariaLabel: string | undefined = undefined;
   export let interactionWidth: number | undefined = undefined;
-  export let selected = false;
+
+  export let sourceX: number;
+  export let sourceY: number;
+  export let targetX: number;
+  export let targetY: number;
+  export let sourcePosition: Position;
+  export let targetPosition: Position;
+
+  export let label: string | undefined = undefined;
+  export let labelStyle: string | undefined = undefined;
+  export let style: string | undefined = undefined;
+  // export let class: string | undefined = undefined;
+
+  export let sourceHandleId: string | null = null;
+  export let targetHandleId: string | null = null;
+
+  export let pathOptions: PathOptions | undefined = undefined;
 
   const stores = getContext<GraphStores>(storeKey);
   const { clickedEdges, instanceId } = stores;
 
-  const highlightType = derived(clickedEdges, ($clickedEdges) => {
-    if ($clickedEdges.includes(id)) return "click";
+  // Use Set for efficient lookup
+  const clickedEdgesSet = derived(clickedEdges, ($edges) => new Set($edges));
+
+  const highlightType = derived(clickedEdgesSet, ($clicked) => {
+    if ($clicked.has(id)) return "click";
     return null;
   });
 
@@ -56,7 +74,7 @@
   $: strokeWidth = $highlightType || selected ? 3 : 1.5;
   $: style = `stroke: ${strokeColor}; stroke-width: ${strokeWidth};`;
 
-  // merge default label styles with user-provided ones
+  // Merge default label styles with user-provided ones
   const defaultLabelStyle =
     "user-select: none; pointer-events: none; font-size: 12px; fill: var(--text-color); backgroundColor: var(--node-background)";
   $: mergedLabelStyle = labelStyle

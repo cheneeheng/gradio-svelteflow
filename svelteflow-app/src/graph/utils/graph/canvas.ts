@@ -1,26 +1,63 @@
 import { type Edge, type Node } from "@xyflow/svelte";
 import type { Connection } from "@xyflow/system";
 import { get } from "svelte/store";
+import { activeStoreId } from "../../stores/activeStore";
 import type { GraphStores } from "../../stores/instanceStore";
 import type { CustomEdge, CustomNode } from "../../types/schemas";
+import { isValidConnection } from "../typeGuards";
+import { uuidv4 } from "../uuid";
 
-// SVELTEFLOW HANDLERS
+/**
+ * Handles new connections between nodes.
+ * Validates connection types and prevents invalid connections.
+ */
 export function handleConnect(
   connection: Connection,
-  { customEdges }: GraphStores
+  { customEdges, customNodes }: GraphStores
 ) {
   const { source, target, sourceHandle, targetHandle } = connection;
   if (!source || !target) return;
 
+  // [25.12.06] Allow for now.
+  // // Prevent self-loops
+  // if (source === target) {
+  //   console.warn("Cannot connect a node to itself");
+  //   return;
+  // }
+
+  // Validate connection types
+  const nodes = get(customNodes);
+  const sourceNode = nodes.find((n) => n.id === source);
+  const targetNode = nodes.find((n) => n.id === target);
+
+  if (sourceNode && targetNode && sourceHandle && targetHandle) {
+    const sourceAttr = sourceNode.data.attributes.find(
+      (a) => a.key === sourceHandle
+    );
+    const targetAttr = targetNode.data.attributes.find(
+      (a) => a.key === targetHandle
+    );
+
+    if (!isValidConnection(sourceAttr?.type, targetAttr?.type)) {
+      console.warn(
+        "Invalid connection: source must be output, target must be input"
+      );
+      return;
+    }
+  }
+
+  // Remove any temporary edges between same nodes
   let currentEdges = get(customEdges).filter(
     (e) => !(e.source === source && e.target === target && !e.label && !e.type)
   );
 
+  // Count existing edges to generate unique ID
   const parallelEdges = currentEdges.filter(
     (edge) => edge.source === source && edge.target === target
   );
-  const key = parallelEdges.length + 1;
-  const id = `${source}_${target}_${key}`;
+
+  // Use UUID for edge ID to prevent collisions
+  const id = uuidv4();
 
   const newEdge: CustomEdge = {
     id,
@@ -28,53 +65,63 @@ export function handleConnect(
     target,
     sourceHandle,
     targetHandle,
-    label: `Edge ${key}`,
+    label: `Edge ${parallelEdges.length + 1}`,
     type: "custom",
   };
 
-  customEdges.update((es) => {
-    if (
-      es.some(
-        (e) => e.source === source && e.target === target && !e.label && !e.type
-      )
-    ) {
-      es = es.filter(
-        (e) =>
-          !(e.source === source && e.target === target && !e.label && !e.type)
-      );
-    }
-    return [...es, newEdge];
-  });
+  customEdges.set([...currentEdges, newEdge]);
+  //   customEdges.update((es) => {
+  //   if (
+  //     es.some(
+  //       (e) => e.source === source && e.target === target && !e.label && !e.type
+  //     )
+  //   ) {
+  //     es = es.filter(
+  //       (e) =>
+  //         !(e.source === source && e.target === target && !e.label && !e.type)
+  //     );
+  //   }
+  //   return [...es, newEdge];
+  // });
 }
 
-// Have to use Node and Edge here for SvelteFlow component
-import { activeStoreId } from "../../stores/activeStore";
+/**
+ * Handles before-delete event with user confirmation.
+ * Returns a promise that resolves to whether deletion should proceed.
+ */
 export async function handleBeforeDelete(
   {
     nodes: nodesToDelete,
-    edges: toDeleteEdges,
+    edges: edgesToDelete,
   }: {
     nodes: Node[];
     edges: Edge[];
   },
   stores: GraphStores
 ): Promise<boolean> {
+  // Only handle if this is the active store
   if (get(activeStoreId) !== get(stores.instanceId)) {
     return false;
   }
-  if (nodesToDelete.length === 0 && toDeleteEdges.length === 0) {
+
+  if (nodesToDelete.length === 0 && edgesToDelete.length === 0) {
     return false;
   }
+
   const nodeNames = nodesToDelete
     .map((n) => (n.data as CustomNode["data"]).name)
     .join(", ");
-  const edgeIds = toDeleteEdges.map((e) => e.id).join(", ");
+  const edgeIds = edgesToDelete.map((e) => e.id).join(", ");
+
   let message = "Are you sure you want to delete ";
-  if (nodesToDelete.length > 0) message += `node(s) ${nodeNames}`;
-  if (toDeleteEdges.length > 0) {
-    if (nodesToDelete.length > 0) message += " and ";
-    message += `edge(s) ${edgeIds}`;
+  if (nodesToDelete.length > 0) {
+    message += `${nodesToDelete.length} node(s) (${nodeNames})`;
   }
+  if (edgesToDelete.length > 0) {
+    if (nodesToDelete.length > 0) message += " and ";
+    message += `${edgesToDelete.length} edge(s) (${edgeIds})`;
+  }
+  message += "?";
 
   return new Promise((resolve) => {
     stores.dialog.set({
@@ -93,6 +140,10 @@ export async function handleBeforeDelete(
   });
 }
 
+/**
+ * Handles post-deletion cleanup.
+ * Clears highlights and selections.
+ */
 export function handleDelete({
   clickedNodes,
   clickedEdges,
@@ -103,29 +154,52 @@ export function handleDelete({
   searchedNodes.set([]);
 }
 
+/**
+ * Handles clicks on the canvas pane.
+ * Clears all selections and highlights.
+ */
 export function handlePaneClick({ clickedNodes, clickedEdges }: GraphStores) {
   clickedNodes.set([]);
   clickedEdges.set([]);
 }
 
-// GLOBAL KEYDOWN
-export function handleKeydown(
-  event: KeyboardEvent,
-  {
+/**
+ * Global keydown handler for keyboard shortcuts.
+ * Currently handles Escape to clear selections.
+ */
+export function handleKeydown(event: KeyboardEvent, stores: GraphStores) {
+  const {
     customNodes,
     customEdges,
     clickedNodes,
     clickedEdges,
     searchedNodes,
     searchQuery,
-  }: GraphStores
-) {
+  } = stores;
+
+  // Don't handle if user is typing in an input
+  const target = event.target as HTMLElement;
+  if (
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.isContentEditable
+  ) {
+    return;
+  }
+
   if (event.key === "Escape") {
+    event.preventDefault();
+
+    // Clear selections
     customNodes.update((ns) => ns.map((n) => ({ ...n, selected: false })));
     customEdges.update((es) => es.map((e) => ({ ...e, selected: false })));
+
+    // Clear highlights
     clickedNodes.set([]);
     clickedEdges.set([]);
     searchedNodes.set([]);
+
+    // Clear search
     searchQuery.set("");
   }
 }
