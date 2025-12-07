@@ -18,8 +18,6 @@
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
-  import type { GradioLike, GraphEvents } from "../types/gradio";
-  import type { GraphValue } from "../types/schemas";
   import { handleAddNode } from "../utils/graph/node";
   import { handleLayout, type LayoutDirection } from "../utils/layout";
   import { triggerLoad } from "../utils/toolbar/load";
@@ -30,13 +28,6 @@
   // ----------
   // Exports
   // ----------
-  export let gradio: GradioLike<GraphEvents> | undefined = undefined;
-  export let value: GraphValue = {
-    nodes: [],
-    edges: [],
-    loaded: false,
-    zoomToNodeName: null,
-  };
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
   export let enable_save_load: boolean = false;
   export let enable_add: boolean = false;

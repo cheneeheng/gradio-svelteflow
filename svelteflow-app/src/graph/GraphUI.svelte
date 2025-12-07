@@ -52,6 +52,7 @@
   // ----------
   const dispatch = createEventDispatcher<{
     change: GraphValue;
+    zoomComplete: null;
   }>();
 
   // ----------
@@ -62,12 +63,7 @@
   stores.instanceId.set(instanceId);
   setContext(storeKey, stores);
 
-  const {
-    editingEdge,
-    editingNode,
-    interactive: interactiveStore,
-    flowInstance,
-  } = stores;
+  const { editingEdge, editingNode, interactive: interactiveStore } = stores;
 
   // Track previous value for deep comparison
   let prevValueNodes: CustomNode[] = [];
@@ -92,6 +88,10 @@
     if (gradio) {
       gradio.dispatch("change", newValue);
     }
+  }
+
+  function handleZoomComplete() {
+    dispatch("zoomComplete");
   }
 
   // ----------
@@ -136,6 +136,7 @@
     }
   }
 
+  // Sync edges
   $: {
     if (!deepEqual(value.edges, prevValueEdges)) {
       stores.customEdges.set(value.edges);
@@ -143,7 +144,14 @@
     }
   }
 
-  // Handle theme changes
+  // Sync zoom requests
+  $: {
+    if (value.zoomToNodeName) {
+      stores.zoomToNodeName.set(value.zoomToNodeName);
+    }
+  }
+
+  // Handle theme
   $: if (typeof document !== "undefined") {
     if ($theme === "dark") {
       document.documentElement.classList.add("dark");
@@ -189,7 +197,6 @@
   {/if}
 
   <Toolbar
-    {gradio}
     size={toolbar_size}
     enable_save_load={toolbar_enable_save_load}
     enable_add={toolbar_enable_add}
@@ -197,7 +204,7 @@
   />
 
   <SvelteFlowProvider>
-    <Graph {gradio} on:change={emitChange} on:zoomComplete />
+    <Graph on:change={emitChange} on:zoomComplete={handleZoomComplete} />
   </SvelteFlowProvider>
 </div>
 

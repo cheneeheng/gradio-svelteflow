@@ -1,6 +1,7 @@
 import { type Edge, type Node } from "@xyflow/svelte";
 import type { Connection } from "@xyflow/system";
 import { get } from "svelte/store";
+import { FEATURES } from "../../constants";
 import { activeStoreId } from "../../stores/activeStore";
 import type { GraphStores } from "../../stores/instanceStore";
 import type { CustomEdge, CustomNode } from "../../types/schemas";
@@ -18,12 +19,11 @@ export function handleConnect(
   const { source, target, sourceHandle, targetHandle } = connection;
   if (!source || !target) return;
 
-  // [25.12.06] Allow for now.
-  // // Prevent self-loops
-  // if (source === target) {
-  //   console.warn("Cannot connect a node to itself");
-  //   return;
-  // }
+  // Prevent self-loops if feature disabled
+  if (!FEATURES.ALLOW_SELF_LOOPS && source === target) {
+    console.warn("Cannot connect a node to itself (self-loops disabled)");
+    return;
+  }
 
   // Validate connection types
   const nodes = get(customNodes);
@@ -47,11 +47,11 @@ export function handleConnect(
   }
 
   // Remove any temporary edges between same nodes
-  let currentEdges = get(customEdges).filter(
+  const currentEdges = get(customEdges).filter(
     (e) => !(e.source === source && e.target === target && !e.label && !e.type)
   );
 
-  // Count existing edges to generate unique ID
+  // Count existing edges to generate label
   const parallelEdges = currentEdges.filter(
     (edge) => edge.source === source && edge.target === target
   );
@@ -70,19 +70,6 @@ export function handleConnect(
   };
 
   customEdges.set([...currentEdges, newEdge]);
-  //   customEdges.update((es) => {
-  //   if (
-  //     es.some(
-  //       (e) => e.source === source && e.target === target && !e.label && !e.type
-  //     )
-  //   ) {
-  //     es = es.filter(
-  //       (e) =>
-  //         !(e.source === source && e.target === target && !e.label && !e.type)
-  //     );
-  //   }
-  //   return [...es, newEdge];
-  // });
 }
 
 /**
@@ -109,17 +96,25 @@ export async function handleBeforeDelete(
   }
 
   const nodeNames = nodesToDelete
-    .map((n) => (n.data as CustomNode["data"]).name)
+    .map((n) => {
+      const data = n.data as CustomNode["data"];
+      return data.name || n.id;
+    })
     .join(", ");
-  const edgeIds = edgesToDelete.map((e) => e.id).join(", ");
+  const edgeLabels = edgesToDelete
+    .map((e) => {
+      const edge = e as CustomEdge;
+      return edge.label || edge.id;
+    })
+    .join(", ");
 
   let message = "Are you sure you want to delete ";
   if (nodesToDelete.length > 0) {
-    message += `${nodesToDelete.length} node(s) (${nodeNames})`;
+    message += `${nodesToDelete.length} node(s): ${nodeNames}`;
   }
   if (edgesToDelete.length > 0) {
     if (nodesToDelete.length > 0) message += " and ";
-    message += `${edgesToDelete.length} edge(s) (${edgeIds})`;
+    message += `${edgesToDelete.length} edge(s): ${edgeLabels}`;
   }
   message += "?";
 
