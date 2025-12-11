@@ -1,4 +1,7 @@
 <script lang="ts">
+  // ----------
+  // Imports
+  // ----------
   import { Handle, Position, useUpdateNodeInternals } from "@xyflow/svelte";
   import { ChevronDown, ChevronUp } from "lucide-svelte";
   import { getContext } from "svelte";
@@ -7,6 +10,9 @@
   import type { GraphStores } from "../stores/instanceStore";
   import type { Attribute, Handle as HandleType } from "../types/schemas";
 
+  // ----------
+  // Exports
+  // ----------
   export let id: string;
   export let data: {
     name: string;
@@ -32,23 +38,15 @@
   export let positionAbsoluteX: number;
   export let positionAbsoluteY: number;
 
-  const {
-    name,
-    description,
-    attributes = [],
-    handles = [],
-    collapsed = false,
-  } = data;
+  // ----------
+  // Events
+  // ----------
 
+  // ----------
+  // Local vars
+  // ----------
   const stores = getContext<GraphStores>(storeKey);
   const { clickedNodes, searchedNodes } = stores;
-
-  const updateNodeInternals = useUpdateNodeInternals();
-
-  // Update internals when handles change
-  $: if (handles && handles.length >= 0) {
-    updateNodeInternals(id);
-  }
 
   // Create a Set for efficient lookup
   const clickedNodesSet = derived(clickedNodes, ($nodes) => new Set($nodes));
@@ -62,6 +60,28 @@
       return null;
     }
   );
+
+  // ----------
+  // Local functions
+  // ----------
+
+  // ----------
+  // Reactivity + svelte utils
+  // ----------
+  $: ({
+    name,
+    description,
+    attributes = [],
+    handles = [],
+    collapsed = false,
+  } = data);
+
+  const updateNodeInternals = useUpdateNodeInternals();
+
+  // Update internals when the handles array changes.
+  $: if (handles && handles.length >= 0) {
+    updateNodeInternals(id);
+  }
 </script>
 
 <div
@@ -75,10 +95,10 @@
   <button
     class="attribute-toggle collapse-toggle-btn"
     on:click={(e) => e.currentTarget.blur()}
-    aria-label={data.collapsed ? "Expand node" : "Collapse node"}
-    aria-expanded={!data.collapsed}
+    aria-label={collapsed ? "Expand node" : "Collapse node"}
+    aria-expanded={!collapsed}
   >
-    {#if !data.collapsed}
+    {#if !collapsed}
       <ChevronUp size={16} aria-hidden="true" />
     {:else}
       <ChevronDown size={16} aria-hidden="true" />
@@ -90,11 +110,11 @@
   <div class="node-body">
     <div class="node-description">{description}</div>
 
-    {#if !data.collapsed && attributes.length}
+    {#if !collapsed && attributes && attributes.length}
       <hr class="divider" />
       <div class="attributes-grid">
         <div class="attributes-column">
-          {#each attributes.filter((attr) => attr.type === "input") as attr (attr.key)}
+          {#each (attributes || []).filter((attr) => attr.type === "input") as attr (attr.key)}
             {#if attr.visible}
               <div class="attribute-card">
                 <div
@@ -119,7 +139,7 @@
         </div>
 
         <div class="attributes-column">
-          {#each attributes.filter((attr) => attr.type === "output") as attr (attr.key)}
+          {#each (attributes || []).filter((attr) => attr.type === "output") as attr (attr.key)}
             {#if attr.visible}
               <div class="attribute-card">
                 <div
@@ -146,7 +166,7 @@
     {/if}
   </div>
 
-  {#if data.collapsed}
+  {#if collapsed}
     <div
       class="handle-wrapper"
       role="button"
@@ -276,7 +296,6 @@
   }
 
   .handle-wrapper {
-    position: absolute;
     pointer-events: auto;
   }
 

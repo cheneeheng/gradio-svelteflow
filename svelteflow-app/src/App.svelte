@@ -51,12 +51,12 @@
   }
 </script>
 
-<div style="height: 95vh">
+<div style="height: 90vh">
   <!-- Controls -->
   <div class="controls">
-    <label for="zoom-id"><strong>Zoom to node id:</strong></label>
+    <label for="zoom-name"><strong>Zoom to node name:</strong></label>
     <input
-      id="zoom-id"
+      id="zoom-name"
       type="text"
       placeholder="e.g. Node-abc1"
       bind:value={zoomId}
@@ -79,13 +79,13 @@
     on:change={handleGraph1Change}
   />
 
-  <GraphUI
+  <!-- <GraphUI
     toolbar_enable_save_load={true}
     toolbar_enable_add={true}
     canvas_min_height="0px"
     bind:value={graphValue2}
     on:change={handleGraph2Change}
-  />
+  /> -->
 </div>
 
 <style>

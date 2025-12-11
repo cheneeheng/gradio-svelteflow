@@ -1,4 +1,4 @@
-import { type Node } from "@xyflow/svelte";
+import { useUpdateNodeInternals, type Node } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import type { GraphStores } from "../../stores/instanceStore";
 import type {
@@ -6,7 +6,6 @@ import type {
   CustomEdge,
   CustomNode,
 } from "../../types/schemas";
-import { handleLayout } from "../layout";
 import { isCustomNode } from "../typeGuards";
 import { uuidv4 } from "../uuid";
 
@@ -212,11 +211,6 @@ export function handleNodeClick(
     );
 
     handleNodeCollapse(node.id, isCollapsed, stores);
-
-    // Re-layout after collapse animation
-    setTimeout(() => {
-      handleLayout(get(stores.layoutDirection), stores);
-    }, 0);
 
     return { action: isCollapsed ? "collapse" : "expand" };
   }

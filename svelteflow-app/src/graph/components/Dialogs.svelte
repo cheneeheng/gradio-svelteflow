@@ -1,10 +1,32 @@
 <script lang="ts">
+  // ----------
+  // Imports
+  // ----------
   import { getContext } from "svelte";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
 
+  // ----------
+  // Exports
+  // ----------
+
+  // ----------
+  // Events
+  // ----------
+
+  // ----------
+  // Local vars
+  // ----------
   const stores = getContext<GraphStores>(storeKey);
   const { dialog } = stores;
+
+  // ----------
+  // Local functions
+  // ----------
+
+  // ----------
+  // Reactivity + svelte utils
+  // ----------
 </script>
 
 {#if $dialog}

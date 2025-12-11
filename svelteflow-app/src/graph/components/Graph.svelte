@@ -54,8 +54,14 @@
   // Local vars
   // ----------
   const stores = getContext<GraphStores>(storeKey);
-  const { customEdges, customNodes, flowInstance, interactive, instanceId } =
-    stores;
+  const {
+    customEdges,
+    customNodes,
+    flowInstance,
+    interactive,
+    instanceId,
+    zoomToNodeName,
+  } = stores;
 
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
@@ -112,22 +118,20 @@
   const { fitView } = useSvelteFlow();
 
   // Watch for zoom requests from parent via store
-  let currentZoomTarget: string | null = null;
-  $: if (
-    stores.zoomToNodeName &&
-    get(stores.zoomToNodeName) !== currentZoomTarget
-  ) {
-    const targetName = get(stores.zoomToNodeName);
-    currentZoomTarget = targetName;
+  $: if ($zoomToNodeName) {
+    const targetName = $zoomToNodeName;
 
-    if (targetName && get(flowInstance)) {
-      const nodes = get(stores.customNodes);
+    if (targetName && $flowInstance) {
+      const nodes = $customNodes;
       const targetNode = nodes.find((n) => n.data.name === targetName);
 
       if (targetNode) {
+        // Clear the store value immediately to prevent re-triggering
+        stores.zoomToNodeName.set(null);
+
         // Select the target node
-        stores.customNodes.set(
-          nodes.map((n) => ({
+        stores.customNodes.update((ns) =>
+          ns.map((n) => ({
             ...n,
             selected: n.id === targetNode.id,
           }))
@@ -139,11 +143,15 @@
           duration: ZOOM_ANIMATION_DURATION,
         });
 
-        // Notify parent that zoom is complete
+        // Notify parent that zoom is complete AFTER animation
         setTimeout(() => {
           dispatch("zoomComplete");
-          currentZoomTarget = null;
         }, ZOOM_ANIMATION_DURATION + ZOOM_COMPLETE_BUFFER);
+      } else {
+        // Node not found, clear the request
+        stores.zoomToNodeName.set(null);
+        // also dispatch zoom complete to reset the UI
+        dispatch("zoomComplete");
       }
     }
   }

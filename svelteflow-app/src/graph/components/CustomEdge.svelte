@@ -1,10 +1,16 @@
 <script lang="ts">
+  // ----------
+  // Imports
+  // ----------
   import { BaseEdge, getBezierPath, Position } from "@xyflow/svelte";
   import { getContext } from "svelte";
   import { derived } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
 
+  // ----------
+  // Exports
+  // ----------
   interface PathOptions {
     curvature?: number;
   }
@@ -44,6 +50,13 @@
 
   export let pathOptions: PathOptions | undefined = undefined;
 
+  // ----------
+  // Events
+  // ----------
+
+  // ----------
+  // Local vars
+  // ----------
   const stores = getContext<GraphStores>(storeKey);
   const { clickedEdges, instanceId } = stores;
 
@@ -55,6 +68,13 @@
     return null;
   });
 
+  // ----------
+  // Local functions
+  // ----------
+
+  // ----------
+  // Reactivity + svelte utils
+  // ----------
   $: [path, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
