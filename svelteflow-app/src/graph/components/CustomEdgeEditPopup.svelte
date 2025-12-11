@@ -1,13 +1,28 @@
 <script lang="ts">
+  // ----------
+  // Imports
+  // ----------
   import { createEventDispatcher } from "svelte";
   import type { CustomEdge } from "../types/schemas";
 
+  // ----------
+  // Exports
+  // ----------
   export let edge: CustomEdge;
 
-  let label = edge.label || "";
-
+  // ----------
+  // Events
+  // ----------
   const dispatch = createEventDispatcher();
 
+  // ----------
+  // Local vars
+  // ----------
+  let label = edge.label || "";
+
+  // ----------
+  // Local functions
+  // ----------
   function save() {
     const updatedEdge: CustomEdge = {
       ...edge,
@@ -19,6 +34,10 @@
   function cancel() {
     dispatch("cancel");
   }
+
+  // ----------
+  // Reactivity + svelte utils
+  // ----------
 </script>
 
 <div class="popup-overlay" on:click={cancel}>

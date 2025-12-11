@@ -10,7 +10,7 @@ app_file: space.py
 ---
 
 # `gradio_svelteflow`
-<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.4%20-%20orange">  
+<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.0.5%20-%20orange">  
 
 Gradio component to render graphs using svelteflow.
 

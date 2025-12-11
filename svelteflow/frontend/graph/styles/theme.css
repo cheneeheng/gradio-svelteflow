@@ -1,6 +1,7 @@
 :root {
   --background: #ffffff;
   --text-color: #222;
+  --text-color-secondary: #666;
   --node-background: #f0f0f0;
   --node-border: #333;
   --header-background: #e0e0e0;
@@ -28,12 +29,20 @@
   --search-color: rgba(110, 220, 110, 0.9);
   --badge-background: #e9ecef;
   --danger-color: #e53e3e;
+  --danger-color-light: rgba(229, 62, 62, 0.1);
   --table-header-background: #f7fafc;
+
+  /* Semantic z-index scale: defines stacking order for nodes, toolbars, popups, and dialogs */
+  --z-node: 1;
+  --z-toolbar: 10;
+  --z-popup: 100;
+  --z-dialog: 200;
 }
 
 :root.dark {
   --background: #333333;
   --text-color: #f0f0f0;
+  --text-color-secondary: #aaa;
   --node-background: #555555;
   --node-border: #f0f0f0;
   --header-background: #444444;
@@ -60,7 +69,50 @@
   --selection-color: rgba(0, 123, 255, 0.9);
   --search-color: rgba(110, 220, 110, 0.9);
   --badge-background: #6c7680;
-  /* --badge-background: #495057; */
   --danger-color: #fc8181;
+  --danger-color-light: rgba(252, 129, 129, 0.1);
   --table-header-background: #2d3748;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus visible styles for better keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--input-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--button-background);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--button-hover-background);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--button-background) var(--input-background);
 }

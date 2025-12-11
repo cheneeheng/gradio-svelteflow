@@ -1,17 +1,32 @@
 <script lang="ts">
+  // ----------
+  // Imports
+  // ----------
   import { Plus, Trash2 } from "lucide-svelte";
   import { createEventDispatcher } from "svelte";
   import type { CustomNode } from "../types/schemas";
 
+  // ----------
+  // Exports
+  // ----------
   export let node: CustomNode;
 
+  // ----------
+  // Events
+  // ----------
+  const dispatch = createEventDispatcher();
+
+  // ----------
+  // Local vars
+  // ----------
   let name = node.data.name;
   let description = node.data.description;
   // let attributes = JSON.parse(JSON.stringify(node.data.attributes));
   let attributes = [...node.data.attributes]; // local copy
 
-  const dispatch = createEventDispatcher();
-
+  // ----------
+  // Local functions
+  // ----------
   function addAttribute() {
     attributes = [
       ...attributes,
@@ -39,6 +54,10 @@
   function cancel() {
     dispatch("cancel");
   }
+
+  // ----------
+  // Reactivity + svelte utils
+  // ----------
 </script>
 
 <div class="popup-overlay" on:click={cancel}>

@@ -13,13 +13,11 @@
     Settings,
     Sun,
   } from "lucide-svelte";
-  import { getContext } from "svelte";
+  import { createEventDispatcher, getContext, onMount } from "svelte";
   import { get } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
-  import type { GradioLike, GraphEvents } from "../types/gradio";
-  import type { GraphValue } from "../types/schemas";
   import { handleAddNode } from "../utils/graph/node";
   import { handleLayout, type LayoutDirection } from "../utils/layout";
   import { triggerLoad } from "../utils/toolbar/load";
@@ -30,23 +28,24 @@
   // ----------
   // Exports
   // ----------
-  export let gradio: GradioLike<GraphEvents> | undefined = undefined;
-  export let value: GraphValue = {
-    nodes: [],
-    edges: [],
-    loaded: false,
-    zoomToNodeName: null,
-  };
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
   export let enable_save_load: boolean = false;
   export let enable_add: boolean = false;
+
+  // ----------
+  // Events
+  // ----------
+  const dispatch = createEventDispatcher<{
+    change: null;
+  }>();
 
   // ----------
   // Local vars
   // ----------
   const stores = getContext<GraphStores>(storeKey);
   const { searchQuery, layoutDirection } = stores;
-  const search = debouncedSearch(stores);
+
+  let search: ReturnType<typeof debouncedSearch>;
 
   // for toolbar sizing
   let currentIconSize: number;
@@ -56,39 +55,44 @@
   // ----------
   // Local functions
   // ----------
+  function emitChange() {
+    dispatch("change");
+  }
+
   function handleLayoutWrapper(
     layoutDirection: LayoutDirection,
     stores: GraphStores
   ) {
     handleLayout(layoutDirection, stores);
-    value.nodes = get(stores.customNodes);
-    value.edges = get(stores.customEdges);
-    if (gradio) {
-      gradio.dispatch("change", value);
-    }
+    emitChange();
   }
 
   function handleAddNodeWrapper(stores: GraphStores) {
     handleAddNode(stores);
-    value.nodes = get(stores.customNodes);
-    if (gradio) {
-      gradio.dispatch("change", value);
-    }
+    emitChange();
   }
 
   function triggerLoadWrapper(stores: GraphStores) {
     triggerLoad(stores);
-    value.nodes = get(stores.customNodes);
-    value.edges = get(stores.customEdges);
-    value.loaded = true;
-    if (gradio) {
-      gradio.dispatch("change", value);
-    }
+    emitChange();
+  }
+
+  // Watch layout direction changes and trigger re-layout
+  let previousLayoutDirection: LayoutDirection = get(layoutDirection);
+  $: if ($layoutDirection !== previousLayoutDirection) {
+    previousLayoutDirection = $layoutDirection;
+    handleLayoutWrapper($layoutDirection, stores);
   }
 
   // ----------
   // Reactivity + svelte utils
   // ----------
+  onMount(() => {
+    // Create the debounced search function and store it
+    search = debouncedSearch(stores);
+    stores.debouncedSearchFn = search;
+  });
+
   $: {
     switch (size) {
       case "extra-small":
@@ -118,57 +122,89 @@
 
 <div
   class="toolbar"
+  role="toolbar"
+  aria-label="Graph editing toolbar"
   style="--toolbar-padding: {currentPadding}; --toolbar-font-size: {currentFontSize};"
 >
   <div class="search-bar" style="padding: var(--toolbar-padding);">
-    <Search size={currentIconSize} />
+    <Search size={currentIconSize} aria-hidden="true" />
     <input
       type="text"
       bind:value={$searchQuery}
       on:input={search}
       placeholder="Search nodes..."
+      aria-label="Search nodes by name"
       style="font-size: var(--toolbar-font-size);"
     />
   </div>
+
   {#if enable_add}
     <button
       class="toolbar-button"
       on:click={() => handleAddNodeWrapper(stores)}
-      title="Add a new node"><Plus size={currentIconSize} /></button
+      aria-label="Add a new node"
+      title="Add a new node"
     >
+      <Plus size={currentIconSize} aria-hidden="true" />
+    </button>
   {/if}
+
   {#if enable_save_load}
     <button
       class="toolbar-button"
       on:click={async () => await handleSaveGraph(stores)}
-      title="Save graph"><Save size={currentIconSize} /></button
+      aria-label="Save graph"
+      title="Save graph"
     >
+      <Save size={currentIconSize} aria-hidden="true" />
+    </button>
     <button
       class="toolbar-button"
       on:click={() => triggerLoadWrapper(stores)}
-      title="Load graph"><FolderOpen size={currentIconSize} /></button
+      aria-label="Load graph"
+      title="Load graph"
     >
+      <FolderOpen size={currentIconSize} aria-hidden="true" />
+    </button>
   {/if}
+
   <button
     class="toolbar-button"
     on:click={() => handleLayoutWrapper($layoutDirection, stores)}
-    title="Relayout nodes"><LayoutDashboard size={currentIconSize} /></button
+    aria-label="Relayout nodes"
+    title="Relayout nodes"
   >
-  <select bind:value={$layoutDirection} title="Layout direction">
+    <LayoutDashboard size={currentIconSize} aria-hidden="true" />
+  </button>
+
+  <label for="layout-direction" class="sr-only">Layout direction</label>
+  <select
+    id="layout-direction"
+    bind:value={$layoutDirection}
+    aria-label="Layout direction"
+  >
     <option value="TB">Vertical</option>
     <option value="LR">Horizontal</option>
   </select>
-  <button class="toolbar-button" title="Settings"
-    ><Settings size={currentIconSize} /></button
+
+  <button class="toolbar-button" aria-label="Settings" title="Settings">
+    <Settings size={currentIconSize} aria-hidden="true" />
+  </button>
+
+  <button class="toolbar-button" aria-label="More options" title="More options">
+    <Ellipsis size={currentIconSize} aria-hidden="true" />
+  </button>
+
+  <button
+    class="toolbar-button"
+    on:click={toggleTheme}
+    aria-label="Toggle theme"
+    title="Toggle theme"
   >
-  <button class="toolbar-button" title="More options"
-    ><Ellipsis size={currentIconSize} /></button
-  >
-  <button class="toolbar-button" on:click={toggleTheme} title="Toggle theme">
     {#if $theme === "light"}
-      <Moon size={currentIconSize} />
+      <Moon size={currentIconSize} aria-hidden="true" />
     {:else}
-      <Sun size={currentIconSize} />
+      <Sun size={currentIconSize} aria-hidden="true" />
     {/if}
   </button>
 </div>
@@ -220,6 +256,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.2s;
   }
 
   .toolbar-button:hover {
@@ -235,5 +272,6 @@
     font-size: var(--toolbar-font-size);
     line-height: 1; /* ensures line box = font size */
     padding-right: 2em;
+    cursor: pointer;
   }
 </style>
