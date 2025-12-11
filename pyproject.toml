@@ -1,6 +1,6 @@
 [project]
 name = "gradio-svelteflow"
-version = "0.0.1"
+version = "0.0.6"
 description = "Gradio component for svelteflow"
 authors = [{ name = "ChenEeHeng", email = "eeheng.chen@gmail.com" }]
 readme = "README.md"
