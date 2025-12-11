@@ -1,5 +1,6 @@
-import { useUpdateNodeInternals, type Node } from "@xyflow/svelte";
+import { type Node } from "@xyflow/svelte";
 import { get } from "svelte/store";
+import { DOUBLE_CLICK_DELAY } from "../../constants";
 import type { GraphStores } from "../../stores/instanceStore";
 import type {
   CollapsibleEdgeData,
@@ -8,8 +9,6 @@ import type {
 } from "../../types/schemas";
 import { isCustomNode } from "../typeGuards";
 import { uuidv4 } from "../uuid";
-
-const DOUBLE_CLICK_DELAY = 250;
 
 /**
  * Adds a new node to the graph at the center of the viewport.
@@ -54,7 +53,7 @@ function handleNodeCollapse(
   customEdges.update((edges) => {
     return edges.map((edge) => {
       let updatedEdge = edge;
-      const data = (edge.data || {}) as CollapsibleEdgeData;
+      const data: CollapsibleEdgeData = edge.data || {};
 
       // Handle source
       if (edge.source === nodeId) {
@@ -169,8 +168,13 @@ export function handleNodeDragStop(
   }
 
   // Use small delay to allow drag to complete
-  setTimeout(() => {
+  if (stores.dragStopTimer) {
+    clearTimeout(stores.dragStopTimer);
+  }
+
+  stores.dragStopTimer = setTimeout(() => {
     stores.isDragging = false;
+    stores.dragStopTimer = null;
   }, 10);
 }
 

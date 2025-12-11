@@ -170,10 +170,11 @@
     <LayoutDashboard size={currentIconSize} aria-hidden="true" />
   </button>
 
+  <label for="layout-direction" class="sr-only">Layout direction</label>
   <select
+    id="layout-direction"
     bind:value={$layoutDirection}
     aria-label="Layout direction"
-    title="Layout direction"
   >
     <option value="TB">Vertical</option>
     <option value="LR">Horizontal</option>

@@ -119,6 +119,10 @@
       stores.clickTimer = null;
     }
 
+    if (stores.dragStopTimer) {
+      clearTimeout(stores.dragStopTimer);
+    }
+
     // Remove gradio class
     if (gradio) {
       document.documentElement.classList.remove("gradio-active");

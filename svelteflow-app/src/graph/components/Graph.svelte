@@ -137,16 +137,21 @@
           }))
         );
 
-        // Zoom to the node
-        fitView({
-          nodes: [{ id: targetNode.id }],
-          duration: ZOOM_ANIMATION_DURATION,
-        });
+        try {
+          // Zoom to the node
+          fitView({
+            nodes: [{ id: targetNode.id }],
+            duration: ZOOM_ANIMATION_DURATION,
+          });
 
-        // Notify parent that zoom is complete AFTER animation
-        setTimeout(() => {
-          dispatch("zoomComplete");
-        }, ZOOM_ANIMATION_DURATION + ZOOM_COMPLETE_BUFFER);
+          // Notify parent that zoom is complete AFTER animation
+          setTimeout(() => {
+            dispatch("zoomComplete");
+          }, ZOOM_ANIMATION_DURATION + ZOOM_COMPLETE_BUFFER);
+        } catch (error) {
+          console.error("Zoom failed:", error);
+          dispatch("zoomComplete"); // Still complete to reset UI
+        }
       } else {
         // Node not found, clear the request
         stores.zoomToNodeName.set(null);

@@ -24,6 +24,7 @@ export function createGraphStores() {
 
   // Non-store state for timers and flags
   let clickTimer: ReturnType<typeof setTimeout> | null = null;
+  let dragStopTimer: ReturnType<typeof setTimeout> | null = null;
   let isDragging: boolean = false;
 
   const uiStores = createUIStores();
@@ -45,6 +46,7 @@ export function createGraphStores() {
     searchedNodes,
     ...uiStores,
     clickTimer,
+    dragStopTimer,
     isDragging,
   };
 }

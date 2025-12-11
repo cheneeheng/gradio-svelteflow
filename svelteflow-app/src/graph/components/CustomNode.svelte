@@ -9,6 +9,7 @@
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import type { Attribute, Handle as HandleType } from "../types/schemas";
+  import { HANDLE_OFFSET } from "../constants";
 
   // ----------
   // Exports
@@ -60,6 +61,9 @@
       return null;
     }
   );
+
+  const handleStyleLeft = `top: ${HANDLE_OFFSET.VERTICAL}; left: ${HANDLE_OFFSET.LEFT}px;`;
+  const handleStyleRight = `top: ${HANDLE_OFFSET.VERTICAL}; right: ${HANDLE_OFFSET.RIGHT}px;`;
 
   // ----------
   // Local functions
@@ -127,7 +131,7 @@
                     type="target"
                     position={Position.Left}
                     id={attr.key}
-                    style="top: 50%; left: -13px;"
+                    style={handleStyleLeft}
                     isConnectable={attr.connectable}
                   />
                 </div>
@@ -152,7 +156,7 @@
                     type="source"
                     position={Position.Right}
                     id={attr.key}
-                    style="top: 50%; right: -13px;"
+                    style={handleStyleRight}
                     isConnectable={attr.connectable}
                   />
                 </div>
