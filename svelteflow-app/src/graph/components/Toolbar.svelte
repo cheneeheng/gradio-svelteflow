@@ -13,7 +13,7 @@
     Settings,
     Sun,
   } from "lucide-svelte";
-  import { createEventDispatcher, getContext } from "svelte";
+  import { createEventDispatcher, getContext, onMount } from "svelte";
   import { get } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
@@ -44,7 +44,8 @@
   // ----------
   const stores = getContext<GraphStores>(storeKey);
   const { searchQuery, layoutDirection } = stores;
-  const search = debouncedSearch(stores);
+
+  let search: ReturnType<typeof debouncedSearch>;
 
   // for toolbar sizing
   let currentIconSize: number;
@@ -86,6 +87,12 @@
   // ----------
   // Reactivity + svelte utils
   // ----------
+  onMount(() => {
+    // Create the debounced search function and store it
+    search = debouncedSearch(stores);
+    stores.debouncedSearchFn = search;
+  });
+
   $: {
     switch (size) {
       case "extra-small":

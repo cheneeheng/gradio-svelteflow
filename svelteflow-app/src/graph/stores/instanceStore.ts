@@ -26,6 +26,7 @@ export function createGraphStores() {
   let clickTimer: ReturnType<typeof setTimeout> | null = null;
   let dragStopTimer: ReturnType<typeof setTimeout> | null = null;
   let isDragging: boolean = false;
+  let debouncedSearchFn: ((() => void) & { cancel: () => void }) | null = null;
 
   const uiStores = createUIStores();
 
@@ -48,6 +49,7 @@ export function createGraphStores() {
     clickTimer,
     dragStopTimer,
     isDragging,
+    debouncedSearchFn,
   };
 }
 

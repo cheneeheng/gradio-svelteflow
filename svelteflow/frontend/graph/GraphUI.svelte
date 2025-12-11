@@ -123,6 +123,12 @@
       clearTimeout(stores.dragStopTimer);
     }
 
+    // Cancel pending search
+    if (stores.debouncedSearchFn) {
+      stores.debouncedSearchFn.cancel();
+      stores.debouncedSearchFn = null;
+    }
+
     // Remove gradio class
     if (gradio) {
       document.documentElement.classList.remove("gradio-active");
