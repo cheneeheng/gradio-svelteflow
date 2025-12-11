@@ -12,15 +12,15 @@
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import type { Connection } from "@xyflow/system";
-  import { getContext, onMount, tick } from "svelte";
+  import { createEventDispatcher, getContext, onMount } from "svelte";
   import { get, type Writable } from "svelte/store";
+  import { ZOOM_ANIMATION_DURATION, ZOOM_COMPLETE_BUFFER } from "../constants";
   import { activeStoreId } from "../stores/activeStore";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
-  import type { GradioLike, GraphEvents } from "../types/gradio";
-  import type { CustomEdge, CustomNode, GraphValue } from "../types/schemas";
+  import type { CustomEdge, CustomNode } from "../types/schemas";
   import {
     handleBeforeDelete,
     handleConnect,
@@ -39,51 +39,52 @@
   // ----------
   // Exports
   // ----------
-  export let gradio: GradioLike<GraphEvents> | undefined = undefined;
-  export let value: GraphValue = {
-    nodes: [],
-    edges: [],
-    loaded: false,
-    zoomToNodeName: null,
-  };
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;
+
+  // ----------
+  // Events
+  // ----------
+  const dispatch = createEventDispatcher<{
+    zoomComplete: null;
+    change: null;
+  }>();
 
   // ----------
   // Local vars
   // ----------
   const stores = getContext<GraphStores>(storeKey);
-  const { customEdges, customNodes, flowInstance, interactive, instanceId } =
-    stores;
+  const {
+    customEdges,
+    customNodes,
+    flowInstance,
+    interactive,
+    instanceId,
+    zoomToNodeName,
+  } = stores;
 
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
 
   let flowInstanceLocal: SvelteFlow;
-
-  // local bindings are store references
   let nodesLocal: Writable<CustomNode[]> = customNodes;
   let edgesLocal: Writable<CustomEdge[]> = customEdges;
 
   // ----------
   // Local functions
   // ----------
+  function emitChange() {
+    dispatch("change");
+  }
+
   function handleConnectWrapper(connection: Connection, stores: GraphStores) {
     handleConnect(connection, stores);
-    // value.nodes = get(customNodes);
-    value.edges = get(customEdges);
-    if (gradio) {
-      gradio.dispatch("change", value);
-    }
+    emitChange();
   }
 
   function handleDeleteWrapper(stores: GraphStores) {
     handleDelete(stores);
-    value.nodes = get(stores.customNodes);
-    value.edges = get(stores.customEdges);
-    if (gradio) {
-      gradio.dispatch("change", value);
-    }
+    emitChange();
   }
 
   function handleNodeClickWrapper(
@@ -94,12 +95,13 @@
     stores: GraphStores
   ) {
     const result = handleNodeClick(customEvent, stores);
-    if (result && result.action === "edit") {
-      value.nodes = get(stores.customNodes);
-      value.edges = get(stores.customEdges);
-      if (gradio) {
-        gradio.dispatch("change", value);
-      }
+    if (
+      result &&
+      (result.action === "edit" ||
+        result.action === "collapse" ||
+        result.action === "expand")
+    ) {
+      emitChange();
     }
   }
 
@@ -108,29 +110,54 @@
   // ----------
   onMount(() => {
     if (flowInstanceLocal) {
-      flowInstance.set(flowInstanceLocal); // register instance in store
+      flowInstance.set(flowInstanceLocal);
     }
   });
 
+  // Get fitView from useSvelteFlow hook
   const { fitView } = useSvelteFlow();
 
-  $: if (value.zoomToNodeName && get(flowInstance)) {
-    const newNodes = get(stores.customNodes).map((n) => ({
-      ...n,
-      selected: n.data.name === value.zoomToNodeName,
-    }));
-    stores.customNodes.set(newNodes);
+  // Watch for zoom requests from parent via store
+  $: if ($zoomToNodeName) {
+    const targetName = $zoomToNodeName;
 
-    const node = newNodes.find((n) => n.data.name === value.zoomToNodeName);
-    if (node) {
-      fitView({
-        nodes: [{ id: node.id }],
-        duration: 800,
-      });
-      // Reset zoomToNodeName after this reactive cycle
-      tick().then(() => {
-        value.zoomToNodeName = null;
-      });
+    if (targetName && $flowInstance) {
+      const nodes = $customNodes;
+      const targetNode = nodes.find((n) => n.data.name === targetName);
+
+      if (targetNode) {
+        // Clear the store value immediately to prevent re-triggering
+        stores.zoomToNodeName.set(null);
+
+        // Select the target node
+        stores.customNodes.update((ns) =>
+          ns.map((n) => ({
+            ...n,
+            selected: n.id === targetNode.id,
+          }))
+        );
+
+        try {
+          // Zoom to the node
+          fitView({
+            nodes: [{ id: targetNode.id }],
+            duration: ZOOM_ANIMATION_DURATION,
+          });
+
+          // Notify parent that zoom is complete AFTER animation
+          setTimeout(() => {
+            dispatch("zoomComplete");
+          }, ZOOM_ANIMATION_DURATION + ZOOM_COMPLETE_BUFFER);
+        } catch (error) {
+          console.error("Zoom failed:", error);
+          dispatch("zoomComplete"); // Still complete to reset UI
+        }
+      } else {
+        // Node not found, clear the request
+        stores.zoomToNodeName.set(null);
+        // also dispatch zoom complete to reset the UI
+        dispatch("zoomComplete");
+      }
     }
   }
 </script>

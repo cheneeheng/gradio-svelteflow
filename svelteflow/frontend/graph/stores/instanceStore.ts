@@ -16,13 +16,15 @@ export function createGraphStores() {
   const interactive = writable<boolean>(true);
   const flowInstance = writable<SvelteFlow | null>(null);
   const layoutDirection: Writable<LayoutDirection> = writable("LR");
+  const zoomToNodeName = writable<string | null>(null);
 
   const clickedNodes = writable<string[]>([]);
   const clickedEdges = writable<string[]>([]);
   const searchedNodes = writable<string[]>([]);
 
-  // non-store state
+  // Non-store state for timers and flags
   let clickTimer: ReturnType<typeof setTimeout> | null = null;
+  let dragStopTimer: ReturnType<typeof setTimeout> | null = null;
   let isDragging: boolean = false;
 
   const uiStores = createUIStores();
@@ -38,11 +40,13 @@ export function createGraphStores() {
     interactive,
     flowInstance,
     layoutDirection,
+    zoomToNodeName,
     clickedNodes,
     clickedEdges,
     searchedNodes,
     ...uiStores,
     clickTimer,
+    dragStopTimer,
     isDragging,
   };
 }
