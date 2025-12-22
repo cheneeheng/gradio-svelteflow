@@ -1,5 +1,5 @@
 <script lang="ts">
-  import GraphUI from "./graph/GraphUI.svelte";
+  import GraphUI from "$shared/GraphUI.svelte";
 
   let zoomId = "";
   let graphValue1 = {
