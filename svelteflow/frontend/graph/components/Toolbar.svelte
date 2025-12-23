@@ -20,6 +20,7 @@
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
+  import type { GraphEventMeta } from "../types/schemas";
   import {
     clearSelection,
     handleBeforeDelete,
@@ -45,7 +46,7 @@
   // Events
   // ----------
   const dispatch = createEventDispatcher<{
-    change: null;
+    change: Partial<GraphEventMeta> | undefined;
   }>();
 
   // ----------
@@ -78,8 +79,8 @@
   // ----------
   // Local functions
   // ----------
-  function emitChange() {
-    dispatch("change");
+  function emitChange(meta?: Partial<GraphEventMeta>) {
+    dispatch("change", meta);
   }
 
   function handleLayoutWrapper(
@@ -87,22 +88,34 @@
     stores: GraphStores
   ) {
     handleLayout(layoutDirection, stores, layout_engine);
-    emitChange();
+    emitChange({
+      eventType: "change",
+      handleId: "toolbar:layout",
+      sourceType: "toolbar",
+    });
   }
 
   function handleAddNodeWrapper(stores: GraphStores) {
     handleAddNode(stores);
-    emitChange();
+    emitChange({
+      eventType: "change",
+      handleId: "toolbar:add-node",
+      sourceType: "toolbar",
+    });
   }
 
   function triggerLoadWrapper(stores: GraphStores) {
     triggerLoad(stores);
-    emitChange();
+    emitChange({
+      eventType: "load",
+      handleId: "toolbar:load",
+      sourceType: "toolbar",
+    });
   }
 
   function handleClearSelectionWrapper(stores: GraphStores) {
-    clearSelection(stores);
-    emitChange();
+    const meta = clearSelection(stores);
+    emitChange(meta);
   }
 
   async function handleDeleteButtonWrapper(stores: GraphStores) {
@@ -120,7 +133,11 @@
       customNodes.update((ns) => ns.filter((n) => !n.selected));
       customEdges.update((es) => es.filter((e) => !e.selected));
       handleDelete(stores);
-      emitChange();
+      emitChange({
+        eventType: "delete",
+        handleId: "toolbar:delete",
+        sourceType: "toolbar",
+      });
     }
   }
 

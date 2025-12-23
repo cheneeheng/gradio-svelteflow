@@ -99,6 +99,11 @@
       zoomToNodeName: null, // Don't re-emit zoom requests
     };
 
+    // Update local track values to prevent sync loop/overwrite
+    prevValueNodes = newValue.nodes;
+    prevValueEdges = newValue.edges;
+    value = newValue;
+
     dispatch("change", newValue);
 
     if (gradio) {
@@ -263,12 +268,12 @@
     enable_add={toolbar_enable_add}
     {layout_engine}
     {toolbar_visibility}
-    on:change={emitChange}
+    on:change={(e) => emitChange(e.detail)}
   />
 
   <SvelteFlowProvider>
     <Graph
-      on:change={emitChange}
+      on:change={(e) => emitChange(e.detail)}
       on:zoomComplete={handleZoomComplete}
       {enable_virtualization}
       {enable_grid_snap}

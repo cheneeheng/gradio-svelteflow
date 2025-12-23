@@ -61,8 +61,7 @@
   // ----------
   const dispatch = createEventDispatcher<{
     zoomComplete: null;
-    change: null;
-    event: GraphEventMeta;
+    change: Partial<GraphEventMeta> | undefined;
   }>();
 
   // ----------
@@ -113,8 +112,8 @@
   // ----------
   // Local functions
   // ----------
-  function emitChange() {
-    dispatch("change");
+  function emitChange(meta?: Partial<GraphEventMeta>) {
+    dispatch("change", meta);
   }
 
   function updateVisibility() {
@@ -143,13 +142,12 @@
   }
 
   function handleMoveEnd(e: CustomEvent<{ viewport: Viewport }>) {
-    dispatch("event", {
+    emitChange({
       eventType: "viewportChange",
       handleId: "graph:viewport",
       sourceType: "viewport",
       timestamp: new Date().toISOString(),
     });
-    emitChange();
   }
 
   // Reactively update index and visibility when nodes change
@@ -160,12 +158,20 @@
 
   function handleConnectWrapper(connection: Connection, stores: GraphStores) {
     handleConnect(connection, stores);
-    emitChange();
+    emitChange({
+      eventType: "change",
+      handleId: "graph:connect",
+      sourceType: "node",
+    });
   }
 
   function handleDeleteWrapper(stores: GraphStores) {
     handleDelete(stores);
-    emitChange();
+    emitChange({
+      eventType: "delete",
+      handleId: "graph:delete",
+      sourceType: "graph",
+    });
   }
 
   function handleNodeClickWrapper(
@@ -182,7 +188,12 @@
         result.action === "collapse" ||
         result.action === "expand")
     ) {
-      emitChange();
+      emitChange({
+        eventType: "change",
+        handleId: `graph:node:${result.action}`,
+        sourceType: "node",
+        sourceId: customEvent.detail.node.id,
+      });
     }
   }
 
@@ -264,13 +275,12 @@
     on:nodedragstart={(e) => handleNodeDragStart(e, stores)}
     on:nodedragstop={(e) => {
       handleNodeDragStop(e, stores);
-      dispatch("event", {
+      emitChange({
         eventType: "nodeMove",
         handleId: "graph:drag",
         sourceType: "node",
         timestamp: new Date().toISOString(),
       });
-      emitChange();
     }}
     on:nodeclick={(e) => {
       activeStoreId.set(get(instanceId));
@@ -284,8 +294,7 @@
       activeStoreId.set(get(instanceId));
       const meta = handlePaneClick(stores);
       if (meta) {
-        dispatch("event", meta);
-        emitChange();
+        emitChange(meta);
       }
     }}
     onconnect={(e) => handleConnectWrapper(e, stores)}
