@@ -22,9 +22,7 @@
     }
   },
   "context": {
-    "fileName": [
-      "agent-tasks/AGENTS.md"
-    ]
+    "fileName": ["agent-tasks/AGENTS.md"]
   },
   "ide": {
     "hasSeenNudge": true,
@@ -33,6 +31,11 @@
   "mcpServers": {
     "gradio": {
       "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/sse"
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"],
+      "timeout": 10000
     }
   },
   "tools": {
