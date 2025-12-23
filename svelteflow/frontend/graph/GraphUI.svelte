@@ -17,9 +17,16 @@
   import Toolbar from "./components/Toolbar.svelte";
   import { storeKey } from "./stores/context";
   import { createGraphStores, type GraphStores } from "./stores/instanceStore";
+  import { styleConfig } from "./stores/styleStore";
   import { theme } from "./stores/themeStore";
   import type { GradioLike, GraphEvents } from "./types/gradio";
-  import type { CustomEdge, CustomNode, GraphValue } from "./types/schemas";
+  import type {
+    CustomEdge,
+    CustomNode,
+    GraphEventMeta,
+    GraphEventPayload,
+    GraphValue,
+  } from "./types/schemas";
   import { deepEqual } from "./utils/deepEquals";
   import { handleKeydown } from "./utils/graph/canvas";
   import {
@@ -46,6 +53,15 @@
   export let toolbar_enable_save_load: boolean = false;
   export let toolbar_enable_add: boolean = false;
   export let canvas_min_height: string = "500px";
+  export let enable_virtualization: boolean = false;
+  export let enable_grid_snap: boolean = false;
+  export let grid_size: number = 20;
+  export let layout_engine: "dagre" | "elkjs" = "dagre";
+  export let toolbar_visibility: Record<string, boolean> = {};
+  export let node_size_scale: number = 1;
+  export let node_font_size: number = 14;
+  export let edge_width: number = 2;
+  export let edge_label_font_size: number = 12;
 
   // ----------
   // Events
@@ -75,7 +91,7 @@
   // ----------
   // Local functions
   // ----------
-  function emitChange() {
+  function emitChange(meta?: Partial<GraphEventMeta>) {
     const newValue: GraphValue = {
       nodes: get(stores.customNodes),
       edges: get(stores.customEdges),
@@ -86,7 +102,17 @@
     dispatch("change", newValue);
 
     if (gradio) {
-      gradio.dispatch("change", newValue);
+      const fullMeta: GraphEventMeta = {
+        eventType: "change",
+        timestamp: new Date().toISOString(),
+        ...meta,
+      };
+      const payload: GraphEventPayload = {
+        value: newValue,
+        meta: fullMeta,
+      };
+      // @ts-ignore
+      gradio.dispatch("change", payload);
     }
   }
 
@@ -103,7 +129,13 @@
     }
 
     // Setup keydown handler with proper cleanup
-    keydownHandler = (e: KeyboardEvent) => handleKeydown(e, stores);
+    keydownHandler = (e: KeyboardEvent) => {
+      const meta = handleKeydown(e, stores, {
+        enableGridSnap: enable_grid_snap,
+        gridSize: grid_size,
+      });
+      if (meta) emitChange(meta);
+    };
     window.addEventListener("keydown", keydownHandler);
   });
 
@@ -170,12 +202,25 @@
     }
   }
 
+  $: styleConfig.set({
+    nodeSizeScale: node_size_scale,
+    nodeFontSize: node_font_size,
+    edgeWidth: edge_width,
+    edgeLabelFontSize: edge_label_font_size,
+  });
+
   function handleNodeEditPopupSaveWrapper(
     event: CustomEvent<CustomNode>,
     stores: GraphStores
   ) {
     handleNodeEditPopupSave(event, stores);
-    emitChange();
+    emitChange({
+      eventType: "nodeSave",
+      handleId: "graph:node:save",
+      sourceType: "node",
+      sourceId: event.detail.id,
+      snapshot: event.detail,
+    });
   }
 
   function handleEdgeEditPopupSaveWrapper(
@@ -183,7 +228,13 @@
     stores: GraphStores
   ) {
     handleEdgeEditPopupSave(event, stores);
-    emitChange();
+    emitChange({
+      eventType: "edgeSave",
+      handleId: "graph:edge:save",
+      sourceType: "edge",
+      sourceId: event.detail.id,
+      snapshot: event.detail,
+    });
   }
 </script>
 
@@ -210,11 +261,20 @@
     size={toolbar_size}
     enable_save_load={toolbar_enable_save_load}
     enable_add={toolbar_enable_add}
+    {layout_engine}
+    {toolbar_visibility}
     on:change={emitChange}
   />
 
   <SvelteFlowProvider>
-    <Graph on:change={emitChange} on:zoomComplete={handleZoomComplete} />
+    <Graph
+      on:change={emitChange}
+      on:zoomComplete={handleZoomComplete}
+      {enable_virtualization}
+      {enable_grid_snap}
+      {grid_size}
+      {toolbar_visibility}
+    />
   </SvelteFlowProvider>
 </div>
 

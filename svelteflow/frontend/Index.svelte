@@ -45,6 +45,15 @@
   export let toolbar_enable_save_load: boolean = false;
   export let toolbar_enable_add: boolean = false;
   export let canvas_min_height: string = "500px";
+  export let enable_virtualization: boolean = false;
+  export let enable_grid_snap: boolean = false;
+  export let grid_size: number = 20;
+  export let layout_engine: "dagre" | "elkjs" = "dagre";
+  export let toolbar_visibility: Record<string, boolean> = {};
+  export let node_size_scale: number = 1;
+  export let node_font_size: number = 14;
+  export let edge_width: number = 2;
+  export let edge_label_font_size: number = 12;
 
   let fullscreen = false;
 
@@ -97,6 +106,15 @@
       {toolbar_enable_save_load}
       {toolbar_enable_add}
       {canvas_min_height}
+      {enable_virtualization}
+      {enable_grid_snap}
+      {grid_size}
+      {layout_engine}
+      {toolbar_visibility}
+      {node_size_scale}
+      {node_font_size}
+      {edge_width}
+      {edge_label_font_size}
     />
   </SvelteFlowProvider>
 </Block>

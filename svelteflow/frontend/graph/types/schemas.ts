@@ -59,3 +59,29 @@ export interface UIState {
     zoom: number;
   };
 }
+
+export interface GraphEventMeta {
+  eventType:
+    | "load"
+    | "nodeSave"
+    | "edgeSave"
+    | "change"
+    | "delete"
+    | "selection"
+    | "viewportChange"
+    | "nodeMove"
+    | "selectionClear"
+    | "uiChange";
+  handleId?: string;
+  sourceType?: "node" | "edge" | "viewport" | "graph" | "toolbar";
+  sourceId?: string;
+  targetId?: string;
+  timestamp: string;
+  diff?: Record<string, any>;
+  snapshot?: Record<string, any>;
+}
+
+export interface GraphEventPayload {
+  value: GraphValue;
+  meta: GraphEventMeta;
+}

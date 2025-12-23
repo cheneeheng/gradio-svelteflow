@@ -7,6 +7,7 @@
   import { derived } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
+  import { styleConfig } from "../stores/styleStore";
 
   // ----------
   // Exports
@@ -29,7 +30,7 @@
   export let selected: boolean = false;
   export let markerStart: string | undefined = undefined;
   export let markerEnd: string | undefined = undefined;
-  export let zIndex: number;
+  export let zIndex: number | undefined = undefined;
   export let ariaLabel: string | undefined = undefined;
   export let interactionWidth: number | undefined = undefined;
 
@@ -91,12 +92,12 @@
       : selected
         ? "var(--selection-color)"
         : "var(--node-border)";
-  $: strokeWidth = $highlightType || selected ? 3 : 1.5;
+  $: strokeWidth =
+    ($highlightType || selected ? 3 : 1.5) * ($styleConfig?.edgeWidth ?? 1);
   $: style = `stroke: ${strokeColor}; stroke-width: ${strokeWidth};`;
 
   // Merge default label styles with user-provided ones
-  const defaultLabelStyle =
-    "user-select: none; pointer-events: none; font-size: 12px; fill: var(--text-color); backgroundColor: var(--node-background)";
+  $: defaultLabelStyle = `user-select: none; pointer-events: none; font-size: ${$styleConfig?.edgeLabelFontSize ?? 12}px; fill: var(--text-color); backgroundColor: var(--node-background)`;
   $: mergedLabelStyle = labelStyle
     ? `${defaultLabelStyle} ${labelStyle}`
     : defaultLabelStyle;

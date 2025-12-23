@@ -5,7 +5,9 @@ import type { CustomEdge, CustomNode } from "../types/schemas";
 import type { LayoutDirection } from "../utils/layout";
 import { createUIStores } from "./uiStore";
 
-export function createGraphStores() {
+export type DebouncedFn = ((...args: any[]) => void) & { cancel: () => void };
+
+function _createGraphStoresInternal() {
   const instanceId = writable<string | null>(null);
   const customNodes: Writable<CustomNode[]> = writable<CustomNode[]>([]);
   const customEdges: Writable<CustomEdge[]> = writable<CustomEdge[]>([]);
@@ -21,12 +23,6 @@ export function createGraphStores() {
   const clickedNodes = writable<string[]>([]);
   const clickedEdges = writable<string[]>([]);
   const searchedNodes = writable<string[]>([]);
-
-  // Non-store state for timers and flags
-  let clickTimer: ReturnType<typeof setTimeout> | null = null;
-  let dragStopTimer: ReturnType<typeof setTimeout> | null = null;
-  let isDragging: boolean = false;
-  let debouncedSearchFn: ((() => void) & { cancel: () => void }) | null = null;
 
   const uiStores = createUIStores();
 
@@ -46,6 +42,20 @@ export function createGraphStores() {
     clickedEdges,
     searchedNodes,
     ...uiStores,
+  };
+}
+
+export function createGraphStores(): GraphStores {
+  const base = _createGraphStoresInternal();
+
+  // Non-store state for timers and flags
+  let clickTimer: ReturnType<typeof setTimeout> | null = null;
+  let dragStopTimer: ReturnType<typeof setTimeout> | null = null;
+  let isDragging: boolean = false;
+  let debouncedSearchFn: DebouncedFn | null = null;
+
+  return {
+    ...base,
     clickTimer,
     dragStopTimer,
     isDragging,
@@ -53,4 +63,9 @@ export function createGraphStores() {
   };
 }
 
-export type GraphStores = ReturnType<typeof createGraphStores>;
+export type GraphStores = ReturnType<typeof _createGraphStoresInternal> & {
+  debouncedSearchFn: DebouncedFn | null;
+  clickTimer: ReturnType<typeof setTimeout> | null;
+  dragStopTimer: ReturnType<typeof setTimeout> | null;
+  isDragging: boolean;
+};

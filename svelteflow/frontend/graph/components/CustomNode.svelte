@@ -6,10 +6,11 @@
   import { ChevronDown, ChevronUp } from "lucide-svelte";
   import { getContext } from "svelte";
   import { derived } from "svelte/store";
+  import { HANDLE_OFFSET } from "../constants";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
+  import { styleConfig } from "../stores/styleStore";
   import type { Attribute, Handle as HandleType } from "../types/schemas";
-  import { HANDLE_OFFSET } from "../constants";
 
   // ----------
   // Exports
@@ -22,12 +23,12 @@
     handles: HandleType[];
     collapsed?: boolean;
   };
-  export let width: number;
-  export let height: number;
-  export let sourcePosition: Position;
-  export let targetPosition: Position;
-  export let dragHandle: string;
-  export let parentId: string;
+  export let width: number | undefined = undefined;
+  export let height: number | undefined = undefined;
+  export let sourcePosition: Position | undefined = undefined;
+  export let targetPosition: Position | undefined = undefined;
+  export let dragHandle: string | undefined = undefined;
+  export let parentId: string | undefined = undefined;
   export let type: string;
   export let dragging: boolean;
   export let zIndex: number;
@@ -47,7 +48,7 @@
   // Local vars
   // ----------
   const stores = getContext<GraphStores>(storeKey);
-  const { clickedNodes, searchedNodes } = stores;
+  const { clickedNodes, searchedNodes, viewport } = stores;
 
   // Create a Set for efficient lookup
   const clickedNodesSet = derived(clickedNodes, ($nodes) => new Set($nodes));
@@ -61,6 +62,12 @@
       return null;
     }
   );
+
+  $: scale = $styleConfig.nodeSizeScale;
+  $: fontSize = $styleConfig.nodeFontSize * scale;
+  $: minWidth = 220 * scale;
+  $: maxWidth = 300 * scale;
+  $: showDetail = $viewport.zoom >= 0.5;
 
   const handleStyleLeft = `top: ${HANDLE_OFFSET.VERTICAL}; left: ${HANDLE_OFFSET.LEFT}px;`;
   const handleStyleRight = `top: ${HANDLE_OFFSET.VERTICAL}; right: ${HANDLE_OFFSET.RIGHT}px;`;
@@ -95,6 +102,7 @@
   class:selected
   role="article"
   aria-label="Node: {name}"
+  style="font-size: {fontSize}px; min-width: {minWidth}px; max-width: {maxWidth}px;"
 >
   <button
     class="attribute-toggle collapse-toggle-btn"
@@ -112,61 +120,63 @@
   <div class="node-header">{name}</div>
 
   <div class="node-body">
-    <div class="node-description">{description}</div>
+    {#if showDetail}
+      <div class="node-description">{description}</div>
 
-    {#if !collapsed && attributes && attributes.length}
-      <hr class="divider" />
-      <div class="attributes-grid">
-        <div class="attributes-column">
-          {#each (attributes || []).filter((attr) => attr.type === "input") as attr (attr.key)}
-            {#if attr.visible}
-              <div class="attribute-card">
-                <div
-                  class="handle-wrapper"
-                  role="button"
-                  tabindex={attr.connectable ? 0 : -1}
-                  aria-label="Input handle: {attr.key}"
-                >
-                  <Handle
-                    type="target"
-                    position={Position.Left}
-                    id={attr.key}
-                    style={handleStyleLeft}
-                    isConnectable={attr.connectable}
-                  />
+      {#if !collapsed && attributes && attributes.length}
+        <hr class="divider" />
+        <div class="attributes-grid">
+          <div class="attributes-column">
+            {#each (attributes || []).filter((attr) => attr.type === "input") as attr (attr.key)}
+              {#if attr.visible}
+                <div class="attribute-card">
+                  <div
+                    class="handle-wrapper"
+                    role="button"
+                    tabindex={attr.connectable ? 0 : -1}
+                    aria-label="Input handle: {attr.key}"
+                  >
+                    <Handle
+                      type="target"
+                      position={Position.Left}
+                      id={attr.key}
+                      style={handleStyleLeft}
+                      isConnectable={attr.connectable}
+                    />
+                  </div>
+                  <span class="key">{attr.key}</span>
+                  <span class="value">{attr.value}</span>
                 </div>
-                <span class="key">{attr.key}</span>
-                <span class="value">{attr.value}</span>
-              </div>
-            {/if}
-          {/each}
-        </div>
+              {/if}
+            {/each}
+          </div>
 
-        <div class="attributes-column">
-          {#each (attributes || []).filter((attr) => attr.type === "output") as attr (attr.key)}
-            {#if attr.visible}
-              <div class="attribute-card">
-                <div
-                  class="handle-wrapper"
-                  role="button"
-                  tabindex={attr.connectable ? 0 : -1}
-                  aria-label="Output handle: {attr.key}"
-                >
-                  <Handle
-                    type="source"
-                    position={Position.Right}
-                    id={attr.key}
-                    style={handleStyleRight}
-                    isConnectable={attr.connectable}
-                  />
+          <div class="attributes-column">
+            {#each (attributes || []).filter((attr) => attr.type === "output") as attr (attr.key)}
+              {#if attr.visible}
+                <div class="attribute-card">
+                  <div
+                    class="handle-wrapper"
+                    role="button"
+                    tabindex={attr.connectable ? 0 : -1}
+                    aria-label="Output handle: {attr.key}"
+                  >
+                    <Handle
+                      type="source"
+                      position={Position.Right}
+                      id={attr.key}
+                      style={handleStyleRight}
+                      isConnectable={attr.connectable}
+                    />
+                  </div>
+                  <span class="key">{attr.key}</span>
+                  <span class="value">{attr.value}</span>
                 </div>
-                <span class="key">{attr.key}</span>
-                <span class="value">{attr.value}</span>
-              </div>
-            {/if}
-          {/each}
+              {/if}
+            {/each}
+          </div>
         </div>
-      </div>
+      {/if}
     {/if}
   </div>
 

@@ -12,12 +12,19 @@
     Search,
     Settings,
     Sun,
+    Trash2,
+    X,
   } from "lucide-svelte";
   import { createEventDispatcher, getContext, onMount } from "svelte";
   import { get } from "svelte/store";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
+  import {
+    clearSelection,
+    handleBeforeDelete,
+    handleDelete,
+  } from "../utils/graph/canvas";
   import { handleAddNode } from "../utils/graph/node";
   import { handleLayout, type LayoutDirection } from "../utils/layout";
   import { triggerLoad } from "../utils/toolbar/load";
@@ -31,6 +38,8 @@
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
   export let enable_save_load: boolean = false;
   export let enable_add: boolean = false;
+  export let layout_engine: "dagre" | "elkjs" = "dagre";
+  export let toolbar_visibility: Record<string, boolean> = {};
 
   // ----------
   // Events
@@ -52,6 +61,20 @@
   let currentPadding: string;
   let currentFontSize: string;
 
+  const defaultVisibility = {
+    zoomIn: true,
+    zoomOut: true,
+    fitView: true,
+    layout: true,
+    undo: true,
+    redo: true,
+    delete: true,
+    select: true,
+    clearSelection: true,
+  };
+
+  $: visibility = { ...defaultVisibility, ...toolbar_visibility };
+
   // ----------
   // Local functions
   // ----------
@@ -63,7 +86,7 @@
     layoutDirection: LayoutDirection,
     stores: GraphStores
   ) {
-    handleLayout(layoutDirection, stores);
+    handleLayout(layoutDirection, stores, layout_engine);
     emitChange();
   }
 
@@ -75,6 +98,30 @@
   function triggerLoadWrapper(stores: GraphStores) {
     triggerLoad(stores);
     emitChange();
+  }
+
+  function handleClearSelectionWrapper(stores: GraphStores) {
+    clearSelection(stores);
+    emitChange();
+  }
+
+  async function handleDeleteButtonWrapper(stores: GraphStores) {
+    const { customNodes, customEdges } = stores;
+    const nodes = get(customNodes).filter((n) => n.selected);
+    const edges = get(customEdges).filter((e) => e.selected);
+    if (nodes.length === 0 && edges.length === 0) return;
+
+    const shouldDelete = await handleBeforeDelete({ nodes, edges }, stores);
+    if (shouldDelete) {
+      // Perform delete logic?
+      // handleBeforeDelete just confirms.
+      // SvelteFlow handles actual delete on Backspace key.
+      // But here we need to manually remove them from stores.
+      customNodes.update((ns) => ns.filter((n) => !n.selected));
+      customEdges.update((es) => es.filter((e) => !e.selected));
+      handleDelete(stores);
+      emitChange();
+    }
   }
 
   // Watch layout direction changes and trigger re-layout
@@ -168,24 +215,48 @@
     </button>
   {/if}
 
-  <button
-    class="toolbar-button"
-    on:click={() => handleLayoutWrapper($layoutDirection, stores)}
-    aria-label="Relayout nodes"
-    title="Relayout nodes"
-  >
-    <LayoutDashboard size={currentIconSize} aria-hidden="true" />
-  </button>
+  {#if visibility.layout}
+    <button
+      class="toolbar-button"
+      on:click={() => handleLayoutWrapper($layoutDirection, stores)}
+      aria-label="Relayout nodes"
+      title="Relayout nodes"
+    >
+      <LayoutDashboard size={currentIconSize} aria-hidden="true" />
+    </button>
 
-  <label for="layout-direction" class="sr-only">Layout direction</label>
-  <select
-    id="layout-direction"
-    bind:value={$layoutDirection}
-    aria-label="Layout direction"
-  >
-    <option value="TB">Vertical</option>
-    <option value="LR">Horizontal</option>
-  </select>
+    <label for="layout-direction" class="sr-only">Layout direction</label>
+    <select
+      id="layout-direction"
+      bind:value={$layoutDirection}
+      aria-label="Layout direction"
+    >
+      <option value="TB">Vertical</option>
+      <option value="LR">Horizontal</option>
+    </select>
+  {/if}
+
+  {#if visibility.delete}
+    <button
+      class="toolbar-button"
+      on:click={() => handleDeleteButtonWrapper(stores)}
+      aria-label="Delete selected"
+      title="Delete selected"
+    >
+      <Trash2 size={currentIconSize} aria-hidden="true" />
+    </button>
+  {/if}
+
+  {#if visibility.clearSelection}
+    <button
+      class="toolbar-button"
+      on:click={() => handleClearSelectionWrapper(stores)}
+      aria-label="Clear selection"
+      title="Clear selection"
+    >
+      <X size={currentIconSize} aria-hidden="true" />
+    </button>
+  {/if}
 
   <button class="toolbar-button" aria-label="Settings" title="Settings">
     <Settings size={currentIconSize} aria-hidden="true" />

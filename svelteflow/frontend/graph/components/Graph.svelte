@@ -9,18 +9,23 @@
     SvelteFlow,
     useSvelteFlow,
     type Node,
+    type Viewport,
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import type { Connection } from "@xyflow/system";
   import { createEventDispatcher, getContext, onMount } from "svelte";
-  import { get, type Writable } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import { ZOOM_ANIMATION_DURATION, ZOOM_COMPLETE_BUFFER } from "../constants";
   import { activeStoreId } from "../stores/activeStore";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
   import "../styles/theme.css";
-  import type { CustomEdge, CustomNode } from "../types/schemas";
+  import type {
+    CustomEdge,
+    CustomNode,
+    GraphEventMeta,
+  } from "../types/schemas";
   import {
     handleBeforeDelete,
     handleConnect,
@@ -33,6 +38,7 @@
     handleNodeDragStart,
     handleNodeDragStop,
   } from "../utils/graph/node";
+  import { SpatialIndex } from "../utils/virtualization";
   import CustomEdgeComponent from "./CustomEdge.svelte";
   import CustomNodeComponent from "./CustomNode.svelte";
 
@@ -41,6 +47,14 @@
   // ----------
   export let minZoom: number | undefined = undefined;
   export let maxZoom: number | undefined = undefined;
+  export let enable_virtualization: boolean = false;
+  export let enable_grid_snap: boolean = false;
+  export let grid_size: number = 20;
+  export let toolbar_visibility: Record<string, boolean> = {};
+
+  $: showZoom =
+    toolbar_visibility.zoomIn !== false || toolbar_visibility.zoomOut !== false;
+  $: showFitView = toolbar_visibility.fitView !== false;
 
   // ----------
   // Events
@@ -48,6 +62,7 @@
   const dispatch = createEventDispatcher<{
     zoomComplete: null;
     change: null;
+    event: GraphEventMeta;
   }>();
 
   // ----------
@@ -66,15 +81,81 @@
   const nodeTypes = { custom: CustomNodeComponent };
   const edgeTypes = { custom: CustomEdgeComponent };
 
+  const spatialIndex = new SpatialIndex();
+  let containerWidth = 0;
+  let containerHeight = 0;
+  let currentViewport: Viewport = { x: 0, y: 0, zoom: 1 };
+  let isUpdatingVisibility = false;
+
+  // Local stores for virtualization
+  const visibleNodes = writable<CustomNode[]>([]);
+  const visibleEdges = writable<CustomEdge[]>([]);
+
+  // Sync visibleNodes back to customNodes when changes come from interaction
+  visibleNodes.subscribe((val) => {
+    if (isUpdatingVisibility || !enable_virtualization) return;
+
+    const valMap = new Map(val.map((n) => [n.id, n]));
+    customNodes.update((allNodes) => {
+      return allNodes.map((node) => {
+        const updated = valMap.get(node.id);
+        return updated ? updated : node;
+      });
+    });
+  });
+
   let flowInstanceLocal: SvelteFlow;
-  let nodesLocal: Writable<CustomNode[]> = customNodes;
-  let edgesLocal: Writable<CustomEdge[]> = customEdges;
+
+  // Reactive switching of stores
+  $: nodesLocal = enable_virtualization ? visibleNodes : customNodes;
+  $: edgesLocal = enable_virtualization ? visibleEdges : customEdges;
 
   // ----------
   // Local functions
   // ----------
   function emitChange() {
     dispatch("change");
+  }
+
+  function updateVisibility() {
+    if (!enable_virtualization) return;
+
+    isUpdatingVisibility = true;
+    const visibleIds = spatialIndex.query(currentViewport, {
+      width: containerWidth,
+      height: containerHeight,
+    });
+
+    visibleNodes.set(get(customNodes).filter((n) => visibleIds.has(n.id)));
+    visibleEdges.set(
+      get(customEdges).filter(
+        (e) => visibleIds.has(e.source) || visibleIds.has(e.target)
+      )
+    );
+    isUpdatingVisibility = false;
+  }
+
+  function handleMove(e: CustomEvent<{ viewport: Viewport }>) {
+    const vp = e.detail.viewport;
+    currentViewport = vp;
+    stores.viewport.set(vp);
+    updateVisibility();
+  }
+
+  function handleMoveEnd(e: CustomEvent<{ viewport: Viewport }>) {
+    dispatch("event", {
+      eventType: "viewportChange",
+      handleId: "graph:viewport",
+      sourceType: "viewport",
+      timestamp: new Date().toISOString(),
+    });
+    emitChange();
+  }
+
+  // Reactively update index and visibility when nodes change
+  $: if (enable_virtualization && $customNodes) {
+    spatialIndex.update($customNodes);
+    updateVisibility();
   }
 
   function handleConnectWrapper(connection: Connection, stores: GraphStores) {
@@ -162,39 +243,61 @@
   }
 </script>
 
-<SvelteFlow
-  bind:this={flowInstanceLocal}
-  bind:nodes={nodesLocal}
-  bind:edges={edgesLocal}
-  {nodeTypes}
-  {edgeTypes}
-  colorMode={$theme}
-  nodesConnectable={$interactive}
-  nodesDraggable={$interactive}
-  elementsSelectable={$interactive}
-  on:nodedragstart={(e) => handleNodeDragStart(e, stores)}
-  on:nodedragstop={(e) => handleNodeDragStop(e, stores)}
-  on:nodeclick={(e) => {
-    activeStoreId.set(get(instanceId));
-    handleNodeClickWrapper(e, stores);
-  }}
-  on:edgeclick={(e) => {
-    activeStoreId.set(get(instanceId));
-    handleEdgeClick(e, stores);
-  }}
-  on:paneclick={() => {
-    activeStoreId.set(get(instanceId));
-    handlePaneClick(stores);
-  }}
-  onconnect={(e) => handleConnectWrapper(e, stores)}
-  ondelete={() => handleDeleteWrapper(stores)}
-  onbeforedelete={(e) => handleBeforeDelete(e, stores)}
-  deleteKey={["Delete", "Backspace"]}
-  {minZoom}
-  {maxZoom}
-  style="flex: 1"
+<div
+  style="width: 100%; height: 100%; display: flex;"
+  bind:clientWidth={containerWidth}
+  bind:clientHeight={containerHeight}
 >
-  <MiniMap />
-  <Controls />
-  <Background />
-</SvelteFlow>
+  <SvelteFlow
+    bind:this={flowInstanceLocal}
+    bind:nodes={nodesLocal}
+    bind:edges={edgesLocal}
+    {nodeTypes}
+    {edgeTypes}
+    colorMode={$theme}
+    nodesConnectable={$interactive}
+    nodesDraggable={$interactive}
+    elementsSelectable={$interactive}
+    snapGrid={enable_grid_snap ? [grid_size, grid_size] : undefined}
+    on:move={handleMove}
+    on:moveend={handleMoveEnd}
+    on:nodedragstart={(e) => handleNodeDragStart(e, stores)}
+    on:nodedragstop={(e) => {
+      handleNodeDragStop(e, stores);
+      dispatch("event", {
+        eventType: "nodeMove",
+        handleId: "graph:drag",
+        sourceType: "node",
+        timestamp: new Date().toISOString(),
+      });
+      emitChange();
+    }}
+    on:nodeclick={(e) => {
+      activeStoreId.set(get(instanceId));
+      handleNodeClickWrapper(e, stores);
+    }}
+    on:edgeclick={(e) => {
+      activeStoreId.set(get(instanceId));
+      handleEdgeClick(e, stores);
+    }}
+    on:paneclick={() => {
+      activeStoreId.set(get(instanceId));
+      const meta = handlePaneClick(stores);
+      if (meta) {
+        dispatch("event", meta);
+        emitChange();
+      }
+    }}
+    onconnect={(e) => handleConnectWrapper(e, stores)}
+    ondelete={() => handleDeleteWrapper(stores)}
+    onbeforedelete={(e) => handleBeforeDelete(e, stores)}
+    deleteKey={["Delete", "Backspace"]}
+    {minZoom}
+    {maxZoom}
+    style="flex: 1"
+  >
+    <MiniMap />
+    <Controls {showZoom} {showFitView} />
+    <Background />
+  </SvelteFlow>
+</div>

@@ -1,5 +1,7 @@
 import type { Edge, Node } from "@xyflow/svelte";
 import dagre from "dagre";
+// @ts-ignore
+import ELK from "elkjs/lib/elk.bundled.js";
 import { get } from "svelte/store";
 import type { GraphStores } from "../stores/instanceStore";
 
@@ -18,6 +20,8 @@ const nodeHeight = 100;
 // - nodesep: 100 → ensures at least 100 units of separation between nodes within the same rank.
 const rankSep = 200;
 const nodeSep = 100;
+
+const elk = new ELK();
 
 export function getLayoutedElements<N extends Node, E extends Edge>(
   nodes: N[],
@@ -57,17 +61,81 @@ export function getLayoutedElements<N extends Node, E extends Edge>(
   return { nodes, edges };
 }
 
-export function handleLayout(
+export async function getLayoutedElementsElk<N extends Node, E extends Edge>(
+  nodes: N[],
+  edges: E[],
+  direction: LayoutDirection = "LR"
+): Promise<{ nodes: N[]; edges: E[] }> {
+  const isHorizontal = direction === "LR";
+  const graph = {
+    id: "root",
+    layoutOptions: {
+      "elk.algorithm": "layered",
+      "elk.direction": isHorizontal ? "RIGHT" : "DOWN",
+      "elk.spacing.nodeNode": nodeSep.toString(),
+      "elk.layered.spacing.nodeNodeBetweenLayers": rankSep.toString(),
+    },
+    children: nodes.map((n) => ({
+      id: n.id,
+      width: n.width ?? nodeWidth,
+      height: n.height ?? nodeHeight,
+    })),
+    edges: edges.map((e) => ({
+      id: e.id,
+      sources: [e.source],
+      targets: [e.target],
+    })),
+  };
+
+  try {
+    const layoutedGraph = await elk.layout(graph);
+    const layoutedNodes = nodes.map((node) => {
+      const layoutedNode = layoutedGraph.children?.find(
+        (n: any) => n.id === node.id
+      );
+      if (layoutedNode) {
+        return {
+          ...node,
+          position: {
+            x: layoutedNode.x!,
+            y: layoutedNode.y!,
+          },
+        };
+      }
+      return node;
+    });
+    return { nodes: layoutedNodes, edges };
+  } catch (e) {
+    console.error("ELK Layout failed", e);
+    return { nodes, edges };
+  }
+}
+
+export async function handleLayout(
   layoutDirection: LayoutDirection,
-  { customNodes, customEdges }: GraphStores
+  { customNodes, customEdges }: GraphStores,
+  engine: "dagre" | "elkjs" = "dagre"
 ) {
   const currentNodes = get(customNodes);
   const currentEdges = get(customEdges);
-  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-    currentNodes,
-    currentEdges,
-    layoutDirection
-  );
+
+  let layoutedNodes, layoutedEdges;
+
+  if (engine === "elkjs") {
+    ({ nodes: layoutedNodes, edges: layoutedEdges } =
+      await getLayoutedElementsElk(
+        currentNodes,
+        currentEdges,
+        layoutDirection
+      ));
+  } else {
+    ({ nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      currentNodes,
+      currentEdges,
+      layoutDirection
+    ));
+  }
+
   customNodes.set([...layoutedNodes]);
   customEdges.set([...layoutedEdges]);
 }

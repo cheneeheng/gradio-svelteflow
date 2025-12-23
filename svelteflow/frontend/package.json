@@ -25,18 +25,21 @@
     "@gradio/icons": "0.14.0",
     "@gradio/statustracker": "0.11.1",
     "@gradio/utils": "0.10.2",
+    "@types/rbush": "^4.0.0",
     "@xyflow/svelte": "^0.1.39",
     "buffer": "^6.0.3",
-    "process": "^0.11.10",
     "dagre": "^0.8.5",
+    "elkjs": "^0.11.0",
     "lucide-svelte": "^0.553.0",
-    "svelte": "^4.2.20"
+    "process": "^0.11.10",
+    "rbush": "^4.0.1",
+    "svelte": "^4.0.0"
   },
   "devDependencies": {
     "@gradio/preview": "0.14.0",
-    "rollup-plugin-node-polyfills": "^0.2.1",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
-    "@types/dagre": "^0.7.53"
+    "@types/dagre": "^0.7.53",
+    "rollup-plugin-node-polyfills": "^0.2.1"
   },
   "peerDependencies": {
     "svelte": "^4.0.0"
