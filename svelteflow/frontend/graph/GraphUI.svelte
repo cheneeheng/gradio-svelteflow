@@ -26,6 +26,7 @@
     GraphEventMeta,
     GraphEventPayload,
     GraphValue,
+    ToolbarVisibility,
   } from "./types/schemas";
   import { deepEqual } from "./utils/deepEquals";
   import { handleKeydown } from "./utils/graph/canvas";
@@ -50,14 +51,12 @@
   export let interactive: boolean = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
     "small";
-  export let toolbar_enable_save_load: boolean = false;
-  export let toolbar_enable_add: boolean = false;
   export let canvas_min_height: string = "500px";
   export let enable_virtualization: boolean = false;
   export let enable_grid_snap: boolean = false;
   export let grid_size: number = 20;
   export let layout_engine: "dagre" | "elkjs" = "dagre";
-  export let toolbar_visibility: Record<string, boolean> = {};
+  export let toolbar_visibility: Partial<ToolbarVisibility> = {};
   export let node_size_scale: number = 1;
   export let node_font_size: number = 14;
   export let edge_width: number = 2;
@@ -264,8 +263,6 @@
 
   <Toolbar
     size={toolbar_size}
-    enable_save_load={toolbar_enable_save_load}
-    enable_add={toolbar_enable_add}
     {layout_engine}
     {toolbar_visibility}
     on:change={(e) => emitChange(e.detail)}

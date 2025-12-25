@@ -1,6 +1,6 @@
 import type {
-  Node as SvelteFlowNode,
   Edge as SvelteFlowEdge,
+  Node as SvelteFlowNode,
 } from "@xyflow/svelte";
 
 export interface Attribute {
@@ -85,3 +85,35 @@ export interface GraphEventPayload {
   value: GraphValue;
   meta: GraphEventMeta;
 }
+
+export interface ToolbarVisibility {
+  zoomIn: boolean;
+  zoomOut: boolean;
+  fitView: boolean;
+  search: boolean;
+  add: boolean;
+  save: boolean;
+  load: boolean;
+  layout: boolean;
+  delete: boolean;
+  clearSelection: boolean;
+  settings: boolean;
+  more: boolean;
+  theme: boolean;
+}
+
+export const defaultToolbarVisibility: ToolbarVisibility = {
+  zoomIn: true,
+  zoomOut: true,
+  fitView: true,
+  search: true,
+  add: true,
+  save: true,
+  load: true,
+  layout: true,
+  delete: true,
+  clearSelection: true,
+  settings: true,
+  more: true,
+  theme: true,
+};

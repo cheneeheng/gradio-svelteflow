@@ -60,10 +60,7 @@ Covers:
 Shows how to enable or disable toolbar features.  
 Covers:
 
-- `toolbar_enable_save_load`
-- `toolbar_enable_add`
 - `toolbar_size`
-- `toolbar_visibility`
 
 ---
 

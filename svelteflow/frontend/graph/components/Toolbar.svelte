@@ -20,7 +20,11 @@
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
   import { theme } from "../stores/themeStore";
-  import type { GraphEventMeta } from "../types/schemas";
+  import {
+    defaultToolbarVisibility,
+    type GraphEventMeta,
+    type ToolbarVisibility,
+  } from "../types/schemas";
   import {
     clearSelection,
     handleBeforeDelete,
@@ -37,10 +41,8 @@
   // Exports
   // ----------
   export let size: "extra-small" | "small" | "medium" | "large" = "medium";
-  export let enable_save_load: boolean = false;
-  export let enable_add: boolean = false;
   export let layout_engine: "dagre" | "elkjs" = "dagre";
-  export let toolbar_visibility: Record<string, boolean> = {};
+  export let toolbar_visibility: Partial<ToolbarVisibility> = {};
 
   // ----------
   // Events
@@ -62,19 +64,7 @@
   let currentPadding: string;
   let currentFontSize: string;
 
-  const defaultVisibility = {
-    zoomIn: true,
-    zoomOut: true,
-    fitView: true,
-    layout: true,
-    undo: true,
-    redo: true,
-    delete: true,
-    select: true,
-    clearSelection: true,
-  };
-
-  $: visibility = { ...defaultVisibility, ...toolbar_visibility };
+  $: visibility = { ...defaultToolbarVisibility, ...toolbar_visibility };
 
   // ----------
   // Local functions
@@ -190,19 +180,21 @@
   aria-label="Graph editing toolbar"
   style="--toolbar-padding: {currentPadding}; --toolbar-font-size: {currentFontSize};"
 >
-  <div class="search-bar" style="padding: var(--toolbar-padding);">
-    <Search size={currentIconSize} aria-hidden="true" />
-    <input
-      type="text"
-      bind:value={$searchQuery}
-      on:input={search}
-      placeholder="Search nodes..."
-      aria-label="Search nodes by name"
-      style="font-size: var(--toolbar-font-size);"
-    />
-  </div>
+  {#if visibility.search}
+    <div class="search-bar" style="padding: var(--toolbar-padding);">
+      <Search size={currentIconSize} aria-hidden="true" />
+      <input
+        type="text"
+        bind:value={$searchQuery}
+        on:input={search}
+        placeholder="Search nodes..."
+        aria-label="Search nodes by name"
+        style="font-size: var(--toolbar-font-size);"
+      />
+    </div>
+  {/if}
 
-  {#if enable_add}
+  {#if visibility.add}
     <button
       class="toolbar-button"
       on:click={() => handleAddNodeWrapper(stores)}
@@ -213,7 +205,7 @@
     </button>
   {/if}
 
-  {#if enable_save_load}
+  {#if visibility.save}
     <button
       class="toolbar-button"
       on:click={async () => await handleSaveGraph(stores)}
@@ -222,6 +214,9 @@
     >
       <Save size={currentIconSize} aria-hidden="true" />
     </button>
+  {/if}
+
+  {#if visibility.load}
     <button
       class="toolbar-button"
       on:click={() => triggerLoadWrapper(stores)}
@@ -275,26 +270,36 @@
     </button>
   {/if}
 
-  <button class="toolbar-button" aria-label="Settings" title="Settings">
-    <Settings size={currentIconSize} aria-hidden="true" />
-  </button>
+  {#if visibility.settings}
+    <button class="toolbar-button" aria-label="Settings" title="Settings">
+      <Settings size={currentIconSize} aria-hidden="true" />
+    </button>
+  {/if}
 
-  <button class="toolbar-button" aria-label="More options" title="More options">
-    <Ellipsis size={currentIconSize} aria-hidden="true" />
-  </button>
+  {#if visibility.more}
+    <button
+      class="toolbar-button"
+      aria-label="More options"
+      title="More options"
+    >
+      <Ellipsis size={currentIconSize} aria-hidden="true" />
+    </button>
+  {/if}
 
-  <button
-    class="toolbar-button"
-    on:click={toggleTheme}
-    aria-label="Toggle theme"
-    title="Toggle theme"
-  >
-    {#if $theme === "light"}
-      <Moon size={currentIconSize} aria-hidden="true" />
-    {:else}
-      <Sun size={currentIconSize} aria-hidden="true" />
-    {/if}
-  </button>
+  {#if visibility.theme}
+    <button
+      class="toolbar-button"
+      on:click={toggleTheme}
+      aria-label="Toggle theme"
+      title="Toggle theme"
+    >
+      {#if $theme === "light"}
+        <Moon size={currentIconSize} aria-hidden="true" />
+      {:else}
+        <Sun size={currentIconSize} aria-hidden="true" />
+      {/if}
+    </button>
+  {/if}
 </div>
 
 <style>

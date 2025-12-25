@@ -25,6 +25,7 @@
     CustomEdge,
     CustomNode,
     GraphEventMeta,
+    ToolbarVisibility,
   } from "../types/schemas";
   import {
     handleBeforeDelete,
@@ -50,7 +51,7 @@
   export let enable_virtualization: boolean = false;
   export let enable_grid_snap: boolean = false;
   export let grid_size: number = 20;
-  export let toolbar_visibility: Record<string, boolean> = {};
+  export let toolbar_visibility: Partial<ToolbarVisibility> = {};
 
   $: showZoom =
     toolbar_visibility.zoomIn !== false || toolbar_visibility.zoomOut !== false;

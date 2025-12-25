@@ -14,7 +14,7 @@
   import GraphUI from "./graph/GraphUI.svelte";
   import type { GraphEvents } from "./graph/types/gradio";
   import type { GraphValue } from "./graph/types/schemas";
-// Hack: Polyfill process and Buffer at runtime
+  // Hack: Polyfill process and Buffer at runtime
   import { Buffer } from "buffer";
   (globalThis as any).process = (globalThis as any).process || { env: {} };
   (globalThis as any).Buffer = (globalThis as any).Buffer || Buffer;
@@ -34,8 +34,6 @@
   export let show_fullscreen_button = true;
   export let toolbar_size: "extra-small" | "small" | "medium" | "large" =
     "medium";
-  export let toolbar_enable_save_load: boolean = false;
-  export let toolbar_enable_add: boolean = false;
   export let canvas_min_height: string = "500px";
   export let enable_virtualization: boolean = false;
   export let enable_grid_snap: boolean = false;
@@ -95,8 +93,6 @@
       bind:value={graph_value}
       {interactive}
       {toolbar_size}
-      {toolbar_enable_save_load}
-      {toolbar_enable_add}
       {canvas_min_height}
       {enable_virtualization}
       {enable_grid_snap}

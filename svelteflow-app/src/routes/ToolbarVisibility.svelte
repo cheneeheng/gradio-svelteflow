@@ -3,13 +3,19 @@
   import type { GraphValue } from "$shared/types/schemas";
 
   let toolbarVisibility = {
+    zoomIn: true,
+    zoomOut: true,
+    fitView: true,
+    search: true,
     add: true,
-    save: false,
-    load: false,
+    save: true,
+    load: true,
     layout: true,
-    zoom: true,
-    center: true,
     delete: true,
+    clearSelection: true,
+    settings: true,
+    more: true,
+    theme: true,
   };
   const toolbarKeys = Object.keys(toolbarVisibility) as Array<
     keyof typeof toolbarVisibility
@@ -120,8 +126,6 @@
   <div class="graph-container">
     <GraphUI
       bind:value
-      toolbar_enable_save_load={true}
-      toolbar_enable_add={true}
       toolbar_visibility={toolbarVisibility}
       on:change={handleChange}
     />

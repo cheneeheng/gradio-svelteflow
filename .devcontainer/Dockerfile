@@ -38,8 +38,9 @@ RUN mkdir $NVM_DIR \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash \
     && \. "$NVM_DIR/nvm.sh" \
     && nvm install 24 \
-    && npm install -g @google/gemini-cli \
     && echo 'source $NVM_DIR/nvm.sh' >> $HOME_DIR/.bashrc
+RUN npm install -g bun
+RUN npm install -g @google/gemini-cli
 
 # Install uv - a fast Python package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh

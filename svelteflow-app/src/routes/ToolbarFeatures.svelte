@@ -86,14 +86,6 @@
   };
 
   let toolbarSize: "extra-small" | "small" | "medium" | "large" = "small";
-  let enableSaveLoad = true;
-  let enableAdd = true;
-
-  const toolbarVisibility = {
-    add: true,
-    save: true,
-    load: true,
-  };
 
   function handleChange(event: CustomEvent<GraphValue>) {
     value = event.detail;
@@ -114,27 +106,10 @@
         <option value="large">large</option>
       </select>
     </label>
-
-    <label>
-      <input type="checkbox" bind:checked={enableSaveLoad} />
-      Enable save/load
-    </label>
-
-    <label>
-      <input type="checkbox" bind:checked={enableAdd} />
-      Enable add
-    </label>
   </div>
 
   <div class="graph-container">
-    <GraphUI
-      bind:value
-      toolbar_size={toolbarSize}
-      toolbar_enable_save_load={enableSaveLoad}
-      toolbar_enable_add={enableAdd}
-      toolbar_visibility={toolbarVisibility}
-      on:change={handleChange}
-    />
+    <GraphUI bind:value toolbar_size={toolbarSize} on:change={handleChange} />
   </div>
 </section>
 

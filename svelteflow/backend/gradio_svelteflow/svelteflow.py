@@ -44,8 +44,6 @@ class SvelteFlow(Component):
         toolbar_size: Literal[
             "extra-small", "small", "medium", "large"
         ] = "medium",
-        toolbar_enable_save_load: bool = False,
-        toolbar_enable_add: bool = False,
         canvas_min_height: str = "500px",
     ):
         """
@@ -90,8 +88,6 @@ class SvelteFlow(Component):
             canvas_min_height: min pixel height of the svelteflow canvas.
         """
         self.toolbar_size = toolbar_size
-        self.toolbar_enable_save_load = toolbar_enable_save_load
-        self.toolbar_enable_add = toolbar_enable_add
         self.canvas_min_height = canvas_min_height
         super().__init__(
             label=label,
