@@ -12,22 +12,14 @@
   import type { Gradio } from "@gradio/utils";
   import { SvelteFlowProvider } from "@xyflow/svelte";
   import GraphUI from "./graph/GraphUI.svelte";
-  import type {
-    CustomEdge,
-    CustomNode,
-    GraphValue,
-  } from "./graph/types/schemas";
-  // Hack: Polyfill process and Buffer at runtime
+  import type { GraphEvents } from "./graph/types/gradio";
+  import type { GraphValue } from "./graph/types/schemas";
+// Hack: Polyfill process and Buffer at runtime
   import { Buffer } from "buffer";
   (globalThis as any).process = (globalThis as any).process || { env: {} };
   (globalThis as any).Buffer = (globalThis as any).Buffer || Buffer;
 
-  export let gradio: Gradio<{
-    change: { nodes: CustomNode[]; edges: CustomEdge[] };
-    select: { nodes: CustomNode[]; edges: CustomEdge[] };
-    submit: { nodes: CustomNode[]; edges: CustomEdge[] };
-    clear_status: LoadingStatus;
-  }>;
+  export let gradio: Gradio<GraphEvents>;
   export let label = "Svelte-Flow";
   export let info: string | undefined = undefined;
   export let elem_id = "";

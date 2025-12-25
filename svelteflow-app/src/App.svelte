@@ -1,148 +1,195 @@
 <script lang="ts">
-  import GraphUI from "$shared/GraphUI.svelte";
+  import Home from "./routes/Home.svelte";
+  import Minimal from "./routes/Minimal.svelte";
+  import ControlledState from "./routes/ControlledState.svelte";
+  import ToolbarFeatures from "./routes/ToolbarFeatures.svelte";
+  import ZoomToNode from "./routes/ZoomToNode.svelte";
+  // import ReadOnly from "./routes/ReadOnly.svelte";
+  import GridVirtualization from "./routes/GridVirtualization.svelte";
+  import LayoutEngines from "./routes/LayoutEngines.svelte";
+  // import StylingTheme from "./routes/StylingTheme.svelte";
+  import EditingPopups from "./routes/EditingPopups.svelte";
+  import MultipleInstances from "./routes/MultipleInstances.svelte";
+  import LargeGraph from "./routes/LargeGraph.svelte";
+  import ProgrammaticCreation from "./routes/ProgrammaticCreation.svelte";
+  import ToolbarVisibility from "./routes/ToolbarVisibility.svelte";
+  import CanvasLayout from "./routes/CanvasLayout.svelte";
 
-  let zoomId = "";
-  let graphValue1 = {
-    nodes: [],
-    edges: [],
-    loaded: false,
-    zoomToNodeName: null,
-  };
-  let graphValue2 = {
-    nodes: [],
-    edges: [],
-    loaded: false,
-    zoomToNodeName: null,
-  };
+  const routes = {
+    "": Home,
+    "/": Home,
+    "/minimal": Minimal,
+    "/controlled-state": ControlledState,
+    "/toolbar-features": ToolbarFeatures,
+    "/zoom-to-node": ZoomToNode,
+    // "/read-only": ReadOnly,
+    "/grid-virtualization": GridVirtualization,
+    "/layout-engines": LayoutEngines,
+    // "/styling-theme": StylingTheme,
+    "/editing-popups": EditingPopups,
+    "/multiple-instances": MultipleInstances,
+    "/large-graph": LargeGraph,
+    "/programmatic-creation": ProgrammaticCreation,
+    "/toolbar-visibility": ToolbarVisibility,
+    "/canvas-layout": CanvasLayout,
+  } as const;
 
-  // Apply button handler
-  function applyZoom() {
-    const trimmed = zoomId.trim();
-    graphValue1 = {
-      ...graphValue1,
-      zoomToNodeName: trimmed === "" ? null : trimmed,
-    };
+  type RouteKey = keyof typeof routes;
+
+  let currentPath = getCurrentPath();
+
+  function getCurrentPath() {
+    const hash = window.location.hash || "#/";
+    const path = hash.slice(1); // remove leading '#'
+    return path || "/";
   }
 
-  // Clear button handler
-  function clearZoom() {
-    zoomId = "";
-    graphValue1 = {
-      ...graphValue1,
-      zoomToNodeName: null,
-    };
+  function handleHashChange() {
+    currentPath = getCurrentPath();
   }
 
-  // Handle zoom completion from GraphUI
-  function handleZoomComplete() {
-    graphValue1 = {
-      ...graphValue1,
-      zoomToNodeName: null,
-    };
+  function resolveRoute(path: string) {
+    if ((routes as Record<string, unknown>)[path]) {
+      return routes[path as RouteKey];
+    }
+    return Home;
   }
 
-  // Handle changes from GraphUI
-  function handleGraph1Change(event: CustomEvent) {
-    graphValue1 = event.detail;
-  }
+  $: CurrentRoute = resolveRoute(currentPath);
 
-  function handleGraph2Change(event: CustomEvent) {
-    graphValue2 = event.detail;
+  if (typeof window !== "undefined") {
+    window.addEventListener("hashchange", handleHashChange);
   }
 </script>
 
-<div style="height: 90vh">
-  <!-- Controls -->
-  <div class="controls">
-    <label for="zoom-name"><strong>Zoom to node name:</strong></label>
-    <input
-      id="zoom-name"
-      type="text"
-      placeholder="e.g. Node-abc1"
-      bind:value={zoomId}
-      class="zoom-input"
-    />
-    <button type="button" on:click={applyZoom} class="btn btn-primary">
-      Apply
-    </button>
-    <button type="button" on:click={clearZoom} class="btn btn-secondary">
-      Clear
-    </button>
-  </div>
+<div class="app">
+  <aside class="sidebar">
+    <h1 class="logo">GraphUI Examples</h1>
+    <nav>
+      <a href="#/" class:selected={currentPath === "/" || currentPath === ""}
+        >Home</a
+      >
+      <a href="#/minimal" class:selected={currentPath === "/minimal"}
+        >01 - Minimal</a
+      >
+      <a
+        href="#/controlled-state"
+        class:selected={currentPath === "/controlled-state"}
+        >02 - Controlled state</a
+      >
+      <a
+        href="#/toolbar-features"
+        class:selected={currentPath === "/toolbar-features"}
+        >03 - Toolbar features</a
+      >
+      <a href="#/zoom-to-node" class:selected={currentPath === "/zoom-to-node"}
+        >04 - Zoom to node</a
+      >
+      <a href="#/read-only" class:selected={currentPath === "/read-only"}
+        >05 - Read‑only</a
+      >
+      <a
+        href="#/grid-virtualization"
+        class:selected={currentPath === "/grid-virtualization"}
+        >06 - Grid & virtualization</a
+      >
+      <a
+        href="#/layout-engines"
+        class:selected={currentPath === "/layout-engines"}
+        >07 - Layout engines</a
+      >
+      <a
+        href="#/styling-theme"
+        class:selected={currentPath === "/styling-theme"}
+        >08 - Styling & theme</a
+      >
+      <a
+        href="#/editing-popups"
+        class:selected={currentPath === "/editing-popups"}
+        >09 - Editing popups</a
+      >
+      <a
+        href="#/multiple-instances"
+        class:selected={currentPath === "/multiple-instances"}
+        >11 - Multiple instances</a
+      >
+      <a href="#/large-graph" class:selected={currentPath === "/large-graph"}
+        >12 - Large graph</a
+      >
+      <a
+        href="#/programmatic-creation"
+        class:selected={currentPath === "/programmatic-creation"}
+        >13 - Programmatic creation</a
+      >
+      <a
+        href="#/toolbar-visibility"
+        class:selected={currentPath === "/toolbar-visibility"}
+        >14 - Toolbar visibility</a
+      >
+      <a
+        href="#/canvas-layout"
+        class:selected={currentPath === "/canvas-layout"}>15 - Canvas layout</a
+      >
+    </nav>
+  </aside>
 
-  <GraphUI
-    toolbar_enable_save_load={true}
-    toolbar_enable_add={true}
-    canvas_min_height="0px"
-    bind:value={graphValue1}
-    on:zoomComplete={handleZoomComplete}
-    on:change={handleGraph1Change}
-  />
-
-  <!-- <GraphUI
-    toolbar_enable_save_load={true}
-    toolbar_enable_add={true}
-    canvas_min_height="0px"
-    bind:value={graphValue2}
-    on:change={handleGraph2Change}
-  /> -->
+  <main class="content">
+    <CurrentRoute />
+  </main>
 </div>
 
 <style>
-  .controls {
+  .app {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  .sidebar {
+    width: 260px;
     padding: 1rem;
-    background: var(--background, #fff);
-    border-bottom: 1px solid var(--node-border, #ccc);
+    border-right: 1px solid #ddd;
+    background: #fafafa;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
 
-  .zoom-input {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--input-border, #ccc);
+  .logo {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  nav a {
+    text-decoration: none;
+    color: #333;
+    padding: 0.25rem 0.5rem;
     border-radius: 4px;
-    width: 16rem;
-    background: var(--input-background, #fff);
-    color: var(--input-text, #222);
     font-size: 0.9rem;
   }
 
-  .zoom-input:focus {
-    outline: none;
-    border-color: var(--accent-color, #007bff);
-    box-shadow: 0 0 0 2px var(--accent-color-light, rgba(0, 123, 255, 0.25));
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    border: 1px solid transparent;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition:
-      background-color 0.2s,
-      border-color 0.2s;
-  }
-
-  .btn-primary {
-    background: var(--accent-color, #007bff);
+  nav a.selected {
+    background: #007bff;
     color: white;
-    border-color: var(--accent-color, #007bff);
   }
 
-  .btn-primary:hover {
-    background: var(--accent-color-dark, #0056b3);
-  }
-
-  .btn-secondary {
-    background: var(--button-secondary-background, #f0f0f0);
-    color: var(--button-secondary-text, #222);
-    border-color: var(--button-border, #ccc);
-  }
-
-  .btn-secondary:hover {
-    background: var(--button-secondary-hover-background, #e0e0e0);
+  .content {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 </style>
