@@ -1,19 +1,17 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Home from "./routes/Home.svelte";
   import Minimal from "./routes/Minimal.svelte";
   import ControlledState from "./routes/ControlledState.svelte";
   import ToolbarFeatures from "./routes/ToolbarFeatures.svelte";
   import ZoomToNode from "./routes/ZoomToNode.svelte";
-  // import ReadOnly from "./routes/ReadOnly.svelte";
   import GridVirtualization from "./routes/GridVirtualization.svelte";
   import LayoutEngines from "./routes/LayoutEngines.svelte";
-  // import StylingTheme from "./routes/StylingTheme.svelte";
   import EditingPopups from "./routes/EditingPopups.svelte";
   import MultipleInstances from "./routes/MultipleInstances.svelte";
   import LargeGraph from "./routes/LargeGraph.svelte";
   import ProgrammaticCreation from "./routes/ProgrammaticCreation.svelte";
   import ToolbarVisibility from "./routes/ToolbarVisibility.svelte";
-  import CanvasLayout from "./routes/CanvasLayout.svelte";
 
   const routes = {
     "": Home,
@@ -22,16 +20,13 @@
     "/controlled-state": ControlledState,
     "/toolbar-features": ToolbarFeatures,
     "/zoom-to-node": ZoomToNode,
-    // "/read-only": ReadOnly,
     "/grid-virtualization": GridVirtualization,
     "/layout-engines": LayoutEngines,
-    // "/styling-theme": StylingTheme,
     "/editing-popups": EditingPopups,
     "/multiple-instances": MultipleInstances,
     "/large-graph": LargeGraph,
     "/programmatic-creation": ProgrammaticCreation,
     "/toolbar-visibility": ToolbarVisibility,
-    "/canvas-layout": CanvasLayout,
   } as const;
 
   type RouteKey = keyof typeof routes;
@@ -40,13 +35,26 @@
 
   function getCurrentPath() {
     const hash = window.location.hash || "#/";
-    const path = hash.slice(1); // remove leading '#'
+    let path = hash.slice(1); // remove leading '#'
+    // normalize
+    path = path.split("?")[0];
+    if (path.length > 1 && path.endsWith("/")) {
+      path = path.slice(0, -1);
+    }
     return path || "/";
   }
 
   function handleHashChange() {
     currentPath = getCurrentPath();
   }
+
+  onMount(() => {
+    window.addEventListener("hashchange", handleHashChange);
+    // cleanup on destroy
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  });
 
   function resolveRoute(path: string) {
     if ((routes as Record<string, unknown>)[path]) {
@@ -56,10 +64,6 @@
   }
 
   $: CurrentRoute = resolveRoute(currentPath);
-
-  if (typeof window !== "undefined") {
-    window.addEventListener("hashchange", handleHashChange);
-  }
 </script>
 
 <div class="app">
@@ -85,9 +89,6 @@
       <a href="#/zoom-to-node" class:selected={currentPath === "/zoom-to-node"}
         >04 - Zoom to node</a
       >
-      <a href="#/read-only" class:selected={currentPath === "/read-only"}
-        >05 - Read‑only</a
-      >
       <a
         href="#/grid-virtualization"
         class:selected={currentPath === "/grid-virtualization"}
@@ -97,11 +98,6 @@
         href="#/layout-engines"
         class:selected={currentPath === "/layout-engines"}
         >07 - Layout engines</a
-      >
-      <a
-        href="#/styling-theme"
-        class:selected={currentPath === "/styling-theme"}
-        >08 - Styling & theme</a
       >
       <a
         href="#/editing-popups"
@@ -126,19 +122,23 @@
         class:selected={currentPath === "/toolbar-visibility"}
         >14 - Toolbar visibility</a
       >
-      <a
-        href="#/canvas-layout"
-        class:selected={currentPath === "/canvas-layout"}>15 - Canvas layout</a
-      >
     </nav>
   </aside>
 
   <main class="content">
-    <CurrentRoute />
+    <svelte:component this={CurrentRoute} />
+    <!-- <CurrentRoute /> -->
   </main>
 </div>
 
 <style>
+  :global(html),
+  :global(body) {
+    /* height: 100vh; */
+    margin: 0;
+    padding: 0;
+  }
+
   .app {
     display: flex;
     height: 100vh;
@@ -153,6 +153,7 @@
   }
 
   .sidebar {
+    height: 100%;
     width: 260px;
     padding: 1rem;
     border-right: 1px solid #ddd;

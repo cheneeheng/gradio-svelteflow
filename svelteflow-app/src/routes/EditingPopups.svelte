@@ -14,11 +14,18 @@
           description: "Click to edit this node",
           attributes: [
             {
-              key: "value",
-              value: "foo",
+              key: "input-main",
+              value: "1",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "2",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -37,11 +44,18 @@
           description: "Another editable node",
           attributes: [
             {
-              key: "value",
-              value: "bar",
+              key: "input-main",
+              value: "3",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "4",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [

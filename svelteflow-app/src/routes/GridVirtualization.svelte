@@ -19,11 +19,18 @@
           description: "Node in a grid layout",
           attributes: [
             {
-              key: "value",
+              key: "input-main",
               value: `${idCounter}`,
               visible: true,
               connectable: true,
               type: "input",
+            } as Attribute,
+            {
+              key: "output-main",
+              value: `${idCounter}`,
+              visible: true,
+              connectable: true,
+              type: "output",
             } as Attribute,
           ],
           handles: [

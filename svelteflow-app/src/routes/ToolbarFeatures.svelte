@@ -11,11 +11,18 @@
           description: "Node used to demonstrate toolbar features",
           attributes: [
             {
-              key: "value",
-              value: "10",
+              key: "input-main",
+              value: "1",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "2",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -34,11 +41,18 @@
           description: "Second node for toolbar example",
           attributes: [
             {
-              key: "value",
-              value: "20",
+              key: "input-main",
+              value: "3",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "4",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [

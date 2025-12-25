@@ -11,11 +11,18 @@
           description: "First node to zoom to",
           attributes: [
             {
-              key: "value",
+              key: "input-main",
               value: "1",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "2",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -34,11 +41,18 @@
           description: "Second node to zoom to",
           attributes: [
             {
-              key: "value",
-              value: "2",
+              key: "input-main",
+              value: "3",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "4",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -57,17 +71,14 @@
           description: "Third node to zoom to",
           attributes: [
             {
-              key: "value",
-              value: "3",
+              key: "input-main",
+              value: "5",
               visible: true,
               connectable: true,
               type: "input",
             },
           ],
-          handles: [
-            { id: "input-main", type: "input" },
-            { id: "output-main", type: "output" },
-          ],
+          handles: [{ id: "input-main", type: "input" }],
           collapsed: false,
         },
         position: { x: 700, y: 0 },

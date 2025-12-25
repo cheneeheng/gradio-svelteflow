@@ -12,7 +12,7 @@
   };
 
   function addNode() {
-    const id = `node-${counter++}`;
+    const id = `node-${counter}`;
 
     const newNode = {
       id,
@@ -21,11 +21,18 @@
         description: "Programmatically created node",
         attributes: [
           {
-            key: "value",
+            key: "input-main",
             value: `${counter}`,
             visible: true,
             connectable: true,
             type: "input",
+          } as Attribute,
+          {
+            key: "output-main",
+            value: `${counter}`,
+            visible: true,
+            connectable: true,
+            type: "output",
           } as Attribute,
         ],
         handles: [
@@ -45,6 +52,7 @@
       ...value,
       nodes: [...value.nodes, newNode],
     };
+    counter++;
   }
 
   function connectLastTwo() {

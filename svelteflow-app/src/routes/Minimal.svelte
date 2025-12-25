@@ -11,11 +11,18 @@
           description: "Minimal example node",
           attributes: [
             {
-              key: "value",
-              value: "42",
+              key: "input-main",
+              value: "1",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "2",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -34,11 +41,18 @@
           description: "Second node in minimal example",
           attributes: [
             {
-              key: "value",
-              value: "99",
+              key: "input-main",
+              value: "3",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "4",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -98,5 +112,6 @@
   .graph-container {
     flex: 1;
     min-height: 0;
+    height: 100%;
   }
 </style>

@@ -11,17 +11,14 @@
           description: "First node in instance A",
           attributes: [
             {
-              key: "value",
-              value: "A1",
+              key: "input-main",
+              value: "1",
               visible: true,
               connectable: true,
               type: "input",
             },
           ],
-          handles: [
-            { id: "input-main", type: "input" },
-            { id: "output-main", type: "output" },
-          ],
+          handles: [{ id: "input-main", type: "input" }],
           collapsed: false,
         },
         position: { x: 0, y: 0 },
@@ -42,11 +39,18 @@
           description: "First node in instance B",
           attributes: [
             {
-              key: "value",
-              value: "B1",
+              key: "input-main",
+              value: "1",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "2",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -65,11 +69,18 @@
           description: "Second node in instance B",
           attributes: [
             {
-              key: "value",
-              value: "B2",
+              key: "input-main",
+              value: "3",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "4",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [

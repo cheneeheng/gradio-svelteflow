@@ -25,7 +25,7 @@ The examples are intentionally minimal, copy‑paste‑ready, and written in idi
 | **12‑large‑graph**             | Recommended settings and behavior for large graphs.                  |
 | **13‑programmatic‑creation**   | Add nodes/edges programmatically from outside the component.         |
 | **14‑toolbar‑visibility**      | Fine‑grained control over which toolbar buttons are visible.         |
-| **15‑canvas‑layout**           | Embed the graph in flexible layouts and control canvas height.       |
+<!-- | **15‑canvas‑layout**           | Embed the graph in flexible layouts and control canvas height.       | -->
 
 > Example **10** (Gradio integration) is intentionally omitted.
 
@@ -78,7 +78,7 @@ Covers:
 
 ---
 
-### **05 — Read‑Only Mode**
+<!-- ### **05 — Read‑Only Mode**
 
 Use the graph as a viewer without editing capabilities.  
 Covers:
@@ -87,7 +87,7 @@ Covers:
 - disabled editing popups
 - disabled drag/resize
 
----
+--- -->
 
 ### **06 — Grid Snapping & Virtualization**
 
@@ -110,7 +110,7 @@ Covers:
 
 ---
 
-### **08 — Styling & Theme**
+<!-- ### **08 — Styling & Theme**
 
 Customize the visual appearance of nodes and edges.  
 Covers:
@@ -121,7 +121,7 @@ Covers:
 - `edge_label_font_size`
 - dark/light theme behavior
 
----
+--- -->
 
 ### **09 — Editing Popups**
 
@@ -175,7 +175,7 @@ Covers:
 
 ---
 
-### **15 — Canvas Layout**
+<!-- ### **15 — Canvas Layout**
 
 Embed the graph in flexible layouts.  
 Covers:
@@ -184,7 +184,7 @@ Covers:
 - responsive containers
 - fullscreen behavior
 
----
+--- -->
 
 ## 🧪 How to Run the Examples
 

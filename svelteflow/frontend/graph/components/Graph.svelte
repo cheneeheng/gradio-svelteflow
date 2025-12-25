@@ -269,7 +269,7 @@
     nodesConnectable={$interactive}
     nodesDraggable={$interactive}
     elementsSelectable={$interactive}
-    snapGrid={enable_grid_snap ? [grid_size, grid_size] : undefined}
+    snapGrid={enable_grid_snap ? [grid_size, grid_size] : [1, 1]}
     on:move={handleMove}
     on:moveend={handleMoveEnd}
     on:nodedragstart={(e) => handleNodeDragStart(e, stores)}

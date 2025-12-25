@@ -13,11 +13,18 @@
           description: "First node for layout engine demo",
           attributes: [
             {
-              key: "value",
-              value: "A",
+              key: "input-main",
+              value: "1",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "2",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -36,11 +43,18 @@
           description: "Second node for layout engine demo",
           attributes: [
             {
-              key: "value",
-              value: "B",
+              key: "input-main",
+              value: "3",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "4",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -59,17 +73,14 @@
           description: "Third node for layout engine demo",
           attributes: [
             {
-              key: "value",
-              value: "C",
+              key: "input-main",
+              value: "5",
               visible: true,
               connectable: true,
               type: "input",
             },
           ],
-          handles: [
-            { id: "input-main", type: "input" },
-            { id: "output-main", type: "output" },
-          ],
+          handles: [{ id: "input-main", type: "input" }],
           collapsed: false,
         },
         position: { x: 600, y: 0 },

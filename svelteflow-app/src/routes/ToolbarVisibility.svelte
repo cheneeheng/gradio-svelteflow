@@ -24,11 +24,18 @@
           description: "Node used for toolbar visibility demo",
           attributes: [
             {
-              key: "value",
-              value: "alpha",
+              key: "input-main",
+              value: "1",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "2",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -47,11 +54,18 @@
           description: "Second node for toolbar visibility demo",
           attributes: [
             {
-              key: "value",
-              value: "beta",
+              key: "input-main",
+              value: "3",
               visible: true,
               connectable: true,
               type: "input",
+            },
+            {
+              key: "output-main",
+              value: "4",
+              visible: true,
+              connectable: true,
+              type: "output",
             },
           ],
           handles: [
@@ -106,6 +120,8 @@
   <div class="graph-container">
     <GraphUI
       bind:value
+      toolbar_enable_save_load={true}
+      toolbar_enable_add={true}
       toolbar_visibility={toolbarVisibility}
       on:change={handleChange}
     />
