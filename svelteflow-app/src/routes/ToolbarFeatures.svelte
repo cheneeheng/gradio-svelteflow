@@ -1,6 +1,6 @@
 <script lang="ts">
   import GraphUI from "$shared/GraphUI.svelte";
-  import type { GraphValue } from "$shared/types/schemas";
+  import type { GraphValue, ToolbarVisibility } from "$shared/types/schemas";
 
   let value: GraphValue = {
     nodes: [
@@ -87,6 +87,26 @@
 
   let toolbarSize: "extra-small" | "small" | "medium" | "large" = "small";
 
+  let toolbarVisibility: ToolbarVisibility = {
+    zoomIn: true,
+    zoomOut: true,
+    fitView: true,
+    search: true,
+    add: true,
+    save: true,
+    load: true,
+    layout: true,
+    delete: true,
+    clearSelection: true,
+    settings: true,
+    more: true,
+    theme: true,
+  };
+
+  const toolbarKeys = Object.keys(toolbarVisibility) as Array<
+    keyof typeof toolbarVisibility
+  >;
+
   function handleChange(event: CustomEvent<GraphValue>) {
     value = event.detail;
   }
@@ -94,7 +114,7 @@
 
 <section class="page">
   <h2>03 - Toolbar features</h2>
-  <p>Toggle toolbar size and major actions.</p>
+  <p>Customize toolbar size and button visibility.</p>
 
   <div class="controls">
     <label>
@@ -108,8 +128,22 @@
     </label>
   </div>
 
+  <div class="controls visibility-controls">
+    {#each toolbarKeys as key}
+      <label>
+        <input type="checkbox" bind:checked={toolbarVisibility[key]} />
+        {key}
+      </label>
+    {/each}
+  </div>
+
   <div class="graph-container">
-    <GraphUI bind:value toolbar_size={toolbarSize} on:change={handleChange} />
+    <GraphUI
+      bind:value
+      toolbar_size={toolbarSize}
+      toolbar_visibility={toolbarVisibility}
+      on:change={handleChange}
+    />
   </div>
 </section>
 

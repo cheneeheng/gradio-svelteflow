@@ -11,7 +11,6 @@
   import MultipleInstances from "./routes/MultipleInstances.svelte";
   import LargeGraph from "./routes/LargeGraph.svelte";
   import ProgrammaticCreation from "./routes/ProgrammaticCreation.svelte";
-  import ToolbarVisibility from "./routes/ToolbarVisibility.svelte";
 
   const routes = {
     "": Home,
@@ -26,7 +25,6 @@
     "/multiple-instances": MultipleInstances,
     "/large-graph": LargeGraph,
     "/programmatic-creation": ProgrammaticCreation,
-    "/toolbar-visibility": ToolbarVisibility,
   } as const;
 
   type RouteKey = keyof typeof routes;
@@ -92,35 +90,30 @@
       <a
         href="#/grid-virtualization"
         class:selected={currentPath === "/grid-virtualization"}
-        >06 - Grid & virtualization</a
+        >05 - Grid & virtualization</a
       >
       <a
         href="#/layout-engines"
         class:selected={currentPath === "/layout-engines"}
-        >07 - Layout engines</a
+        >06 - Layout engines</a
       >
       <a
         href="#/editing-popups"
         class:selected={currentPath === "/editing-popups"}
-        >09 - Editing popups</a
+        >07 - Editing popups</a
       >
       <a
         href="#/multiple-instances"
         class:selected={currentPath === "/multiple-instances"}
-        >11 - Multiple instances</a
+        >08 - Multiple instances</a
       >
       <a href="#/large-graph" class:selected={currentPath === "/large-graph"}
-        >12 - Large graph</a
+        >09 - Large graph</a
       >
       <a
         href="#/programmatic-creation"
         class:selected={currentPath === "/programmatic-creation"}
-        >13 - Programmatic creation</a
-      >
-      <a
-        href="#/toolbar-visibility"
-        class:selected={currentPath === "/toolbar-visibility"}
-        >14 - Toolbar visibility</a
+        >10 - Programmatic creation</a
       >
     </nav>
   </aside>

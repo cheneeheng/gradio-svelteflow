@@ -5,15 +5,14 @@
     { path: '#/toolbar-features', label: '03 - Toolbar features' },
     { path: '#/zoom-to-node', label: '04 - Zoom to node' },
     // { path: '#/read-only', label: '05 - Read‑only' },
-    { path: '#/grid-virtualization', label: '06 - Grid & virtualization' },
-    { path: '#/layout-engines', label: '07 - Layout engines' },
-    // { path: '#/styling-theme', label: '08 - Styling & theme' },
-    { path: '#/editing-popups', label: '09 - Editing popups' },
-    { path: '#/multiple-instances', label: '11 - Multiple instances' },
-    { path: '#/large-graph', label: '12 - Large graph' },
-    { path: '#/programmatic-creation', label: '13 - Programmatic creation' },
-    { path: '#/toolbar-visibility', label: '14 - Toolbar visibility' },
-    { path: '#/canvas-layout', label: '15 - Canvas layout' }
+    { path: '#/grid-virtualization', label: '05 - Grid & virtualization' },
+    { path: '#/layout-engines', label: '06 - Layout engines' },
+    // { path: '#/styling-theme', label: '07 - Styling & theme' },
+    { path: '#/editing-popups', label: '07 - Editing popups' },
+    { path: '#/multiple-instances', label: '08 - Multiple instances' },
+    { path: '#/large-graph', label: '09 - Large graph' },
+    { path: '#/programmatic-creation', label: '10 - Programmatic creation' },
+    { path: '#/canvas-layout', label: '11 - Canvas layout' }
   ];
 </script>
 

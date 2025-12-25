@@ -14,20 +14,16 @@ The examples are intentionally minimal, copy‑paste‑ready, and written in idi
 | ------------------------------ | -------------------------------------------------------------------- |
 | **01‑minimal**                 | The simplest possible usage of `GraphUI` with default props.         |
 | **02‑controlled‑state**        | Demonstrates two‑way binding and external state control.             |
-| **03‑toolbar‑features**        | Shows how to enable/disable toolbar buttons and adjust toolbar size. |
+| **03‑toolbar‑features**        | Shows how to adjust toolbar size and toggle button visibility.       |
 | **04‑zoom‑to‑node**            | Programmatically zoom to a node and handle `zoomComplete`.           |
-<!-- | **05‑read‑only‑mode**          | Use the graph in non‑interactive mode (view‑only).                   | -->
-| **06‑grid‑and‑virtualization** | Demonstrates grid snapping, grid size, and virtualization.           |
-| **07‑layout‑engines**          | Switch between `dagre` and `elkjs` layout engines.                   |
-<!-- | **08‑styling‑and‑theme**       | Adjust node/edge sizes, fonts, and theme behavior.                   | -->
-| **09‑editing‑popups**          | Shows node/edge editing popups and save/cancel flows.                |
-| **11‑multiple‑instances**      | Render multiple independent graph instances on the same page.        |
-| **12‑large‑graph**             | Recommended settings and behavior for large graphs.                  |
-| **13‑programmatic‑creation**   | Add nodes/edges programmatically from outside the component.         |
-| **14‑toolbar‑visibility**      | Fine‑grained control over which toolbar buttons are visible.         |
-<!-- | **15‑canvas‑layout**           | Embed the graph in flexible layouts and control canvas height.       | -->
+| **05‑grid‑and‑virtualization** | Demonstrates grid snapping, grid size, and virtualization.           |
+| **06‑layout‑engines**          | Switch between `dagre` and `elkjs` layout engines.                   |
+| **07‑editing‑popups**          | Shows node/edge editing popups and save/cancel flows.                |
+| **08‑multiple‑instances**      | Render multiple independent graph instances on the same page.        |
+| **09‑large‑graph**             | Recommended settings and behavior for large graphs.                  |
+| **10‑programmatic‑creation**   | Add nodes/edges programmatically from outside the component.         |
 
-> Example **10** (Gradio integration) is intentionally omitted.
+> Example **Gradio integration** is intentionally omitted.
 
 ---
 
@@ -57,10 +53,11 @@ Covers:
 
 ### **03 — Toolbar Features**
 
-Shows how to enable or disable toolbar features.  
+Shows how to customize the toolbar.  
 Covers:
 
 - `toolbar_size`
+- `toolbar_visibility` (fine-grained control over buttons)
 
 ---
 
@@ -75,18 +72,7 @@ Covers:
 
 ---
 
-<!-- ### **05 — Read‑Only Mode**
-
-Use the graph as a viewer without editing capabilities.  
-Covers:
-
-- `interactive={false}`
-- disabled editing popups
-- disabled drag/resize
-
---- -->
-
-### **06 — Grid Snapping & Virtualization**
+### **05 — Grid Snapping & Virtualization**
 
 Performance and layout helpers.  
 Covers:
@@ -97,7 +83,7 @@ Covers:
 
 ---
 
-### **07 — Layout Engines**
+### **06 — Layout Engines**
 
 Switch between DAGRE and ELK.  
 Covers:
@@ -107,20 +93,7 @@ Covers:
 
 ---
 
-<!-- ### **08 — Styling & Theme**
-
-Customize the visual appearance of nodes and edges.  
-Covers:
-
-- `node_size_scale`
-- `node_font_size`
-- `edge_width`
-- `edge_label_font_size`
-- dark/light theme behavior
-
---- -->
-
-### **09 — Editing Popups**
+### **07 — Editing Popups**
 
 Demonstrates the built‑in node and edge editing popups.  
 Covers:
@@ -132,7 +105,7 @@ Covers:
 
 ---
 
-### **11 — Multiple Instances**
+### **08 — Multiple Instances**
 
 Render multiple graphs on the same page without interference.  
 Covers:
@@ -142,7 +115,7 @@ Covers:
 
 ---
 
-### **12 — Large Graph Example**
+### **09 — Large Graph Example**
 
 Recommended settings for large graphs.  
 Covers:
@@ -153,7 +126,7 @@ Covers:
 
 ---
 
-### **13 — Programmatic Node/Edge Creation**
+### **10 — Programmatic Node/Edge Creation**
 
 Add or modify graph elements from outside the component.  
 Covers:
@@ -162,26 +135,6 @@ Covers:
 - reacting to external changes
 
 ---
-
-### **14 — Toolbar Visibility**
-
-Fine‑grained control over which toolbar buttons appear.  
-Covers:
-
-- `toolbar_visibility={{ add: false, save: true, ... }}`
-
----
-
-<!-- ### **15 — Canvas Layout**
-
-Embed the graph in flexible layouts.  
-Covers:
-
-- `canvas_min_height`
-- responsive containers
-- fullscreen behavior
-
---- -->
 
 ## 🧪 How to Run the Examples
 

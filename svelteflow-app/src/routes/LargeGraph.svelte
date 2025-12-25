@@ -18,11 +18,18 @@
         description: `Large graph node ${i}`,
         attributes: [
           {
-            key: "value",
+            key: "input-main",
             value: `${i}`,
             visible: true,
             connectable: true,
             type: "input",
+          } as Attribute,
+          {
+            key: "output-main",
+            value: `${i}`,
+            visible: true,
+            connectable: true,
+            type: "output",
           } as Attribute,
         ],
         handles: [
