@@ -43,8 +43,17 @@ class SvelteFlow(Component):
         key: int | str | tuple[int | str, ...] | None = None,
         toolbar_size: Literal[
             "extra-small", "small", "medium", "large"
-        ] = "medium",
+        ] = "small",
         canvas_min_height: str = "500px",
+        enable_virtualization: bool = False,
+        enable_grid_snap: bool = False,
+        grid_size: int = 20,
+        layout_engine: Literal["dagre", "elkjs"] = "dagre",
+        toolbar_visibility: dict[str, bool] | None = None,
+        node_size_scale: float = 1.0,
+        node_font_size: int = 14,
+        edge_width: float = 2.0,
+        edge_label_font_size: int = 12,
     ):
         """
         Parameters:
@@ -85,10 +94,32 @@ class SvelteFlow(Component):
                 if a component is re-rendered with the same key, these (and only these) parameters will be preserved
                 in the UI (if they have been changed by the user or an event listener) instead of re-rendered
                 based on the values provided during constructor.
-            canvas_min_height: min pixel height of the svelteflow canvas.
+            toolbar_size: The size of the toolbar. Can be "extra-small", "small", "medium", or "large".
+                Defaults to "small".
+            canvas_min_height: min pixel height of the svelteflow canvas. Defaults to "500px".
+            enable_virtualization: If True, only nodes inside the viewport will be rendered. Improves performance
+                for large graphs. Defaults to False.
+            enable_grid_snap: If True, nodes will snap to the grid when dragged. Defaults to False.
+            grid_size: The size of the grid in pixels. Only used if enable_grid_snap is True. Defaults to 20.
+            layout_engine: The layout engine to use for auto-layout. Can be "dagre" or "elkjs". Defaults to "dagre".
+            toolbar_visibility: A dictionary to control the visibility of specific toolbar items. Keys are item names,
+                values are booleans. Defaults to None (all visible).
+            node_size_scale: A scaling factor for the size of nodes. Defaults to 1.0.
+            node_font_size: The font size of the text inside nodes. Defaults to 14.
+            edge_width: The width of the edges in pixels. Defaults to 2.0.
+            edge_label_font_size: The font size of the text on edges. Defaults to 12.
         """
         self.toolbar_size = toolbar_size
         self.canvas_min_height = canvas_min_height
+        self.enable_virtualization = enable_virtualization
+        self.enable_grid_snap = enable_grid_snap
+        self.grid_size = grid_size
+        self.layout_engine = layout_engine
+        self.toolbar_visibility = toolbar_visibility
+        self.node_size_scale = node_size_scale
+        self.node_font_size = node_font_size
+        self.edge_width = edge_width
+        self.edge_label_font_size = edge_label_font_size
         super().__init__(
             label=label,
             info=info,
@@ -125,7 +156,6 @@ class SvelteFlow(Component):
         return value
 
     def api_info(self) -> dict[str, Any]:
-        # NOT CORRECT
         return {
             "type": "object",
             "properties": {
@@ -139,27 +169,34 @@ class SvelteFlow(Component):
                             "data": {
                                 "type": "object",
                                 "properties": {
-                                    "label": {"type": "string"},
-                                    "sources": {
+                                    "name": {"type": "string"},
+                                    "description": {"type": "string"},
+                                    "attributes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "key": {"type": "string"},
+                                                "value": {"type": "string"},
+                                                "visible": {"type": "boolean"},
+                                                "connectable": {
+                                                    "type": "boolean"
+                                                },
+                                                "type": {"type": "string"},
+                                            },
+                                        },
+                                    },
+                                    "handles": {
                                         "type": "array",
                                         "items": {
                                             "type": "object",
                                             "properties": {
                                                 "id": {"type": "string"},
+                                                "type": {"type": "string"},
                                             },
                                         },
                                     },
-                                    "targets": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {"type": "string"},
-                                            },
-                                        },
-                                    },
-                                    "topOffsetPx": {"type": "number"},
-                                    "sideOffsetPx": {"type": "number"},
+                                    "collapsed": {"type": "boolean"},
                                 },
                             },
                             "position": {
@@ -169,6 +206,14 @@ class SvelteFlow(Component):
                                     "y": {"type": "number"},
                                 },
                             },
+                            "measured": {
+                                "type": "object",
+                                "properties": {
+                                    "width": {"type": "number"},
+                                    "height": {"type": "number"},
+                                },
+                            },
+                            "selected": {"type": "boolean"},
                         },
                     },
                 },
@@ -182,10 +227,14 @@ class SvelteFlow(Component):
                             "target": {"type": "string"},
                             "sourceHandle": {"type": "string"},
                             "targetHandle": {"type": "string"},
+                            "label": {"type": "string"},
+                            "type": {"type": "string"},
                             "markerEnd": {"type": "string"},
                         },
                     },
                 },
+                "loaded": {"type": "boolean"},
+                "zoomToNodeName": {"type": "string", "nullable": True},
             },
         }
 
@@ -251,7 +300,6 @@ class SvelteFlow(Component):
                     "type": "custom",
                 }
             ],
-            # "viewport": {"x": 0, "y": 0, "zoom": 1},
             "loaded": False,
             "zoomToNodeName": None,
         }
