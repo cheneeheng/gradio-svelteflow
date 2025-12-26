@@ -13,9 +13,18 @@
   } from "@xyflow/svelte";
   import "@xyflow/svelte/dist/style.css";
   import type { Connection } from "@xyflow/system";
-  import { createEventDispatcher, getContext, onMount } from "svelte";
+  import {
+    createEventDispatcher,
+    getContext,
+    onMount,
+    onDestroy,
+  } from "svelte";
   import { get, writable } from "svelte/store";
-  import { ZOOM_ANIMATION_DURATION, ZOOM_COMPLETE_BUFFER } from "../constants";
+  import {
+    ZOOM_ANIMATION_DURATION,
+    ZOOM_COMPLETE_BUFFER,
+    MOVE_END_DELAY,
+  } from "../constants";
   import { activeStoreId } from "../stores/activeStore";
   import { storeKey } from "../stores/context";
   import type { GraphStores } from "../stores/instanceStore";
@@ -121,21 +130,32 @@
     if (!enable_virtualization) return;
 
     isUpdatingVisibility = true;
+    const nodes = get(customNodes);
     const visibleIds = spatialIndex.query(currentViewport, {
       width: containerWidth,
       height: containerHeight,
     });
 
-    visibleNodes.set(get(customNodes).filter((n) => visibleIds.has(n.id)));
+    // Always keep selected or dragging nodes visible to prevent infinite panning/loss of state
+    const finalVisibleNodes = nodes.filter(
+      (n) => visibleIds.has(n.id) || n.selected || n.dragging
+    );
+    const finalVisibleNodeIds = new Set(finalVisibleNodes.map((n) => n.id));
+
+    visibleNodes.set(finalVisibleNodes);
     visibleEdges.set(
       get(customEdges).filter(
-        (e) => visibleIds.has(e.source) || visibleIds.has(e.target)
+        (e) =>
+          finalVisibleNodeIds.has(e.source) ||
+          finalVisibleNodeIds.has(e.target) ||
+          e.selected
       )
     );
     isUpdatingVisibility = false;
   }
 
   function handleMove(e: CustomEvent<{ viewport: Viewport }>) {
+    console.log(e.detail);
     const vp = e.detail.viewport;
     currentViewport = vp;
     stores.viewport.set(vp);
@@ -154,6 +174,11 @@
   // Reactively update index and visibility when nodes change
   $: if (enable_virtualization && $customNodes) {
     spatialIndex.update($customNodes);
+    updateVisibility();
+  }
+
+  // Update visibility when container dimensions change
+  $: if (enable_virtualization && (containerWidth || containerHeight)) {
     updateVisibility();
   }
 
@@ -201,14 +226,46 @@
   // ----------
   // Reactivity + svelte utils
   // ----------
+
+  // Get fitView from useSvelteFlow hook
+  const { fitView, viewport } = useSvelteFlow();
+
+  // Unsubscribe handle + moveend timer
+  let unsubscribeViewport: () => void;
+  let moveEndTimeout: any;
+
+  // Subscribe to viewport changes (panning + zooming)
   onMount(() => {
+    // Sync flow instance
     if (flowInstanceLocal) {
       flowInstance.set(flowInstanceLocal);
     }
+
+    // Listen to viewport changes
+    unsubscribeViewport = viewport.subscribe((vp) => {
+      // Update local + global viewport
+      currentViewport = vp;
+      stores.viewport.set(vp);
+
+      // Update virtualization visibility
+      updateVisibility();
+
+      // --- synthesize moveend ---
+      clearTimeout(moveEndTimeout);
+      moveEndTimeout = setTimeout(() => {
+        emitChange({
+          eventType: "viewportChange",
+          handleId: "graph:viewport",
+          sourceType: "viewport",
+          timestamp: new Date().toISOString(),
+        });
+      }, MOVE_END_DELAY);
+    });
   });
 
-  // Get fitView from useSvelteFlow hook
-  const { fitView } = useSvelteFlow();
+  onDestroy(() => {
+    unsubscribeViewport?.();
+  });
 
   // Watch for zoom requests from parent via store
   $: if ($zoomToNodeName) {
@@ -275,6 +332,24 @@
     on:moveend={handleMoveEnd}
     on:nodedragstart={(e) => handleNodeDragStart(e, stores)}
     on:nodedragstop={(e) => {
+      // Manually sync the final position from the event to ensure customNodes is up to date
+      // regardless of bind:nodes timing or virtualization hiding the node.
+      const draggedNodesMap = new Map(e.detail.nodes.map((n) => [n.id, n]));
+      customNodes.update((nodes) =>
+        nodes.map((n) => {
+          const dragged = draggedNodesMap.get(n.id);
+          if (dragged) {
+            return {
+              ...n,
+              position: dragged.position,
+              dragging: false,
+              selected: dragged.selected,
+            };
+          }
+          return n;
+        })
+      );
+
       handleNodeDragStop(e, stores);
       emitChange({
         eventType: "nodeMove",

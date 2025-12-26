@@ -11,6 +11,9 @@ export const ZOOM_COMPLETE_BUFFER = 50; // milliseconds after animation
  */
 export const SEARCH_DEBOUNCE_DELAY = 300; // milliseconds
 
+// How long after the last movement to fire "moveend"
+export const MOVE_END_DELAY = 120;
+
 /**
  * Layout configuration for dagre
  */
